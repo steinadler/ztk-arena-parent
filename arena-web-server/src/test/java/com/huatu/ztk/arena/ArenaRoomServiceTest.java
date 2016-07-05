@@ -1,8 +1,12 @@
 package com.huatu.ztk.arena;
 
+import com.google.common.primitives.Longs;
+import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomSummary;
+import com.huatu.ztk.arena.common.ArenaErrors;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.service.ArenaRoomService;
+import com.huatu.ztk.commons.spring.BizException;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,6 +18,8 @@ import org.springframework.data.redis.core.*;
 
 import javax.annotation.Resource;
 import javax.xml.bind.annotation.XmlAttribute;
+
+import static com.huatu.ztk.arena.common.ArenaErrors.ROOM_NOT_EXIST;
 
 /**
  * Created by shaojieyue
@@ -27,6 +33,81 @@ public class ArenaRoomServiceTest extends BaseTest{
 
     @Resource(name = "arenaRedisTemplate")
     private RedisTemplate arenaRedisTemplate;
+
+    long uid = 12252065;
+
+    @Test
+    public void createTest(){
+        int[] counts = new int[]{2,4,8};
+        for (int i = 0; i < 100; i++) {
+            int count = counts[RandomUtils.nextInt(0,counts.length)];
+            final ArenaRoom arenaRoom = arenaRoomService.create(count);
+            Assert.assertNotNull(arenaRoom);
+            Assert.assertEquals(arenaRoom.getQcount(),ArenaRoomService.ARENA_QCOUNT);
+            Assert.assertTrue(arenaRoom.getCreateTime()>0);
+            Assert.assertTrue(arenaRoom.getId()>0);
+            Assert.assertEquals(arenaRoom.getMaxPlayerCount(),count);
+            Assert.assertEquals(arenaRoom.getTime(),ArenaRoomService.ARENA_LIMIT_TIME);
+            Assert.assertNotNull(arenaRoom.getPracticePaper());
+        }
+    }
+
+    @Test
+    public void joinRoom() throws BizException {
+
+        Object room = arenaRedisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
+        if (room != null) {
+            arenaRoomService.quitRoom(Long.valueOf(room.toString()),uid);
+        }
+        long noExistRoomId = 1234;
+        try {
+            arenaRoomService.joinRoom(noExistRoomId,uid);
+            Assert.assertFalse(true);
+        }catch (BizException e){
+            Assert.assertEquals(ROOM_NOT_EXIST.getCode(),e.getErrorResult().getCode());
+        }
+
+        final int existRoomId = 23449126;
+        arenaRoomService.joinRoom(existRoomId,uid);
+        room = arenaRedisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
+        Assert.assertEquals(Integer.valueOf(room.toString()).intValue(), existRoomId);
+
+        ArenaRoom arenaRoom = arenaRoomService.findById(existRoomId);
+        Assert.assertTrue(arenaRoom.getPlayers().indexOf(uid)>=0);
+        arenaRoomService.joinRoom(existRoomId,uid);
+
+        try {
+            arenaRoomService.joinRoom(23449128,uid);
+            Assert.assertFalse(true);
+        }catch (BizException e){
+            Assert.assertEquals(ArenaErrors.USER_IN_ROOM.getCode(),e.getErrorResult().getCode());
+        }
+    }
+
+    @Test
+    public void quitRoom() throws BizException {
+        Object room = arenaRedisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
+        if (room != null) {
+            arenaRoomService.quitRoom(Long.valueOf(room.toString()),uid);
+        }
+
+        final int roomId = 23449128;
+        try {
+            arenaRoomService.joinRoom(roomId,uid);
+        }catch (Exception e){
+        }
+        final String str = (String)arenaRedisTemplate.opsForValue().get(RedisArenaKeys.getArenaOnlineCount());
+        Long onlineCount = Longs.tryParse(str);
+        if (onlineCount == null) {
+            onlineCount = 0L;
+        }
+        arenaRoomService.quitRoom(roomId,uid);
+        final ArenaRoom arenaRoom = arenaRoomService.findById(roomId);
+        Assert.assertTrue(arenaRoom.getPlayers().indexOf(uid)<0);
+        Assert.assertFalse(arenaRedisTemplate.hasKey(RedisArenaKeys.getUserRoomKey(uid)));
+        Assert.assertEquals(onlineCount-1,Longs.tryParse((String)arenaRedisTemplate.opsForValue().get(RedisArenaKeys.getArenaOnlineCount())).longValue());
+
+    }
 
     @Test
     public void summaryTest(){

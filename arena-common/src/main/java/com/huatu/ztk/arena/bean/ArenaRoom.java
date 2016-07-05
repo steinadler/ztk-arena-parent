@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
@@ -21,10 +22,11 @@ import java.util.List;
 @Builder
 @Document(collection = "ztk_arena_room")
 public class ArenaRoom {
+    @Id
     private long id;//房间号
     private String name;//房间名称
     private String module;//考试模块
-    private String time;//答题时间
+    private int time;//答题时间
     private int qcount;//题量
     private int maxPlayerCount;//最大的玩家人数
     private int status;//房间状态

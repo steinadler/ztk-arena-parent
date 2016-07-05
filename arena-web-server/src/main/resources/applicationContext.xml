@@ -21,7 +21,6 @@
           class="com.baidu.disconf.client.addons.properties.ReloadablePropertiesFactoryBean">
         <property name="locations">
             <list>
-                <value>file:#{systemProperties['disconf.user_define_download_dir']}/jdbc.properties</value>
                 <value>file:#{systemProperties['disconf.user_define_download_dir']}/mongodb.properties</value>
                 <value>file:#{systemProperties['disconf.user_define_download_dir']}/zookeeper.properties</value>
                 <value>file:#{systemProperties['disconf.user_define_download_dir']}/redis.properties</value>
@@ -44,4 +43,6 @@
 
     <import resource="classpath*:spring-session-redis.xml"/>
     <import resource="applicationContext-redis.xml"/>
+    <import resource="applicationContext-mangodb.xml"/>
+    <import resource="applicationContext-dubbo.xml"/>
 </beans>
