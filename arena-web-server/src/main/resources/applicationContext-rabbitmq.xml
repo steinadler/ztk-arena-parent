@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+ http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+
+    <!-- 连接服务配置  -->
+    <rabbit:connection-factory id="connectionFactory" host="${rabbitmq.address}" username="rabbitmq_ztk"
+                               password="rabbitmq_ztk" port="5672"  />
+    <rabbit:admin connection-factory="connectionFactory"/>
+
+    <bean id="practiceMessageListener" class="com.huatu.ztk.report.task.PracticeMessageListener"></bean>
+    <bean id="questionAnswerMessageListener" class="com.huatu.ztk.report.task.QuestionAnswerMessageListener"></bean>
+    <!-- queue litener  观察 监听模式 当有消息到达时会通知监听在对应的队列上的监听对象-->
+    <rabbit:listener-container connection-factory="connectionFactory" acknowledge="auto">
+        <rabbit:listener queue-names="submit_answers_queue_report" ref="questionAnswerMessageListener"/>
+        <rabbit:listener queue-names="submit_practice_report" ref="practiceMessageListener"/>
+    </rabbit:listener-container>
+</beans>

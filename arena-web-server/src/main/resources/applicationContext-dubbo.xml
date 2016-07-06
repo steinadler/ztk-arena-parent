@@ -11,4 +11,5 @@
     <dubbo:protocol name="dubbo" port="-1" serialization="kryo"/>
 
     <dubbo:reference id="practiceDubboService"  interface="com.huatu.ztk.paper.api.PracticeDubboService"/>
+    <dubbo:reference id="practiceCardDubboService"  interface="com.huatu.ztk.paper.api.PracticeCardDubboService"/>
 </beans>

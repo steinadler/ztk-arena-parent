@@ -45,4 +45,5 @@
     <import resource="applicationContext-redis.xml"/>
     <import resource="applicationContext-mangodb.xml"/>
     <import resource="applicationContext-dubbo.xml"/>
+    <import resource="applicationContext-rabbitmq.xml"/>
 </beans>

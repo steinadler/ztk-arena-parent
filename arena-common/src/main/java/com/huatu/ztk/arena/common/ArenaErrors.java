@@ -35,6 +35,22 @@ public class ArenaErrors {
      */
     public static final ErrorResult FINISHED_ONGOING_CAN_NOT_JOIN = ErrorResult.create(1610004,"正进行的或已结束的不允许加入");
 
+    /**
+     * 房间人员已满,加入失败
+     * 没有空闲的座位
+     */
+    public static final ErrorResult ROOM_NO_FREE_SEAT = ErrorResult.create(1610005,"房间人员已满,加入失败");
+
+    /**
+     * 进入房间失败,请重试
+     */
+    public static final ErrorResult JOIN_ROOM_FAIL = ErrorResult.create(1610006,"进入房间失败,请重试");
+
+    /**
+     * 没有足够的人数
+     */
+    public static final ErrorResult NOT_ENOUGH_PLAYER = ErrorResult.create(1610007,"没有足够的玩家");
+
 
 
 

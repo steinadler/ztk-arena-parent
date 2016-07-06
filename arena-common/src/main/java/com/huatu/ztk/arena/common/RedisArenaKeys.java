@@ -12,15 +12,19 @@ public class RedisArenaKeys {
      */
     public static final String ARENA_ONLINE_COUNT  =  "arena_online_count";
 
-    /**
-     * 在线房间列表
-     */
-    public static final String ONLINE_ROOM_LIST = "online_room_list";
 
     /**
      * 进行中的房间列表
      */
     public static final String ONGOING_ROOM_LIST = "ongoing_room_list";
+
+    /**
+     * 获取房间空余人数的key
+     * @return
+     */
+    public static final String getRoomFreePlayersKey(){
+        return "room_free_player";
+    }
 
     /**
      * 在线人数 key
@@ -38,13 +42,6 @@ public class RedisArenaKeys {
         return ONGOING_ROOM_LIST;
     }
 
-    /**
-     * 在线房间列表 key
-     * @return
-     */
-    public static final String getOnlineRoomListKey(){
-        return ONLINE_ROOM_LIST;
-    }
 
     /**
      * 用户参加的房间key

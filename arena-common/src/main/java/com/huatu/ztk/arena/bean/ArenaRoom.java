@@ -33,5 +33,7 @@ public class ArenaRoom {
     private List<Long> players;//参加人员列表
     private List<Long> practices;//参加人员对应的练习id
     private PracticePaper practicePaper;//房间对应的练习
+    private int myRank;//我的排名
+    private List<ArenaResult> results;//竞技结果
     private long createTime;//创建时间
 }

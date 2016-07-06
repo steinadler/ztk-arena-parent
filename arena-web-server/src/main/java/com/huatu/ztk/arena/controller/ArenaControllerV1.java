@@ -4,12 +4,14 @@ import com.google.common.base.Strings;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomSummary;
 import com.huatu.ztk.arena.service.ArenaRoomService;
+import com.huatu.ztk.commons.PageBean;
 import com.huatu.ztk.commons.spring.BizException;
 import com.huatu.ztk.user.common.UserErrors;
 import com.huatu.ztk.user.service.UserSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,9 +42,27 @@ public class ArenaControllerV1 {
         return arenaRoomSummary;
     }
 
+    /**
+     * 查询房间列表
+     * @param cursor
+     * @return
+     */
     @RequestMapping(value = "")
-    public Object list(){
-        return null;
+    public Object list(@RequestParam long cursor){
+        cursor = Long.max(cursor,0);
+        PageBean arenaRoomPage = arenaRoomService.findForPage(cursor);
+        return arenaRoomPage;
+    }
+
+    /**
+     * 根据id查询房间信息
+     * @param roomId
+     * @return
+     */
+    @RequestMapping(value = "{roomId}" ,method = RequestMethod.GET)
+    public Object get(@PathVariable long roomId){
+        final ArenaRoom arenaRoom = arenaRoomService.findById(roomId);
+        return arenaRoom;
     }
 
     /**
@@ -69,7 +89,7 @@ public class ArenaControllerV1 {
      * @param token
      * @return
      */
-    @RequestMapping(value = "{roomId}/players" ,method = RequestMethod.PUT)
+    @RequestMapping(value = "{roomId}/players" ,method = RequestMethod.DELETE)
     public Object quitRoom(@PathVariable long roomId, @RequestHeader String token) throws BizException {
         if (Strings.isNullOrEmpty(token) || userSessionService.isExpire(token)) {//用户会话过期
             return UserErrors.SESSION_EXPIRE;
@@ -77,6 +97,22 @@ public class ArenaControllerV1 {
         //用户id
         long uid = userSessionService.getUid(token);
         final ArenaRoom arenaRoom = arenaRoomService.quitRoom(roomId, uid);
+        return arenaRoom;
+    }
+
+    /**
+     * 智能加入房间
+     * @param token
+     * @return
+     */
+    @RequestMapping(value = "smartJoin",method = RequestMethod.PUT)
+    public Object smartJoin( @RequestHeader String token) throws BizException {
+        if (Strings.isNullOrEmpty(token) || userSessionService.isExpire(token)) {//用户会话过期
+            return UserErrors.SESSION_EXPIRE;
+        }
+        //用户id
+        long uid = userSessionService.getUid(token);
+        final ArenaRoom arenaRoom = arenaRoomService.smartJoin(uid);
         return arenaRoom;
     }
 
