@@ -86,11 +86,11 @@ public class ArenaRoomService {
     public ArenaRoomSummary summary() {
         final List list = arenaRedisTemplate.executePipelined(new SessionCallback<Object>() {
             public Object execute(RedisOperations operations) throws DataAccessException {
-                final ListOperations listOperations = operations.opsForList();
+                final SetOperations setOperations = operations.opsForSet();
                 final ValueOperations valueOperations = operations.opsForValue();
                 valueOperations.get(RedisArenaKeys.ARENA_ONLINE_COUNT);//在线人数
                 operations.opsForZSet().size(RedisArenaKeys.getRoomFreePlayersKey());//房间总数量
-                listOperations.size(RedisArenaKeys.ONGOING_ROOM_LIST);//正在考试的房间
+                setOperations.size(RedisArenaKeys.ONGOING_ROOM_LIST);//正在考试的房间
                 return null;
             }
         });

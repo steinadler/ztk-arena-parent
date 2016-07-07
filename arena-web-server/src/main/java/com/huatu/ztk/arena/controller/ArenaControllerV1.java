@@ -54,7 +54,7 @@ public class ArenaControllerV1 {
      * @return
      */
     @RequestMapping(value = "")
-    public Object list(@RequestParam long cursor,@RequestParam int type){
+    public Object list(@RequestParam(defaultValue = "0") long cursor,@RequestParam(defaultValue = "-1") int type){
         cursor = Long.max(cursor,0);
         PageBean arenaRoomPage = arenaRoomService.findForPage(cursor,type);
         return arenaRoomPage;
