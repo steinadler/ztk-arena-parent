@@ -313,7 +313,7 @@ public class ArenaRoomService {
      */
     public ArenaRoom create(int playerCount){
         final int index = RandomUtils.nextInt(0, ModuleConstants.GOWUYUAN_MODULES.size());
-
+        int type = ArenaRoomType.RANDOM_POINT;//默认是随机知识点
         String roomName = "竞技-综合知识点";
         //默认随机知识点
         int moduleId = -1;
@@ -322,6 +322,7 @@ public class ArenaRoomService {
             final Module module = ModuleConstants.GOWUYUAN_MODULES.get(index);
             moduleId = module.getId();
             roomName = "竞技-"+module.getName();
+            type = ArenaRoomType.SPECIFIED_POINT;
         }
 
         final PracticePaper practicePaper = practiceDubboService.create(moduleId, ARENA_QCOUNT, SubjectType.SUBJECT_GONGWUYUAN);
@@ -338,6 +339,7 @@ public class ArenaRoomService {
         final ArenaRoom arenaRoom = ArenaRoom.builder()
                 .createTime(System.currentTimeMillis())
                 .id(id)
+                .type(type)
                 .maxPlayerCount(playerCount)
                 .module(roomName)
                 .name(roomName)
