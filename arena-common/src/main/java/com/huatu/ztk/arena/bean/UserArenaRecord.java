@@ -1,10 +1,8 @@
 package com.huatu.ztk.arena.bean;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -26,6 +24,8 @@ public class UserArenaRecord {
     private long uid;//用户id
     private String nick;//昵称
     private int arenaCount;//竞技次数
+    private int winCount;//胜场次数
     private double avgScore;//竞技平均分
+    @Getter(onMethod = @__({ @JsonIgnore }))
     private List<Long> arenas;
 }

@@ -12,5 +12,5 @@
 
     <dubbo:reference id="practiceDubboService"  interface="com.huatu.ztk.paper.api.PracticeDubboService"/>
     <dubbo:reference id="practiceCardDubboService"  interface="com.huatu.ztk.paper.api.PracticeCardDubboService"/>
-    <dubbo:reference id="userDubboService"  interface="com.huatu.ztk.user.dubbo.UserDubboService"/>
+    <dubbo:reference id="userDubboService" timeout="3000"  interface="com.huatu.ztk.user.dubbo.UserDubboService"/>
 </beans>

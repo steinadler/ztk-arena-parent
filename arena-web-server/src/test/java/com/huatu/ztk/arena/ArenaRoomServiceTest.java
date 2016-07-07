@@ -8,6 +8,8 @@ import com.huatu.ztk.arena.common.ArenaErrors;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.spring.BizException;
+import com.huatu.ztk.user.bean.UserDto;
+import com.huatu.ztk.user.dubbo.UserDubboService;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,6 +36,10 @@ public class ArenaRoomServiceTest extends BaseTest{
 
     @Resource(name = "arenaRedisTemplate")
     private RedisTemplate arenaRedisTemplate;
+
+
+    @Autowired
+    private UserDubboService userDubboService;
 
     long uid = 12252065;
 
@@ -159,5 +165,11 @@ public class ArenaRoomServiceTest extends BaseTest{
 //        Assert.assertEquals(summary.getPlayerCount(),count);
 //        Assert.assertEquals(summary.getRoomCount(),roomCount);
 //        Assert.assertEquals(summary.getFreeCount(),roomCount-ongoingRoomCount);
+    }
+
+    @Test
+    public void findByIdTest(){
+        final UserDto userDto = userDubboService.findById(12252065);
+        System.out.println(userDto);
     }
 }

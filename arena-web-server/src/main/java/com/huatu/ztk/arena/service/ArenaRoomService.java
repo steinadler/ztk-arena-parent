@@ -355,6 +355,28 @@ public class ArenaRoomService {
         return arenaRoom;
     }
 
+    /**
+     * 查询用户竞技记录,如果不存在,则初始化用户它
+     * @param uid
+     * @return
+     */
+    public UserArenaRecord findAndInit(long uid){
+        UserArenaRecord userArenaRecord = userArenaRecordDao.findByUid(uid);
+        //用户还没有竞技记录,则创建新的
+        if (userArenaRecord == null) {
+            final UserDto userDto = userDubboService.findById(uid);
+            userArenaRecord = UserArenaRecord.builder()
+                    .arenas(new ArrayList<>())
+                    .arenaCount(0)
+                    .nick(userDto.getNick())
+                    .avgScore(0)
+                    .uid(uid)
+                    .build();
+        }
+
+        return userArenaRecord;
+    }
+
 
     public ArenaRoom findById(long id) {
         return arenaRoomDao.findById(id);
@@ -481,9 +503,16 @@ public class ArenaRoomService {
         List<ArenaResult> results = arenaRoom.getResults();
         //初始化结果集合,防止空指针异常
         if (results == null) {
-            results = arenaRoom.getResults();
+            results = new ArrayList<>();
         }
         final long uid = answerCard.getUserId();
+        //遍历已有结果,防止重复处理
+        for (ArenaResult result : results) {
+            if (result.getUid() == uid) {//已经处理过的,不需要再进行处理
+                logger.warn(" practiceId={} is in ArenaRoom results,so skip it.");
+                return;
+            }
+        }
         final UserDto userDto = userDubboService.findById(uid);
         final ArenaResult arenaResult = ArenaResult.builder()
                 .elapsedTime(answerCard.getExpendTime())
@@ -492,13 +521,7 @@ public class ArenaRoomService {
                 .uid(uid)
                 .build();
 
-        //遍历已有结果,防止重复处理
-        for (ArenaResult result : results) {
-            if (result.getUid() == uid) {//已经处理过的,不需要再进行处理
-                logger.warn("practiceId={} is in ArenaRoom results,so skip it.");
-                return;
-            }
-        }
+
 
         //添加新的竞技结果
         results.add(arenaResult);
@@ -523,8 +546,18 @@ public class ArenaRoomService {
         //状态设置为已完成
         arenaRoom.setStatus(ArenaRoomStatus.FINISHED);
         arenaRoomDao.save(arenaRoom);
-        //从正在进行的房间移除
-        arenaRedisTemplate.opsForSet().remove(RedisArenaKeys.getOngoingRoomList(),arenaRoom.getId()+"");
+
+        arenaRedisTemplate.executePipelined(new SessionCallback<Object>() {
+            @Override
+            public Object execute(RedisOperations operations) throws DataAccessException {
+                //从正在进行的房间移除
+                operations.opsForSet().remove(RedisArenaKeys.getOngoingRoomList(),arenaRoom.getId()+"");
+                //删除用户的房间状态
+                operations.delete(RedisArenaKeys.getUserRoomKey(uid));
+                return null;
+            }
+        });
+
         logger.info("add arena result roomId={}, data={}",arenaRoom.getId(), JsonUtil.toJson(arenaResult));
 
 
@@ -536,7 +569,14 @@ public class ArenaRoomService {
         if (arenaRoom.getPlayers().size() <= arenaRoom.getResults().size()) {
             final ZSetOperations<String, String> zSetOperations = arenaRedisTemplate.opsForZSet();
             //第一名的用户胜利场次+1
-            zSetOperations.incrementScore(RedisArenaKeys.getArenaRankKey(),arenaRoom.getResults().get(0).getUid()+"",1);
+            final long winUid = arenaRoom.getResults().get(0).getUid();
+            zSetOperations.incrementScore(RedisArenaKeys.getArenaRankKey(), winUid +"",1);
+
+            final UserArenaRecord userArenaRecord = userArenaRecordDao.findByUid(winUid);
+            //第一名胜场+1
+            userArenaRecord.setWinCount(userArenaRecord.getWinCount()+1);
+            //更新用户胜场信息
+            userArenaRecordDao.save(userArenaRecord);
         }
     }
 
@@ -549,17 +589,7 @@ public class ArenaRoomService {
     private void updateUserArenaRecord(long arenaId,AnswerCard answerCard,UserDto userDto){
         logger.info("update userId={} UserArenaRecord,arenaId={}",answerCard.getId(),arenaId);
         final long uid = answerCard.getUserId();
-        UserArenaRecord userArenaRecord = userArenaRecordDao.findByUid(uid);
-
-        //用户还没有竞技记录,则创建新的
-        if (userArenaRecord == null) {
-            userArenaRecord = UserArenaRecord.builder()
-                    .arenas(new ArrayList<>())
-                    .arenaCount(0)
-                    .avgScore(0)
-                    .uid(uid)
-                    .build();
-        }
+        UserArenaRecord userArenaRecord = findAndInit(uid);
 
 
         final List<Long> arenas = userArenaRecord.getArenas();
@@ -590,7 +620,7 @@ public class ArenaRoomService {
      */
     public PageBean<ArenaRoom> findMyArenas(long uid, long cursor) {
         cursor = Long.max(cursor,0);
-        final UserArenaRecord userArenaRecord = userArenaRecordDao.findByUid(uid);
+        final UserArenaRecord userArenaRecord = findAndInit(uid);
         final List<Long> arenas = userArenaRecord.getArenas();
         long start = cursor;
         if (start >= arenas.size()) {//大于,说明没有新数据
@@ -599,6 +629,24 @@ public class ArenaRoomService {
         long end = Long.min(arenas.size(),start+20);
         final List<Long> roomIds = arenas.subList((int) start, (int) end);
         final List<ArenaRoom> arenaRooms = arenaRoomDao.findByIds(roomIds);
+
+        //遍历房间,计算用户每个房间的排名情况
+        for (ArenaRoom arenaRoom : arenaRooms) {
+            final List<ArenaResult> results = arenaRoom.getResults();
+
+            int myRank = arenaRoom.getPlayers().size()+1;//默认所有玩家最后一名
+            if (arenaRoom.getType() == ArenaRoomStatus.FINISHED) {
+                myRank = arenaRoom.getResults().size()+1;//已经完成的,则取所有交卷的最后一名+1
+            }
+            for (int i = 0; i < results.size(); i++) {
+                if (results.get(i).getUid() == uid) {//本人答题卡
+                    myRank = i+1;//本人答题卡的位置即为排名
+                    break;
+                }
+            }
+            //动态设置我的排名
+            arenaRoom.setMyRank(myRank);
+        }
         return new PageBean<ArenaRoom>(arenaRooms,end,-1);
     }
 
@@ -634,6 +682,8 @@ public class ArenaRoomService {
         if (rank == null) {
             final Long size = zSetOperations.size(RedisArenaKeys.getArenaRankKey());
             rank = size+1;
+        }else {
+            rank = rank +1;//索引是从0开始的
         }
         return rank;
     }
