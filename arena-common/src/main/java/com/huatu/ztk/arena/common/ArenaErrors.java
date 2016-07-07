@@ -51,6 +51,11 @@ public class ArenaErrors {
      */
     public static final ErrorResult NOT_ENOUGH_PLAYER = ErrorResult.create(1610007,"没有足够的玩家");
 
+    /**
+     * 房间状态异常
+     */
+    public static final ErrorResult ROOM_STATUS_EXCEPTION = ErrorResult.create(1610007,"房间状态异常");
+
 
 
 

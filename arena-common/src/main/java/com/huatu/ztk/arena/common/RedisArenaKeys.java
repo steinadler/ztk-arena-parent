@@ -62,5 +62,13 @@ public class RedisArenaKeys {
         return "room_id_key";
     }
 
+    /**
+     * 用户排名key
+     * @return
+     */
+    public static final String getArenaRankKey(){
+        return "arena_rank_key";
+    }
+
 
 }

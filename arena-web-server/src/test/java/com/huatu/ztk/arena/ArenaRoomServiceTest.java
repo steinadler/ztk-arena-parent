@@ -40,7 +40,7 @@ public class ArenaRoomServiceTest extends BaseTest{
     @Test
     public void createTest(){
         int[] counts = new int[]{2,4,8};
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 60; i++) {
             int count = counts[RandomUtils.nextInt(0,counts.length)];
             final ArenaRoom arenaRoom = arenaRoomService.create(count);
             Assert.assertNotNull(arenaRoom);

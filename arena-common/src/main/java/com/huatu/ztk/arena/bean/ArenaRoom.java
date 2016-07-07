@@ -24,6 +24,7 @@ import java.util.List;
 public class ArenaRoom {
     @Id
     private long id;//房间号
+    private int type;//房间类型
     private String name;//房间名称
     private String module;//考试模块
     private int time;//答题时间

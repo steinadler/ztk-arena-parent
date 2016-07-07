@@ -1,20 +1,16 @@
 package com.huatu.ztk.arena.task;
 
 import com.google.common.primitives.Longs;
-import com.huatu.ztk.arena.bean.ArenaResult;
-import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.JsonUtil;
-import com.huatu.ztk.paper.api.PracticeCardDubboService;
-import com.huatu.ztk.paper.bean.AnswerCard;
-import com.huatu.ztk.paper.common.AnswerCardType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by shaojieyue
@@ -23,8 +19,6 @@ import java.util.*;
 public class PracticeMessageListener implements MessageListener {
     private static final Logger logger = LoggerFactory.getLogger(PracticeMessageListener.class);
 
-    @Autowired
-    private PracticeCardDubboService practiceCardDubboService;
 
     @Autowired
     private ArenaRoomService arenaRoomService;
