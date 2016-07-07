@@ -36,6 +36,7 @@ public class PracticeMessageListener implements MessageListener {
         if (data.containsKey("id")) {
             id = Longs.tryParse(data.get("id").toString());
         }
+
         if (id == null) {
             logger.error("message not contain key id,skip it. data={}",text);
             return;

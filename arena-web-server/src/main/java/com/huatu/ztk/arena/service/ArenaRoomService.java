@@ -20,7 +20,6 @@ import com.huatu.ztk.paper.bean.PracticePaper;
 import com.huatu.ztk.paper.common.AnswerCardType;
 import com.huatu.ztk.user.bean.UserDto;
 import com.huatu.ztk.user.dubbo.UserDubboService;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -472,7 +471,7 @@ public class ArenaRoomService {
         final long practiceId = answerCard.getId();
 
         //查询该练习对应的竞技场房间
-        final ArenaRoom arenaRoom = findById(practiceId);
+        final ArenaRoom arenaRoom = arenaRoomDao.findByPracticeId(practiceId);
         if (arenaRoom == null) {
             logger.error("practiceId={} not find it`s arean room.");
             return;
