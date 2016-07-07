@@ -130,7 +130,7 @@ public class ArenaControllerV1 {
      * @return
      * @throws BizException
      */
-    @RequestMapping(value = "{roomId}/pk",method = RequestMethod.POST)
+    @RequestMapping(value = "{roomId}/pk",method = RequestMethod.PUT)
     public Object startPk(@PathVariable long roomId,@RequestHeader int terminal,@RequestHeader String token) throws BizException {
         if (Strings.isNullOrEmpty(token) || userSessionService.isExpire(token)) {//用户会话过期
             return UserErrors.SESSION_EXPIRE;
