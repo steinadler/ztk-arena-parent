@@ -486,6 +486,11 @@ public class ArenaRoomService {
      */
     public void addArenaResult(long id) {
         AnswerCard answerCard = practiceCardDubboService.findById(id);
+        if (answerCard == null) {
+            logger.error("practiceId={} not exist",id);
+            return;
+        }
+
         if (answerCard.getType() != AnswerCardType.ARENA_PAPER) {//只处理竞技场的答题卡
             return;
         }
