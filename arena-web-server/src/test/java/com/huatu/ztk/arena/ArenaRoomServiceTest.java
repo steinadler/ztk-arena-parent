@@ -3,7 +3,6 @@ package com.huatu.ztk.arena;
 import com.google.common.primitives.Longs;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
-import com.huatu.ztk.arena.bean.ArenaRoomSummary;
 import com.huatu.ztk.arena.common.ArenaErrors;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.service.ArenaRoomService;
@@ -16,11 +15,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.*;
 
 import javax.annotation.Resource;
-import javax.xml.bind.annotation.XmlAttribute;
 
 import static com.huatu.ztk.arena.common.ArenaErrors.ROOM_NOT_EXIST;
 
@@ -34,8 +31,8 @@ public class ArenaRoomServiceTest extends BaseTest{
     @Autowired
     private ArenaRoomService arenaRoomService;
 
-    @Resource(name = "arenaRedisTemplate")
-    private RedisTemplate arenaRedisTemplate;
+    @Resource(name = "redisTemplate")
+    private RedisTemplate redisTemplate;
 
 
     @Autowired
@@ -62,7 +59,7 @@ public class ArenaRoomServiceTest extends BaseTest{
     @Test
     public void joinRoom() throws BizException {
 
-        Object room = arenaRedisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
+        Object room = redisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
         if (room != null) {
             arenaRoomService.quitRoom(Long.valueOf(room.toString()),uid);
         }
@@ -77,7 +74,7 @@ public class ArenaRoomServiceTest extends BaseTest{
 
         final int existRoomId = 23449484;
         arenaRoomService.joinRoom(existRoomId,uid);
-        room = arenaRedisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
+        room = redisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
         Assert.assertEquals(Integer.valueOf(room.toString()).intValue(), existRoomId);
 
         ArenaRoom arenaRoom = arenaRoomService.findById(existRoomId);
@@ -95,7 +92,7 @@ public class ArenaRoomServiceTest extends BaseTest{
 
     @Test
     public void quitRoomTest() throws BizException {
-        Object room = arenaRedisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
+        Object room = redisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
         if (room != null) {
             arenaRoomService.quitRoom(Long.valueOf(room.toString()),uid);
         }
@@ -105,7 +102,7 @@ public class ArenaRoomServiceTest extends BaseTest{
             arenaRoomService.joinRoom(roomId,uid);
         }catch (Exception e){
         }
-        final String str = (String)arenaRedisTemplate.opsForValue().get(RedisArenaKeys.getArenaOnlineCount());
+        final String str = (String) redisTemplate.opsForValue().get(RedisArenaKeys.getArenaOnlineCount());
         Long onlineCount = Longs.tryParse(str);
         if (onlineCount == null) {
             onlineCount = 0L;
@@ -113,14 +110,14 @@ public class ArenaRoomServiceTest extends BaseTest{
         arenaRoomService.quitRoom(roomId,uid);
         final ArenaRoom arenaRoom = arenaRoomService.findById(roomId);
         Assert.assertTrue(arenaRoom.getPlayers().indexOf(uid)<0);
-        Assert.assertFalse(arenaRedisTemplate.hasKey(RedisArenaKeys.getUserRoomKey(uid)));
-        Assert.assertEquals(onlineCount-1,Longs.tryParse((String)arenaRedisTemplate.opsForValue().get(RedisArenaKeys.getArenaOnlineCount())).longValue());
+        Assert.assertFalse(redisTemplate.hasKey(RedisArenaKeys.getUserRoomKey(uid)));
+        Assert.assertEquals(onlineCount-1,Longs.tryParse((String) redisTemplate.opsForValue().get(RedisArenaKeys.getArenaOnlineCount())).longValue());
 
     }
 
     @Test
     public void startPkTest() throws BizException {
-        Object room = arenaRedisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
+        Object room = redisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
         if (room != null) {
             arenaRoomService.quitRoom(Long.valueOf(room.toString()),uid);
             arenaRoomService.quitRoom(Long.valueOf(room.toString()),12252066);
@@ -140,10 +137,10 @@ public class ArenaRoomServiceTest extends BaseTest{
 
     @Test
     public void summaryTest(){
-//        final ValueOperations valueOperations = arenaRedisTemplate.opsForValue();
+//        final ValueOperations valueOperations = redisTemplate.opsForValue();
 //        final int count = Integer.valueOf(valueOperations.get(RedisArenaKeys.ARENA_ONLINE_COUNT).toString());
 //        final int ongoingRoomCount = RandomUtils.nextInt(1,roomCount);
-//        arenaRedisTemplate.executePipelined(new SessionCallback<Object>() {
+//        redisTemplate.executePipelined(new SessionCallback<Object>() {
 //            public Object execute(RedisOperations operations) throws DataAccessException {
 //                operations.opsForValue().set(RedisArenaKeys.ARENA_ONLINE_COUNT,count+"");
 //                final ListOperations listOperations = operations.opsForList();

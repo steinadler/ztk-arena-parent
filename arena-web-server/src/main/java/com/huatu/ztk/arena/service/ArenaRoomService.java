@@ -60,8 +60,8 @@ public class ArenaRoomService {
 
     public static final ThreadPoolExecutor create_room_thread_pool = new ThreadPoolExecutor(1, 2, 100, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(2),new ThreadPoolExecutor.DiscardPolicy());
 
-    @Resource(name = "arenaRedisTemplate")
-    private RedisTemplate<String,String> arenaRedisTemplate;
+    @Resource(name = "redisTemplate")
+    private RedisTemplate<String,String> redisTemplate;
 
     @Autowired
     private ArenaRoomDao arenaRoomDao;
@@ -83,7 +83,7 @@ public class ArenaRoomService {
      * @return
      */
     public ArenaRoomSummary summary() {
-        final List list = arenaRedisTemplate.executePipelined(new SessionCallback<Object>() {
+        final List list = redisTemplate.executePipelined(new SessionCallback<Object>() {
             public Object execute(RedisOperations operations) throws DataAccessException {
                 final SetOperations setOperations = operations.opsForSet();
                 final ValueOperations valueOperations = operations.opsForValue();
@@ -116,7 +116,7 @@ public class ArenaRoomService {
     public ArenaRoom joinRoom(final long roomId, long uid) throws BizException {
         logger.info("user join room. roomId = {}, uid = {}",roomId, uid);
         final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
-        final ValueOperations valueOperations = arenaRedisTemplate.opsForValue();
+        final ValueOperations valueOperations = redisTemplate.opsForValue();
         final String userRoom = (String)valueOperations.get(userRoomKey);
         ArenaRoom arenaRoom = arenaRoomDao.findById(roomId);
 
@@ -144,7 +144,7 @@ public class ArenaRoomService {
         }
 
         //更新redis数据
-        arenaRedisTemplate.executePipelined(new SessionCallback<Object>() {
+        redisTemplate.executePipelined(new SessionCallback<Object>() {
             public Object execute(RedisOperations operations) throws DataAccessException {
                 //设置用户存在的房间号
                 final String roomIdStr = roomId + "";
@@ -175,7 +175,7 @@ public class ArenaRoomService {
     public ArenaRoom quitRoom(long roomId, long uid) throws BizException {
         logger.info("user quit room. roomId = {}, uid = {}",roomId, uid);
         final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
-        final ValueOperations valueOperations = arenaRedisTemplate.opsForValue();
+        final ValueOperations valueOperations = redisTemplate.opsForValue();
         final String userRoom = (String)valueOperations.get(userRoomKey);
 
         if (StringUtils.isBlank(userRoom)) {//不存在房间内,则直接返回
@@ -201,7 +201,7 @@ public class ArenaRoomService {
         //删除用户记录
         arenaRoom.getPlayers().remove(uid);
 
-        arenaRedisTemplate.executePipelined(new SessionCallback<Object>() {
+        redisTemplate.executePipelined(new SessionCallback<Object>() {
             public Object execute(RedisOperations operations) throws DataAccessException {
                 //删除用户房间
                 operations.delete(userRoomKey);
@@ -256,7 +256,7 @@ public class ArenaRoomService {
         arenaRoomDao.save(arenaRoom);
 
         logger.info("user start pk. roomId = {}, uid = {}",roomId, uid);
-        arenaRedisTemplate.executePipelined(new SessionCallback<Object>() {
+        redisTemplate.executePipelined(new SessionCallback<Object>() {
             @Override
             public Object execute(RedisOperations operations) throws DataAccessException {
                 final ZSetOperations zSetOperations = operations.opsForZSet();
@@ -292,7 +292,7 @@ public class ArenaRoomService {
     private synchronized void autoCreateRooms() {
 
         final String roomFreePlayersKey = RedisArenaKeys.getRoomFreePlayersKey();
-        final ZSetOperations<String, String> zSetOperations = arenaRedisTemplate.opsForZSet();
+        final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         final Long size = zSetOperations.size(roomFreePlayersKey);
         //需要新建房间数量
         long newRoomCount = 0;
@@ -327,10 +327,10 @@ public class ArenaRoomService {
         final PracticePaper practicePaper = practiceDubboService.create(moduleId, ARENA_QCOUNT, SubjectType.SUBJECT_GONGWUYUAN);
 
         int delta = RandomUtils.nextInt(1,4);
-        final ValueOperations valueOperations = arenaRedisTemplate.opsForValue();
+        final ValueOperations valueOperations = redisTemplate.opsForValue();
         final String roomIdKey = RedisArenaKeys.getRoomIdKey();
 
-        if (!arenaRedisTemplate.hasKey(roomIdKey)) {//初始化id
+        if (!redisTemplate.hasKey(roomIdKey)) {//初始化id
             valueOperations.set(roomIdKey,"23448564");
         }
 
@@ -351,7 +351,7 @@ public class ArenaRoomService {
                 .build();
         arenaRoomDao.insert(arenaRoom);
         //添加新房间,score为房间可容纳的人数
-        arenaRedisTemplate.opsForZSet().add(RedisArenaKeys.getRoomFreePlayersKey(),arenaRoom.getId()+"",arenaRoom.getMaxPlayerCount());
+        redisTemplate.opsForZSet().add(RedisArenaKeys.getRoomFreePlayersKey(),arenaRoom.getId()+"",arenaRoom.getMaxPlayerCount());
         return arenaRoom;
     }
 
@@ -389,7 +389,7 @@ public class ArenaRoomService {
      * @return
      */
     public PageBean findForPage(long cursor, int type) {
-        final ZSetOperations<String, String> zSetOperations = arenaRedisTemplate.opsForZSet();
+        final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         long start = 0;
         if (cursor > 0) {//redis list range 包含最后一个元素
             start = cursor + 1;
@@ -408,7 +408,7 @@ public class ArenaRoomService {
 
         if (start == 0) {//第一次请求,则把正在进行的也加入进来
             //取出所有正在竞技的房间
-            final Set<String> members = arenaRedisTemplate.opsForSet().members(RedisArenaKeys.getOngoingRoomList());
+            final Set<String> members = redisTemplate.opsForSet().members(RedisArenaKeys.getOngoingRoomList());
             for (String member : members) {
                 final Long roomId = Longs.tryParse(member);
                 if (roomId != null) {
@@ -442,7 +442,7 @@ public class ArenaRoomService {
      */
     public ArenaRoom smartJoin(long uid) throws BizException {
         final String roomFreePlayersKey = RedisArenaKeys.getRoomFreePlayersKey();
-        final ZSetOperations<String, String> zSetOperations = arenaRedisTemplate.opsForZSet();
+        final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         //直接从score 为1 的开始取,防止取到空间人数为0的房间
         final Set<String> roomIds = zSetOperations.rangeByScore(roomFreePlayersKey, 1, 10);
         ArenaRoom arenaRoom = null;
@@ -552,7 +552,7 @@ public class ArenaRoomService {
         arenaRoom.setStatus(ArenaRoomStatus.FINISHED);
         arenaRoomDao.save(arenaRoom);
 
-        arenaRedisTemplate.executePipelined(new SessionCallback<Object>() {
+        redisTemplate.executePipelined(new SessionCallback<Object>() {
             @Override
             public Object execute(RedisOperations operations) throws DataAccessException {
                 //从正在进行的房间移除
@@ -572,7 +572,7 @@ public class ArenaRoomService {
         //TODO 需要注意的是,有的用户参加了比赛,但是没有提交试卷,这样的话,会导致有的场次没有添加排名数据
         //所有的竞技结果已经处理完,需要对第一名进行胜场+1
         if (arenaRoom.getPlayers().size() <= arenaRoom.getResults().size()) {
-            final ZSetOperations<String, String> zSetOperations = arenaRedisTemplate.opsForZSet();
+            final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
             //第一名的用户胜利场次+1
             final long winUid = arenaRoom.getResults().get(0).getUid();
             zSetOperations.incrementScore(RedisArenaKeys.getArenaRankKey(), winUid +"",1);
@@ -660,7 +660,7 @@ public class ArenaRoomService {
      * @return
      */
     public List<UserArenaRecord> findRank() {
-        final ZSetOperations<String, String> zSetOperations = arenaRedisTemplate.opsForZSet();
+        final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         //取前20条
         final Set<String> strings = zSetOperations.reverseRange(RedisArenaKeys.getArenaRankKey(), 0, 19);
         List<Long> uidList = new ArrayList<>(strings.size());
@@ -680,7 +680,7 @@ public class ArenaRoomService {
      * @return
      */
     public long findMyRank(long uid) {
-        final ZSetOperations<String, String> zSetOperations = arenaRedisTemplate.opsForZSet();
+        final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         Long rank = zSetOperations.reverseRank(RedisArenaKeys.getArenaRankKey(), uid + "");
 
         //如果还没有排行,则取具有排行的最后一名

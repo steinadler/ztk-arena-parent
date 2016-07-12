@@ -2,7 +2,6 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
-
     <!-- Redis 配置 -->
     <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
         <property name="maxTotal" value="${redis.pool.maxTotal}" />
@@ -13,39 +12,47 @@
 
     <!--哨兵配置-->
     <bean id="sentinelConfiguration"
-          class="org.springframework.data.redis.connection.RedisSentinelConfiguration">
-        <property name="master">
-            <bean class="org.springframework.data.redis.connection.RedisNode">
-                <property name="name" value="mymaster"></property>
-            </bean>
-        </property>
-        <property name="sentinels">
+          class="org.springframework.data.redis.connection.RedisClusterConfiguration">
+        <property name="clusterNodes">
             <set>
                 <bean class="org.springframework.data.redis.connection.RedisNode">
-                    <constructor-arg name="host" value="${sentinel1.ip}"></constructor-arg>
-                    <constructor-arg name="port" value="${sentinel1.port}"></constructor-arg>
+                    <constructor-arg value="${redis.node1.host}" />
+                    <constructor-arg value="${redis.node1.port}" type="int" />
                 </bean>
                 <bean class="org.springframework.data.redis.connection.RedisNode">
-                    <constructor-arg name="host" value="${sentinel2.ip}"></constructor-arg>
-                    <constructor-arg name="port" value="${sentinel2.port}"></constructor-arg>
+                    <constructor-arg value="${redis.node2.host}" />
+                    <constructor-arg value="${redis.node2.port}" type="int" />
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg value="${redis.node3.host}" />
+                    <constructor-arg value="${redis.node3.port}" type="int" />
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg value="${redis.node4.host}" />
+                    <constructor-arg value="${redis.node4.port}" type="int" />
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg value="${redis.node5.host}" />
+                    <constructor-arg value="${redis.node5.port}" type="int" />
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg value="${redis.node6.host}" />
+                    <constructor-arg value="${redis.node6.port}" type="int" />
                 </bean>
             </set>
         </property>
     </bean>
 
     <!-- Jedis ConnectionFactory连接配置 -->
-    <bean id="arenaJedisConnectionFactory"
+    <bean id="jedisConnectionFactory"
           class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-        <property name="password" value="${redis.pass}"></property>
-        <property name="database">
-            <util:constant static-field="com.huatu.ztk.commons.RedisDatabses.AREAN"></util:constant>
-        </property>
         <property name="poolConfig" >
             <ref bean="jedisPoolConfig"/>
         </property>
-        <constructor-arg name="sentinelConfig" ref="sentinelConfiguration"></constructor-arg>
+        <constructor-arg name="clusterConfig" ref="sentinelConfiguration"></constructor-arg>
     </bean>
-    <bean id="arenaRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
-        <property name="connectionFactory" ref="arenaJedisConnectionFactory"/>
+
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+        <property name="connectionFactory" ref="jedisConnectionFactory"/>
     </bean>
 </beans>
