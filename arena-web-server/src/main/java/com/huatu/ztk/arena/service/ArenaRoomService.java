@@ -83,20 +83,13 @@ public class ArenaRoomService {
      * @return
      */
     public ArenaRoomSummary summary() {
-        final List list = redisTemplate.executePipelined(new SessionCallback<Object>() {
-            public Object execute(RedisOperations operations) throws DataAccessException {
-                final SetOperations setOperations = operations.opsForSet();
-                final ValueOperations valueOperations = operations.opsForValue();
-                valueOperations.get(RedisArenaKeys.ARENA_ONLINE_COUNT);//在线人数
-                operations.opsForZSet().size(RedisArenaKeys.getRoomFreePlayersKey());//房间总数量
-                setOperations.size(RedisArenaKeys.ONGOING_ROOM_LIST);//正在考试的房间
-                return null;
-            }
-        });
+        final SetOperations<String,String> setOperations = redisTemplate.opsForSet();
+        final ValueOperations<String,String> valueOperations = redisTemplate.opsForValue();
+        final String countStr = valueOperations.get(RedisArenaKeys.ARENA_ONLINE_COUNT);//在线人数
+        final Long allRoomCount = redisTemplate.opsForZSet().size(RedisArenaKeys.getRoomFreePlayersKey());//房间总数量
+        final Long ongoingRoomCount = setOperations.size(RedisArenaKeys.ONGOING_ROOM_LIST);//正在考试的房间
 
-        final Integer palyerCount = Integer.valueOf((String) list.get(0));
-        long allRoomCount = (Long)list.get(1);//房间总数
-        long ongoingRoomCount = (Long)list.get(2);//进行中数量
+        final Integer palyerCount = Integer.valueOf(countStr);
         long freeRoomCount = allRoomCount - ongoingRoomCount;//空闲房间数量
         final ArenaRoomSummary arenaRoomSummary = ArenaRoomSummary.builder()
                 .freeCount(freeRoomCount)
@@ -143,20 +136,14 @@ public class ArenaRoomService {
             throw new BizException(ArenaErrors.ROOM_NO_FREE_SEAT);
         }
 
-        //更新redis数据
-        redisTemplate.executePipelined(new SessionCallback<Object>() {
-            public Object execute(RedisOperations operations) throws DataAccessException {
-                //设置用户存在的房间号
-                final String roomIdStr = roomId + "";
-                operations.opsForValue().set(userRoomKey, roomIdStr);
-                //在线人数+1
-                operations.opsForValue().increment(RedisArenaKeys.getArenaOnlineCount(),1);
-                final String roomFreePlayersKey = RedisArenaKeys.getRoomFreePlayersKey();
-                //重新设置有效人数
-                operations.opsForZSet().add(roomFreePlayersKey,roomIdStr,arenaRoom.getPlayers().size());
-                return null;
-            }
-        });
+        //设置用户存在的房间号
+        final String roomIdStr = roomId + "";
+        redisTemplate.opsForValue().set(userRoomKey, roomIdStr);
+        //在线人数+1
+        redisTemplate.opsForValue().increment(RedisArenaKeys.getArenaOnlineCount(),1);
+        final String roomFreePlayersKey = RedisArenaKeys.getRoomFreePlayersKey();
+        //重新设置有效人数
+        redisTemplate.opsForZSet().add(roomFreePlayersKey,roomIdStr,arenaRoom.getPlayers().size());
 
 
         arenaRoom.getPlayers().add(uid);//添加用户到房间
@@ -201,19 +188,14 @@ public class ArenaRoomService {
         //删除用户记录
         arenaRoom.getPlayers().remove(uid);
 
-        redisTemplate.executePipelined(new SessionCallback<Object>() {
-            public Object execute(RedisOperations operations) throws DataAccessException {
-                //删除用户房间
-                operations.delete(userRoomKey);
-                //在线人数减一
-                operations.opsForValue().increment(RedisArenaKeys.getArenaOnlineCount(),-1);
+        //删除用户房间
+        redisTemplate.delete(userRoomKey);
+        //在线人数减一
+        redisTemplate.opsForValue().increment(RedisArenaKeys.getArenaOnlineCount(),-1);
 
-                final String roomFreePlayersKey = RedisArenaKeys.getRoomFreePlayersKey();
-                //退出房间,重新设置有效人数
-                operations.opsForZSet().add(roomFreePlayersKey,roomId+"",arenaRoom.getPlayers().size());
-                return null;
-            }
-        });
+        final String roomFreePlayersKey = RedisArenaKeys.getRoomFreePlayersKey();
+        //退出房间,重新设置有效人数
+        redisTemplate.opsForZSet().add(roomFreePlayersKey,roomId+"",arenaRoom.getPlayers().size());
 
 
         arenaRoomDao.save(arenaRoom);
@@ -256,18 +238,12 @@ public class ArenaRoomService {
         arenaRoomDao.save(arenaRoom);
 
         logger.info("user start pk. roomId = {}, uid = {}",roomId, uid);
-        redisTemplate.executePipelined(new SessionCallback<Object>() {
-            @Override
-            public Object execute(RedisOperations operations) throws DataAccessException {
-                final ZSetOperations zSetOperations = operations.opsForZSet();
-                final String roomFreePlayersKey = RedisArenaKeys.getRoomFreePlayersKey();
-                //pk开始,则从空闲房间列表移除
-                zSetOperations.remove(roomFreePlayersKey,roomId+"");
-                //添加到进行中的房间集合set
-                operations.opsForSet().add(RedisArenaKeys.getOngoingRoomList(),roomId+"");
-                return null;
-            }
-        });
+        final ZSetOperations zSetOperations = redisTemplate.opsForZSet();
+        final String roomFreePlayersKey = RedisArenaKeys.getRoomFreePlayersKey();
+        //pk开始,则从空闲房间列表移除
+        zSetOperations.remove(roomFreePlayersKey,roomId+"");
+        //添加到进行中的房间集合set
+        redisTemplate.opsForSet().add(RedisArenaKeys.getOngoingRoomList(),roomId+"");
 
         //异步触发调用新接口,创建新的房间
         create_room_thread_pool.submit(new Runnable() {
@@ -552,16 +528,10 @@ public class ArenaRoomService {
         arenaRoom.setStatus(ArenaRoomStatus.FINISHED);
         arenaRoomDao.save(arenaRoom);
 
-        redisTemplate.executePipelined(new SessionCallback<Object>() {
-            @Override
-            public Object execute(RedisOperations operations) throws DataAccessException {
-                //从正在进行的房间移除
-                operations.opsForSet().remove(RedisArenaKeys.getOngoingRoomList(),arenaRoom.getId()+"");
-                //删除用户的房间状态
-                operations.delete(RedisArenaKeys.getUserRoomKey(uid));
-                return null;
-            }
-        });
+        //从正在进行的房间移除
+        redisTemplate.opsForSet().remove(RedisArenaKeys.getOngoingRoomList(),arenaRoom.getId()+"");
+        //删除用户的房间状态
+        redisTemplate.delete(RedisArenaKeys.getUserRoomKey(uid));
 
         logger.info("add arena result roomId={}, data={}",arenaRoom.getId(), JsonUtil.toJson(arenaResult));
 
