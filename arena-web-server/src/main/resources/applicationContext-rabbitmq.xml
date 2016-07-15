@@ -9,6 +9,16 @@
                                password="rabbitmq_ztk" port="5672"  />
     <rabbit:admin connection-factory="connectionFactory"/>
 
+
+    <rabbit:queue id="submit_practice_arena" name="submit_practice_arena" durable="true" auto-declare="true" auto-delete="false"/>
+    <!-- exchange queue binging key 绑定 -->
+    <rabbit:fanout-exchange id="submit_practice_exchange" name="submit_practice_exchange" auto-declare="true" durable="true" auto-delete="false" >
+        <rabbit:bindings>
+            <rabbit:binding queue="submit_practice_arena"/>
+        </rabbit:bindings>
+    </rabbit:fanout-exchange>
+
+
     <bean id="practiceMessageListener" class="com.huatu.ztk.arena.task.PracticeMessageListener"></bean>
     <!-- queue litener  观察 监听模式 当有消息到达时会通知监听在对应的队列上的监听对象-->
     <rabbit:listener-container connection-factory="connectionFactory" acknowledge="auto">
