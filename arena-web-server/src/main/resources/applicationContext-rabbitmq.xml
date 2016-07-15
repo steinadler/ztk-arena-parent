@@ -5,8 +5,10 @@
  http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
 
     <!-- 连接服务配置  -->
-    <rabbit:connection-factory id="connectionFactory" host="${rabbitmq.address}" username="rabbitmq_ztk"
-                               password="rabbitmq_ztk" port="5672"  />
+    <rabbit:connection-factory id="connectionFactory"
+                               addresses="${rabbitmq.address}"
+                               username="${rabbitmq.username}"
+                               password="${rabbitmq.password}"/>
     <rabbit:admin connection-factory="connectionFactory"/>
 
 
