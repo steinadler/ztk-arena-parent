@@ -1,6 +1,5 @@
 package com.huatu.ztk.arena.controller;
 
-import com.google.common.base.Strings;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomSummary;
 import com.huatu.ztk.arena.bean.UserArenaRecord;
@@ -8,12 +7,10 @@ import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.PageBean;
 import com.huatu.ztk.commons.spring.BizException;
 import com.huatu.ztk.paper.bean.PracticeCard;
-import com.huatu.ztk.user.common.UserErrors;
 import com.huatu.ztk.user.service.UserSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,9 +76,7 @@ public class ArenaControllerV1 {
      */
     @RequestMapping(value = "{roomId}/players" ,method = RequestMethod.PUT)
     public Object joinRoom(@PathVariable long roomId, @RequestHeader String token) throws BizException {
-        if (Strings.isNullOrEmpty(token) || userSessionService.isExpire(token)) {//用户会话过期
-            return UserErrors.SESSION_EXPIRE;
-        }
+        userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
         //加入房间
@@ -97,9 +92,7 @@ public class ArenaControllerV1 {
      */
     @RequestMapping(value = "{roomId}/players" ,method = RequestMethod.DELETE)
     public Object quitRoom(@PathVariable long roomId, @RequestHeader String token) throws BizException {
-        if (Strings.isNullOrEmpty(token) || userSessionService.isExpire(token)) {//用户会话过期
-            return UserErrors.SESSION_EXPIRE;
-        }
+        userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
         final ArenaRoom arenaRoom = arenaRoomService.quitRoom(roomId, uid);
@@ -113,9 +106,7 @@ public class ArenaControllerV1 {
      */
     @RequestMapping(value = "smartJoin",method = RequestMethod.PUT)
     public Object smartJoin( @RequestHeader String token) throws BizException {
-        if (Strings.isNullOrEmpty(token) || userSessionService.isExpire(token)) {//用户会话过期
-            return UserErrors.SESSION_EXPIRE;
-        }
+        userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
         final ArenaRoom arenaRoom = arenaRoomService.smartJoin(uid);
@@ -132,9 +123,7 @@ public class ArenaControllerV1 {
      */
     @RequestMapping(value = "{roomId}/pk",method = RequestMethod.PUT)
     public Object startPk(@PathVariable long roomId,@RequestHeader int terminal,@RequestHeader String token) throws BizException {
-        if (Strings.isNullOrEmpty(token) || userSessionService.isExpire(token)) {//用户会话过期
-            return UserErrors.SESSION_EXPIRE;
-        }
+        userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
         final PracticeCard practiceCard = arenaRoomService.startPk(roomId, uid, terminal);
@@ -148,10 +137,8 @@ public class ArenaControllerV1 {
      * @return
      */
     @RequestMapping(value = "/myArenas",method = RequestMethod.GET)
-    public Object myArenas(@RequestHeader String token,@RequestParam long cursor){
-        if (Strings.isNullOrEmpty(token) || userSessionService.isExpire(token)) {//用户会话过期
-            return UserErrors.SESSION_EXPIRE;
-        }
+    public Object myArenas(@RequestHeader String token,@RequestParam long cursor) throws BizException{
+        userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
         PageBean<ArenaRoom> pageBean = arenaRoomService.findMyArenas(uid,cursor);
@@ -164,10 +151,8 @@ public class ArenaControllerV1 {
      * @return
      */
     @RequestMapping(value = "/ranks",method = RequestMethod.GET)
-    public Object ranks(@RequestHeader String token){
-        if (Strings.isNullOrEmpty(token) || userSessionService.isExpire(token)) {//用户会话过期
-            return UserErrors.SESSION_EXPIRE;
-        }
+    public Object ranks(@RequestHeader String token) throws BizException{
+        userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
         //查询排行列表
