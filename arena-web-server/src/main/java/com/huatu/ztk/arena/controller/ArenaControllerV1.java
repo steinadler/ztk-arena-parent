@@ -75,7 +75,7 @@ public class ArenaControllerV1 {
      * @return
      */
     @RequestMapping(value = "{roomId}/players" ,method = RequestMethod.PUT)
-    public Object joinRoom(@PathVariable long roomId, @RequestHeader String token) throws BizException {
+    public Object joinRoom(@PathVariable long roomId, @RequestHeader(required = false) String token) throws BizException {
         userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
@@ -91,7 +91,7 @@ public class ArenaControllerV1 {
      * @return
      */
     @RequestMapping(value = "{roomId}/players" ,method = RequestMethod.DELETE)
-    public Object quitRoom(@PathVariable long roomId, @RequestHeader String token) throws BizException {
+    public Object quitRoom(@PathVariable long roomId, @RequestHeader(required = false) String token) throws BizException {
         userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
@@ -105,7 +105,7 @@ public class ArenaControllerV1 {
      * @return
      */
     @RequestMapping(value = "smartJoin",method = RequestMethod.PUT)
-    public Object smartJoin( @RequestHeader String token) throws BizException {
+    public Object smartJoin( @RequestHeader(required = false) String token) throws BizException {
         userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
@@ -122,7 +122,7 @@ public class ArenaControllerV1 {
      * @throws BizException
      */
     @RequestMapping(value = "{roomId}/pk",method = RequestMethod.PUT)
-    public Object startPk(@PathVariable long roomId,@RequestHeader int terminal,@RequestHeader String token) throws BizException {
+    public Object startPk(@PathVariable long roomId,@RequestHeader int terminal,@RequestHeader(required = false) String token) throws BizException {
         userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
@@ -137,7 +137,7 @@ public class ArenaControllerV1 {
      * @return
      */
     @RequestMapping(value = "/myArenas",method = RequestMethod.GET)
-    public Object myArenas(@RequestHeader String token,@RequestParam long cursor) throws BizException{
+    public Object myArenas(@RequestHeader(required = false) String token,@RequestParam long cursor) throws BizException{
         userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
@@ -151,7 +151,7 @@ public class ArenaControllerV1 {
      * @return
      */
     @RequestMapping(value = "/ranks",method = RequestMethod.GET)
-    public Object ranks(@RequestHeader String token) throws BizException{
+    public Object ranks(@RequestHeader(required = false) String token) throws BizException{
         userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
