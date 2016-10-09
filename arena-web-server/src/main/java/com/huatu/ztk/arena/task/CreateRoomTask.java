@@ -103,7 +103,7 @@ public class CreateRoomTask {
                     } catch (Exception e) {
                     }
                 }
-
+                logger.info("server_ip={} get the lock,and run task.",System.getProperty("server_ip"));
                 //创建房间
                 ArenaRoom arenaRoom = null;
                 while (running){
