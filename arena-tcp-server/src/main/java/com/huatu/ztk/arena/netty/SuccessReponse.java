@@ -1,5 +1,8 @@
 package com.huatu.ztk.arena.netty;
 
+import com.huatu.ztk.arena.bean.Player;
+
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,6 +35,15 @@ public class SuccessReponse extends Response{
      */
     public static final SuccessReponse existGame(Map data){
         return new SuccessReponse(50003,data);
+    }
+
+    /**
+     * 新添加用户
+     * @param players
+     * @return
+     */
+    public static final SuccessReponse newJoinPalyer(List<Player> players){
+        return new SuccessReponse(50003,players);
     }
 
     private SuccessReponse() {

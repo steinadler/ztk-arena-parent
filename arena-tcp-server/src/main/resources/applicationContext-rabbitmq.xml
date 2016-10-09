@@ -15,22 +15,18 @@
     <!-- spring template声明 -->
     <rabbit:template id="rabbitTemplate" connection-factory="connectionFactory" message-converter="json"/>
 
-    <rabbit:queue id="submit_practice_arena" name="submit_practice_arena" durable="true" auto-declare="true" auto-delete="false"/>
-    <!-- exchange queue binging key 绑定 -->
-    <rabbit:fanout-exchange id="submit_practice_exchange" name="submit_practice_exchange" auto-declare="true" durable="true" auto-delete="false" >
+    <!--通知消息队列-->
+    <rabbit:queue id="game_notify_queue" durable="true" auto-declare="true" auto-delete="false" name="game_notify_queue_${server_name}_${server_ip}"/>
+    <rabbit:fanout-exchange id="game_notify_exchange" name="game_notify_exchange" auto-declare="true" durable="true" auto-delete="false" >
         <rabbit:bindings>
-            <rabbit:binding queue="submit_practice_arena"/>
+            <rabbit:binding queue="game_notify_queue"/>
         </rabbit:bindings>
     </rabbit:fanout-exchange>
 
-    <!--通知消息队列-->
-    <rabbit:fanout-exchange id="game_notify_exchange" name="game_notify_exchange" auto-declare="true" durable="true" auto-delete="false" >
-    </rabbit:fanout-exchange>
 
-
-    <bean id="practiceMessageListener" class="com.huatu.ztk.arena.task.PracticeMessageListener"></bean>
+    <bean id="launchGameTask" class="com.huatu.ztk.arena.task.LaunchGameTask"></bean>
     <!-- queue litener  观察 监听模式 当有消息到达时会通知监听在对应的队列上的监听对象-->
     <rabbit:listener-container connection-factory="connectionFactory" acknowledge="auto">
-        <rabbit:listener queue-names="submit_practice_arena" ref="practiceMessageListener"/>
+        <rabbit:listener queues="game_notify_queue" ref="launchGameTask"/>
     </rabbit:listener-container>
 </beans>

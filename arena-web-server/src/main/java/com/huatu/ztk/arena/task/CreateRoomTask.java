@@ -132,10 +132,10 @@ public class CreateRoomTask {
                             Map data = Maps.newHashMap();
                             data.put("action", Actions.JOIN_NEW_ARENA);
                             //发送加入游戏通知
-                            data.put("uids",Lists.newArrayList(Long.valueOf(userId)));
+                            data.put("uid",Long.valueOf(userId));
                             data.put("roomId", arenaRoomId);
                             //通过mq发送新人进入通知
-                            rabbitTemplate.convertAndSend("game_notify_exchange",data);
+                            rabbitTemplate.convertAndSend("game_notify_exchange","",data);
                         }
 
                         final Long finalSize = setOperations.size(roomUsersKey);

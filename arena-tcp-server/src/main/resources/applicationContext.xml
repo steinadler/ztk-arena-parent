@@ -24,6 +24,7 @@
                 <value>file:#{systemProperties['disconf.user_define_download_dir']}/redis.properties</value>
                 <value>file:#{systemProperties['disconf.user_define_download_dir']}/session-redis.properties</value>
                 <value>file:#{systemProperties['disconf.user_define_download_dir']}/zookeeper.properties</value>
+                <value>file:#{systemProperties['disconf.user_define_download_dir']}/rabbitmq.properties</value>
             </list>
         </property>
     </bean>
@@ -42,4 +43,5 @@
     <import resource="classpath*:spring-session-redis.xml"/>
     <import resource="applicationContext-redis.xml"/>
     <import resource="applicationContext-dubbo.xml"/>
+    <import resource="applicationContext-rabbitmq.xml"/>
 </beans>
