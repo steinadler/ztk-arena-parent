@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -41,6 +42,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Component
+@Scope("singleton")
 public class CreateRoomTask {
     private static final Logger logger = LoggerFactory.getLogger(CreateRoomTask.class);
     //用户进入游戏最大等待时间
@@ -103,7 +105,7 @@ public class CreateRoomTask {
                     } catch (Exception e) {
                     }
                 }
-                logger.info("server_ip={} get the lock,and run task.",System.getProperty("server_ip"));
+                logger.info("server_ip={},moduleId={} get the lock,and run task.",System.getProperty("server_ip"),moduleId);
                 //创建房间
                 ArenaRoom arenaRoom = null;
                 while (running){
