@@ -26,6 +26,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,9 @@ public class CreateRoomTask {
 
     @Autowired
     private AreanDubboService areanDubboService;
-    public CreateRoomTask() {
+
+    @PostConstruct
+    public void init() {
         //每个模块维护一个集合
         for (Integer moduleId : ModuleConstants.GOWUYUAN_MODULE_IDS) {
             startWork(moduleId);

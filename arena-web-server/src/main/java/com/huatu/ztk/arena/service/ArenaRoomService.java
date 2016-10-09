@@ -109,7 +109,7 @@ public class ArenaRoomService {
             moduleId = ModuleConstants.GOWUYUAN_MODULE_IDS.get(RandomUtils.nextInt(0,ModuleConstants.GOWUYUAN_MODULE_IDS.size()));
         }
 
-        final PracticePaper practicePaper = practiceDubboService.create(moduleId, ARENA_QCOUNT, SubjectType.SUBJECT_GONGWUYUAN);
+        final PracticePaper practicePaper = practiceDubboService.create(SubjectType.SUBJECT_GONGWUYUAN,moduleId,ARENA_QCOUNT);
         final ValueOperations valueOperations = redisTemplate.opsForValue();
         final String roomIdKey = RedisArenaKeys.getRoomIdKey();
 
