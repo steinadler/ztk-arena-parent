@@ -51,7 +51,7 @@ public class CreateRoomTask {
     /**
      * 任务是否运行的表示
      */
-    private volatile boolean running = false;
+    private volatile boolean running = true;
 
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
