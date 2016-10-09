@@ -23,6 +23,7 @@
             <list>
                 <value>file:#{systemProperties['disconf.user_define_download_dir']}/redis.properties</value>
                 <value>file:#{systemProperties['disconf.user_define_download_dir']}/session-redis.properties</value>
+                <value>file:#{systemProperties['disconf.user_define_download_dir']}/zookeeper.properties</value>
             </list>
         </property>
     </bean>

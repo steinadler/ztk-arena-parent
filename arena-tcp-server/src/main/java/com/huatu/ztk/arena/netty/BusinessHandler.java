@@ -11,6 +11,7 @@ import com.huatu.ztk.commons.JsonUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,7 +26,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
     private static final Logger logger = LoggerFactory.getLogger(BusinessHandler.class);
     public static final AttributeKey<Long> uidAttributeKey = AttributeKey.valueOf("uid");
     private AreanDubboService areanDubboService = ApplicationContextProvider.getApplicationContext().getBean(AreanDubboService.class);
-    private RedisTemplate<String,String> redisTemplate = ApplicationContextProvider.getApplicationContext().getBean(RedisTemplate.class);
+    private RedisTemplate<String,String> redisTemplate = ApplicationContextProvider.getApplicationContext().getBean("redisTemplate",RedisTemplate.class);
 
     /**
      * <strong>Please keep in mind that this method will be renamed to
@@ -45,7 +46,11 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
         switch (request.getAction()) {
             case Actions.JOIN_NEW_ARENA: {
                 try {
-                    proccessJoinNewArena(ctx, uid);
+                    if (!StringUtils.isNumeric(request.getParams().get("moduleId"))) {
+                        ctx.writeAndFlush(ErrorResponse.INVALID_PARAM);
+                        return;
+                    }
+                    proccessJoinNewArena(ctx, uid,Integer.valueOf(request.getParams().get("moduleId")));
                 }catch (Exception e){
                     logger.error("ex",e);
                     ctx.writeAndFlush(ErrorResponse.JOIN_GAME_FAIL);
@@ -87,7 +92,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
      * @param ctx
      * @param uid
      */
-    private void proccessJoinNewArena(ChannelHandlerContext ctx, Long uid) {
+    private void proccessJoinNewArena(ChannelHandlerContext ctx, Long uid,int moduleId) {
         final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
         if (redisTemplate.hasKey(userRoomKey)) {//用户存在未完成的房间
             final Long roomId = Long.valueOf(redisTemplate.opsForValue().get(userRoomKey));
@@ -99,6 +104,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
                     long practiceId = arenaRoom.getPractices().get(index);
                     if (practiceId > 0) {//练习存在
                         data.put("practiceId",practiceId);
+                        data.put("roomId",arenaRoom.getId());
                         ctx.writeAndFlush(SuccessReponse.existGame(data));
                         return;
                     }else {
@@ -110,7 +116,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
             }
         }
         //用户加入游戏等待
-        redisTemplate.opsForSet().add(RedisArenaKeys.getArenaUsersKey(-1),uid+"");
+        redisTemplate.opsForSet().add(RedisArenaKeys.getArenaUsersKey(moduleId),uid+"");
         ctx.writeAndFlush(SuccessReponse.joinGameSuccess());
     }
 

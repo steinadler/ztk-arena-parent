@@ -9,5 +9,6 @@
 
     <!--使用multicast广播注册中心暴露服务地址 -->
     <dubbo:protocol name="dubbo" port="-1" serialization="kryo"/>
-
+    
+    <dubbo:reference version="1.0" id="areanDubboService" interface="com.huatu.ztk.arena.dubbo.AreanDubboService"/>
 </beans>

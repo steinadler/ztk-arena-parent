@@ -30,6 +30,7 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 public class CreateRoomTask {
     private static final Logger logger = LoggerFactory.getLogger(CreateRoomTask.class);
     //用户进入游戏最大等待时间
-    public static final int USER_MAX_WAIT_TIME = 8000;
+    public static final int USER_MAX_WAIT_TIME = 80000;
     //最小玩家人数
     public static final int MIN_COUNT_PALYER_OF_ROOM = 2;
     public static final int MAX_PLAYER_COUNT = 4;
@@ -114,13 +115,13 @@ public class CreateRoomTask {
                         final long arenaRoomId = arenaRoom.getId();
                         final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(arenaRoomId);
                         final String arenaUsersKey = RedisArenaKeys.getArenaUsersKey(moduleId);
-                        final ListOperations<String, String> listOperations = redisTemplate.opsForList();
                         final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
                         long start = 0;
                         //拥有足够人数和等待超时,则跳出循环
                         while (setOperations.size(roomUsersKey) >= MAX_PLAYER_COUNT || System.currentTimeMillis()-start >= USER_MAX_WAIT_TIME){
-                            final String userId = listOperations.rightPop(arenaUsersKey, 1, TimeUnit.SECONDS);
+                            final String userId = setOperations.pop(arenaUsersKey);
                             if (StringUtils.isBlank(userId)) {
+                                Thread.sleep(1000);//没有玩家则休眠一段时间
                                 continue;
                             }
                             //把用户加入游戏
@@ -135,7 +136,14 @@ public class CreateRoomTask {
                             rabbitTemplate.convertAndSend("game_notify_exchange",data);
                         }
 
-                        if (setOperations.size(roomUsersKey)< MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
+                        final Long finalSize = setOperations.size(roomUsersKey);
+                        if (finalSize < MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
+                            final Set<String> users = setOperations.members(roomUsersKey);
+                            if (users.size()>0) {//存在玩家
+                                logger.info("players wait time out. users={}",users);
+                                redisTemplate.delete(roomUsersKey);//清除用户数据
+                            }
+                            // TODO: 10/9/16 是否要把这些用户重新放入队列 ?
                             continue;
                         }
 
