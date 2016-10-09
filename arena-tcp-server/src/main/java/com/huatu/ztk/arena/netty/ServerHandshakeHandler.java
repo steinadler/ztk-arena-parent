@@ -1,0 +1,73 @@
+package com.huatu.ztk.arena.netty;
+
+import com.google.common.base.Strings;
+import com.huatu.ztk.arena.common.Actions;
+import com.huatu.ztk.arena.common.UserChannelCache;
+import com.huatu.ztk.arena.util.ApplicationContextProvider;
+import com.huatu.ztk.user.service.UserSessionService;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.AttributeKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.xml.ParserContext;
+
+import java.util.Optional;
+
+/**
+ * Created by shaojieyue
+ * Created time 2016-10-08 16:58
+ */
+public class ServerHandshakeHandler extends SimpleChannelInboundHandler<Request> {
+    private static final Logger logger = LoggerFactory.getLogger(ServerHandshakeHandler.class);
+    public static final String TOKEN_KEY = "token";
+    /**
+     * <strong>Please keep in mind that this method will be renamed to
+     * {@code messageReceived(ChannelHandlerContext, I)} in 5.0.</strong>
+     * <p>
+     * Is called for each message of type {@link }.
+     *
+     * @param ctx the {@link ChannelHandlerContext} which this {@link SimpleChannelInboundHandler}
+     *            belongs to
+     * @param request the message to handle
+     * @throws Exception is thrown if an error occurred
+     */
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, Request request) throws Exception {
+        if (request.getAction() != Actions.AUTHENTICATION) {//不是登录请求
+            authenticationFail(ctx);
+            return;
+        }
+
+        //请求参数有误
+        if (request.getParams() == null || Strings.isNullOrEmpty(request.getParams().get(TOKEN_KEY))) {
+            authenticationFail(ctx);
+            return;
+        }
+
+        final UserSessionService sessionService = ApplicationContextProvider.getApplicationContext().getBean(UserSessionService.class);
+        final long uid = sessionService.getUid(request.getParams().get(TOKEN_KEY));
+        if (uid > 0) {//>0说明用户session处于有效状态
+            //发回消息
+            ctx.writeAndFlush(SuccessReponse.loginSuccessResponse());
+            ctx.channel().attr(BusinessHandler.uidAttributeKey).set(uid);
+            ctx.pipeline().remove(this);//认证成功后,移除该handler
+            //把当前连接加入到cache,如果存在旧的连接,则返回旧连接
+            final Channel oldChannel = UserChannelCache.putChannel(uid, ctx.channel());
+            if (oldChannel != null) {//存在旧的连接
+                oldChannel.close();//关闭旧连接
+            }
+        }else {//身份校验失败
+            authenticationFail(ctx);
+        }
+    }
+
+    private void authenticationFail(ChannelHandlerContext ctx) {
+        //发送结果
+        ctx.writeAndFlush(ErrorResponse.AUTHENTICATION_FAIL);
+        //关闭channel，断开连接
+        ctx.channel().close();
+    }
+}

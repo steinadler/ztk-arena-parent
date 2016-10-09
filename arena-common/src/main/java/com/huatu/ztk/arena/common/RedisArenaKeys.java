@@ -1,6 +1,8 @@
 package com.huatu.ztk.arena.common
         ;
 
+import org.springframework.format.number.PercentStyleFormatter;
+
 /**
  * 竞技场 redis key
  * Created by shaojieyue
@@ -68,6 +70,33 @@ public class RedisArenaKeys {
      */
     public static final String getArenaRankKey(){
         return "arena_rank_key";
+    }
+
+    /**
+     * 未开始游戏用户
+     * @param type
+     * @return
+     */
+    public static final String getArenaUsersKey(int type){
+        return "arena_users_"+type;
+    }
+
+    /**
+     * 房间用户列表
+     * @param roomId
+     * @return
+     */
+    public static final String getRoomUsersKey(long roomId){
+        return "room_users_"+roomId;
+    }
+
+    /**
+     * 队列任务处理lock key
+     * @param module
+     * @return
+     */
+    public static final String getWorkLockKey(int module){
+        return "arena_module_lock_"+module;
     }
 
 

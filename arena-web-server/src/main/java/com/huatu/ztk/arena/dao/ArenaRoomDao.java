@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -35,6 +36,14 @@ public class ArenaRoomDao {
 
     public void insert(ArenaRoom arenaRoom) {
         mongoTemplate.insert(arenaRoom);
+    }
+
+    public void updateById(long roomId,Update update){
+        if (update == null) {
+            return;
+        }
+        final Query query = new Query(Criteria.where("_id").is(roomId));
+        mongoTemplate.updateFirst(query,update,"ztk_arena_room");
     }
 
     /**

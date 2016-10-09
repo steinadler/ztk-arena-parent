@@ -10,13 +10,24 @@
                                username="${rabbitmq.username}"
                                password="${rabbitmq.password}"/>
     <rabbit:admin connection-factory="connectionFactory"/>
-
+    <bean id="json"
+          class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter" />
+    <!-- spring template声明 -->
+    <rabbit:template id="rabbitTemplate" connection-factory="connectionFactory" message-converter="json"/>
 
     <rabbit:queue id="submit_practice_arena" name="submit_practice_arena" durable="true" auto-declare="true" auto-delete="false"/>
     <!-- exchange queue binging key 绑定 -->
     <rabbit:fanout-exchange id="submit_practice_exchange" name="submit_practice_exchange" auto-declare="true" durable="true" auto-delete="false" >
         <rabbit:bindings>
             <rabbit:binding queue="submit_practice_arena"/>
+        </rabbit:bindings>
+    </rabbit:fanout-exchange>
+
+    <!--通知消息队列-->
+    <rabbit:queue id="game_notify_queue" durable="true" auto-declare="true" auto-delete="false" name="game_notify_queue_${server_name}_${server_ip}"/>
+    <rabbit:fanout-exchange id="game_notify_exchange" name="game_notify_exchange" auto-declare="true" durable="true" auto-delete="false" >
+        <rabbit:bindings>
+            <rabbit:binding queue="game_notify_queue"/>
         </rabbit:bindings>
     </rabbit:fanout-exchange>
 

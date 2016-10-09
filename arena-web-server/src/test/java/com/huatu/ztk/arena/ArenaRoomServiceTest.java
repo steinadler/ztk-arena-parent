@@ -34,10 +34,6 @@ public class ArenaRoomServiceTest extends BaseTest{
     @Resource(name = "redisTemplate")
     private RedisTemplate redisTemplate;
 
-
-    @Autowired
-    private UserDubboService userDubboService;
-
     long uid = 12252065;
 
     @Test
@@ -45,7 +41,7 @@ public class ArenaRoomServiceTest extends BaseTest{
         int[] counts = new int[]{2,4,8};
         for (int i = 0; i < 60; i++) {
             int count = counts[RandomUtils.nextInt(0,counts.length)];
-            final ArenaRoom arenaRoom = arenaRoomService.create(count);
+            final ArenaRoom arenaRoom = arenaRoomService.create(-1, count);
             Assert.assertNotNull(arenaRoom);
             Assert.assertEquals(arenaRoom.getQcount(),ArenaRoomService.ARENA_QCOUNT);
             Assert.assertTrue(arenaRoom.getCreateTime()>0);
@@ -54,119 +50,5 @@ public class ArenaRoomServiceTest extends BaseTest{
             Assert.assertEquals(arenaRoom.getTime(),ArenaRoomService.ARENA_LIMIT_TIME);
             Assert.assertNotNull(arenaRoom.getPracticePaper());
         }
-    }
-
-    @Test
-    public void joinRoom() throws BizException {
-
-        Object room = redisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
-        if (room != null) {
-            arenaRoomService.quitRoom(Long.valueOf(room.toString()),uid);
-        }
-
-        long noExistRoomId = 1234;
-        try {
-            arenaRoomService.joinRoom(noExistRoomId,uid);
-            Assert.assertFalse(true);
-        }catch (BizException e){
-            Assert.assertEquals(ROOM_NOT_EXIST.getCode(),e.getErrorResult().getCode());
-        }
-
-        final int existRoomId = 23449484;
-        arenaRoomService.joinRoom(existRoomId,uid);
-        room = redisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
-        Assert.assertEquals(Integer.valueOf(room.toString()).intValue(), existRoomId);
-
-        ArenaRoom arenaRoom = arenaRoomService.findById(existRoomId);
-        Assert.assertTrue(arenaRoom.getPlayers().indexOf(uid)>=0);
-        arenaRoomService.joinRoom(existRoomId,uid);
-
-        try {
-            arenaRoomService.joinRoom(23449483,uid);
-            Assert.assertFalse(true);
-        }catch (BizException e){
-            Assert.assertEquals(ArenaErrors.USER_IN_ROOM.getCode(),e.getErrorResult().getCode());
-        }
-        arenaRoomService.quitRoom(existRoomId,uid);
-    }
-
-    @Test
-    public void quitRoomTest() throws BizException {
-        Object room = redisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
-        if (room != null) {
-            arenaRoomService.quitRoom(Long.valueOf(room.toString()),uid);
-        }
-
-        final int roomId = 23449128;
-        try {
-            arenaRoomService.joinRoom(roomId,uid);
-        }catch (Exception e){
-        }
-        final String str = (String) redisTemplate.opsForValue().get(RedisArenaKeys.getArenaOnlineCount());
-        Long onlineCount = Longs.tryParse(str);
-        if (onlineCount == null) {
-            onlineCount = 0L;
-        }
-        arenaRoomService.quitRoom(roomId,uid);
-        final ArenaRoom arenaRoom = arenaRoomService.findById(roomId);
-        Assert.assertTrue(arenaRoom.getPlayers().indexOf(uid)<0);
-        Assert.assertFalse(redisTemplate.hasKey(RedisArenaKeys.getUserRoomKey(uid)));
-        Assert.assertEquals(onlineCount-1,Longs.tryParse((String) redisTemplate.opsForValue().get(RedisArenaKeys.getArenaOnlineCount())).longValue());
-
-    }
-
-    @Test
-    public void startPkTest() throws BizException {
-        Object room = redisTemplate.opsForValue().get(RedisArenaKeys.getUserRoomKey(uid));
-        if (room != null) {
-            arenaRoomService.quitRoom(Long.valueOf(room.toString()),uid);
-            arenaRoomService.quitRoom(Long.valueOf(room.toString()),12252066);
-        }
-
-        ArenaRoom arenaRoom = arenaRoomService.create(4);
-        final long roomId = arenaRoom.getId();
-        arenaRoomService.joinRoom(roomId,uid);
-        arenaRoomService.joinRoom(roomId,12252066);
-        arenaRoomService.startPk(roomId,uid,1);
-        arenaRoom = arenaRoomService.findById(roomId);
-        final int index = arenaRoom.getPlayers().indexOf(uid);
-        Assert.assertTrue(index >=0);
-        Assert.assertTrue(arenaRoom.getPractices().get(index)>0);
-        Assert.assertEquals(arenaRoom.getStatus(), ArenaRoomStatus.RUNNING);
-    }
-
-    @Test
-    public void summaryTest(){
-//        final ValueOperations valueOperations = redisTemplate.opsForValue();
-//        final int count = Integer.valueOf(valueOperations.get(RedisArenaKeys.ARENA_ONLINE_COUNT).toString());
-//        final int ongoingRoomCount = RandomUtils.nextInt(1,roomCount);
-//        redisTemplate.executePipelined(new SessionCallback<Object>() {
-//            public Object execute(RedisOperations operations) throws DataAccessException {
-//                operations.opsForValue().set(RedisArenaKeys.ARENA_ONLINE_COUNT,count+"");
-//                final ListOperations listOperations = operations.opsForList();
-//
-//                for (int i = 0; i < roomCount; i++) {
-//                    listOperations.leftPush(RedisArenaKeys.ONLINE_ROOM_LIST,i+"");
-//                }
-//
-//                for (int i = 0; i < ongoingRoomCount; i++) {
-//                    listOperations.leftPush(RedisArenaKeys.ONGOING_ROOM_LIST,i+"");
-//                }
-//
-//                return null;
-//            }
-//        });
-//
-//        final ArenaRoomSummary summary = arenaRoomService.summary();
-//        Assert.assertEquals(summary.getGoingCount(),ongoingRoomCount);
-//        Assert.assertEquals(summary.getPlayerCount(),count);
-//        Assert.assertEquals(summary.getRoomCount(),roomCount);
-//        Assert.assertEquals(summary.getFreeCount(),roomCount-ongoingRoomCount);
-    }
-
-    @Test
-    public void findByIdTest(){
-        final UserDto userDto = userDubboService.findById(12252065);
-        System.out.println(userDto);
     }
 }

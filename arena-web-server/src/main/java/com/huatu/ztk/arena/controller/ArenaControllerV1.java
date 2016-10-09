@@ -68,67 +68,6 @@ public class ArenaControllerV1 {
         return arenaRoom;
     }
 
-    /**
-     * 添加竞技场指定房间玩家
-     * @param roomId 房间id
-     * @param token
-     * @return
-     */
-    @RequestMapping(value = "{roomId}/players" ,method = RequestMethod.PUT)
-    public Object joinRoom(@PathVariable long roomId, @RequestHeader(required = false) String token) throws BizException {
-        userSessionService.assertSession(token);
-        //用户id
-        long uid = userSessionService.getUid(token);
-        //加入房间
-        ArenaRoom arenaRoom = arenaRoomService.joinRoom(roomId,uid);
-        return arenaRoom;
-    }
-
-    /**
-     * 玩家退出指定房间
-     * @param roomId 房间id
-     * @param token
-     * @return
-     */
-    @RequestMapping(value = "{roomId}/players" ,method = RequestMethod.DELETE)
-    public Object quitRoom(@PathVariable long roomId, @RequestHeader(required = false) String token) throws BizException {
-        userSessionService.assertSession(token);
-        //用户id
-        long uid = userSessionService.getUid(token);
-        final ArenaRoom arenaRoom = arenaRoomService.quitRoom(roomId, uid);
-        return arenaRoom;
-    }
-
-    /**
-     * 智能加入房间
-     * @param token
-     * @return
-     */
-    @RequestMapping(value = "smartJoin",method = RequestMethod.PUT)
-    public Object smartJoin( @RequestHeader(required = false) String token) throws BizException {
-        userSessionService.assertSession(token);
-        //用户id
-        long uid = userSessionService.getUid(token);
-        final ArenaRoom arenaRoom = arenaRoomService.smartJoin(uid);
-        return arenaRoom;
-    }
-
-    /**
-     * 用户发起pk请求
-     * @param roomId roomId
-     * @param terminal 终端
-     * @param token
-     * @return
-     * @throws BizException
-     */
-    @RequestMapping(value = "{roomId}/pk",method = RequestMethod.PUT)
-    public Object startPk(@PathVariable long roomId,@RequestHeader int terminal,@RequestHeader(required = false) String token) throws BizException {
-        userSessionService.assertSession(token);
-        //用户id
-        long uid = userSessionService.getUid(token);
-        final PracticeCard practiceCard = arenaRoomService.startPk(roomId, uid, terminal);
-        return practiceCard;
-    }
 
     /**
      * 查询我的竞技记录
