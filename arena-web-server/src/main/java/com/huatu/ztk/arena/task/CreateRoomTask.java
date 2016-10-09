@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 public class CreateRoomTask {
     private static final Logger logger = LoggerFactory.getLogger(CreateRoomTask.class);
     //用户进入游戏最大等待时间
-    public static final int USER_MAX_WAIT_TIME = 80000;
+    public static final int USER_MAX_WAIT_TIME = 20000;
     //最小玩家人数
     public static final int MIN_COUNT_PALYER_OF_ROOM = 2;
     public static final int MAX_PLAYER_COUNT = 4;
@@ -128,7 +128,7 @@ public class CreateRoomTask {
                             }
                             //把用户加入游戏
                             setOperations.add(roomUsersKey,userId);
-
+                            logger.info("add userId={} to roomId={}",userId,arenaRoomId);
                             Map data = Maps.newHashMap();
                             data.put("action", Actions.JOIN_NEW_ARENA);
                             //发送加入游戏通知
