@@ -1,6 +1,7 @@
 package com.huatu.ztk.arena.dao;
 
 import com.huatu.ztk.arena.bean.ArenaRoom;
+import com.huatu.ztk.commons.JsonUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ public class ArenaRoomDao {
     }
 
     public void insert(ArenaRoom arenaRoom) {
+        logger.info("insert arena room ,data={}", JsonUtil.toJson(arenaRoom));
         mongoTemplate.insert(arenaRoom);
     }
 

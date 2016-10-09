@@ -118,7 +118,7 @@ public class CreateRoomTask {
                         final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(arenaRoomId);
                         final String arenaUsersKey = RedisArenaKeys.getArenaUsersKey(moduleId);
                         final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
-                        long start = 0;
+                        long start = System.currentTimeMillis();
                         //拥有足够人数和等待超时,则跳出循环
                         while (setOperations.size(roomUsersKey) >= MAX_PLAYER_COUNT || System.currentTimeMillis()-start >= USER_MAX_WAIT_TIME){
                             final String userId = setOperations.pop(arenaUsersKey);
