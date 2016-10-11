@@ -42,7 +42,7 @@ public class ArenaRankControllerV1 {
     public Object ranks(@RequestHeader(required = false) String token) throws  com.huatu.ztk.commons.exception.BizException {
         userSessionService.assertSession(token);
         //查询排行列表
-        List<UserArenaRecord> list = arenaRoomService.findRank();
+        List<UserArenaRecord> list = arenaRoomService.findTodayRank();
         Map data = new HashMap();
         data.put("ranks",list);
         return data;

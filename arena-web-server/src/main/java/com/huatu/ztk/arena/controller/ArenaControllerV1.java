@@ -1,6 +1,7 @@
 package com.huatu.ztk.arena.controller;
 
 import com.huatu.ztk.arena.bean.ArenaRoom;
+import com.huatu.ztk.arena.bean.ArenaRoomSimple;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.PageBean;
 import com.huatu.ztk.commons.exception.BizException;
@@ -39,7 +40,7 @@ public class ArenaControllerV1 {
         userSessionService.assertSession(token);
         //用户id
         long uid = userSessionService.getUid(token);
-        PageBean<ArenaRoom> pageBean = arenaRoomService.history(uid,cursor);
+        PageBean<ArenaRoomSimple> pageBean = arenaRoomService.history(uid,cursor);
         return pageBean;
     }
 

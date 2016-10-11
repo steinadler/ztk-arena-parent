@@ -1,10 +1,7 @@
 package com.huatu.ztk.arena.service;
 
 import com.google.common.primitives.Longs;
-import com.huatu.ztk.arena.bean.ArenaResult;
-import com.huatu.ztk.arena.bean.ArenaRoom;
-import com.huatu.ztk.arena.bean.ArenaRoomStatus;
-import com.huatu.ztk.arena.bean.UserArenaRecord;
+import com.huatu.ztk.arena.bean.*;
 import com.huatu.ztk.arena.common.ArenaRoomType;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.dao.ArenaRoomDao;
@@ -91,11 +88,6 @@ public class ArenaRoomService {
         int delta = RandomUtils.nextInt(1,4);//随机步长
         final Long id = valueOperations.increment(roomIdKey, delta);
         final ArenaRoom arenaRoom = ArenaRoom.builder()
-                .createTime(System.currentTimeMillis())
-                .id(id)
-                .type(type)
-                .module(roomName)
-                .name(roomName)
                 .time(ARENA_LIMIT_TIME)
                 .practicePaper(practicePaper)
                 .qcount(practicePaper.getQcount())
@@ -103,6 +95,11 @@ public class ArenaRoomService {
                 .playerIds(new ArrayList<Long>())
                 .practices(new ArrayList<Long>())
                 .build();
+        arenaRoom.setCreateTime(System.currentTimeMillis());
+        arenaRoom.setId(id);
+        arenaRoom.setType(type);
+        arenaRoom.setModule(roomName);
+        arenaRoom.setName(roomName);
         arenaRoomDao.insert(arenaRoom);
         return arenaRoom;
     }
@@ -228,16 +225,16 @@ public class ArenaRoomService {
      * @param cursor 游标
      * @return
      */
-    public PageBean<ArenaRoom> history(long uid, long cursor) {
+    public PageBean<ArenaRoomSimple> history(long uid, long cursor) {
         // TODO: 10/11/16
         return null;
     }
 
     /**
-     * 查询排行榜
+     * 查询今日排行
      * @return
      */
-    public List<UserArenaRecord> findRank() {
+    public List<UserArenaRecord> findTodayRank() {
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         //取前20条
         final Set<String> strings = zSetOperations.reverseRange(RedisArenaKeys.getArenaRankKey(), 0, 19);
