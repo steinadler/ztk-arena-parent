@@ -14,7 +14,6 @@ import org.springframework.data.annotation.Id;
 @Data
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-@Builder
 public class ArenaRoomSimple {
     @Id
     long id;//房间号

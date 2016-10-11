@@ -1,49 +1,12 @@
 package com.huatu.ztk.arena.common
         ;
 
-import org.springframework.format.number.PercentStyleFormatter;
-
 /**
  * 竞技场 redis key
  * Created by shaojieyue
  * Created time 2016-07-05 10:29
  */
 public class RedisArenaKeys {
-    /**
-     * 在线人数
-     */
-    public static final String ARENA_ONLINE_COUNT  =  "arena_online_count";
-
-
-    /**
-     * 进行中的房间列表
-     */
-    public static final String ONGOING_ROOM_LIST = "ongoing_room_list";
-
-    /**
-     * 获取房间空余人数的key
-     * @return
-     */
-    public static final String getRoomFreePlayersKey(){
-        return "room_free_player";
-    }
-
-    /**
-     * 在线人数 key
-     * @return
-     */
-    public static final String getArenaOnlineCount(){
-        return ARENA_ONLINE_COUNT;
-    }
-
-    /**
-     * 进行中的房间列表 key
-     * @return
-     */
-    public static final String getOngoingRoomList(){
-        return ONGOING_ROOM_LIST;
-    }
-
 
     /**
      * 用户参加的房间key
@@ -65,11 +28,12 @@ public class RedisArenaKeys {
     }
 
     /**
-     * 用户排名key
+     * 用户日排名key
      * @return
+     * @param date 排名日期
      */
-    public static final String getArenaRankKey(){
-        return "arena_rank_key";
+    public static final String getArenaDayRankKey(String date){
+        return "arena_rank_"+date;
     }
 
     /**

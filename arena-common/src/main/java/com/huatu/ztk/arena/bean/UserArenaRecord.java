@@ -25,6 +25,5 @@ public class UserArenaRecord {
     private long uid;//用户id
     @Transient
     private Player player;//玩家详情,不进行mongo存储
-    private int allCount;//竞技次数
     private int winCount;//胜场次数
 }
