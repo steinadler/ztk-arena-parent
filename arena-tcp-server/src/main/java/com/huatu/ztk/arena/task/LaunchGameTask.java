@@ -21,7 +21,6 @@ import org.springframework.data.redis.core.SetOperations;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by shaojieyue
@@ -53,7 +52,7 @@ public class LaunchGameTask implements MessageListener{
             final long newPlayerId = MapUtils.getLong(data, "uid",-1L);
             final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
             final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(roomId);
-            final long[] users = setOperations.members(roomUsersKey).stream().mapToLong(uid->Long.valueOf(uid)).toArray();
+            final long[] users = setOperations.members(roomUsersKey).stream().mapToLong(uid-> java.lang.Long.valueOf(uid)).toArray();
             List<Player> players = Lists.newArrayList();
             Player newPlayer = null;
             for (long uid : users) {

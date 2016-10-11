@@ -1,12 +1,13 @@
 package com.huatu.ztk.arena.bean;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.List;
 
 /**
  * 用户竞技记录
@@ -22,10 +23,8 @@ import java.util.List;
 public class UserArenaRecord {
     @Id//用户id作为id
     private long uid;//用户id
-    private String nick;//昵称
-    private int arenaCount;//竞技次数
+    @Transient
+    private Player player;//玩家详情,不进行mongo存储
+    private int allCount;//竞技次数
     private int winCount;//胜场次数
-    private double avgScore;//竞技平均分
-    @Getter(onMethod = @__({ @JsonIgnore }))
-    private List<Long> arenas;
 }

@@ -24,11 +24,6 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.huatu.ztk</groupId>
-            <artifactId>spring-commons-response</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
         </dependency>
@@ -73,11 +68,6 @@
         <dependency>
             <groupId>com.huatu.ztk</groupId>
             <artifactId>common-config</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.huatu.ztk</groupId>
-            <artifactId>user-common</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <artifactId>paper-dubbo-api</artifactId>

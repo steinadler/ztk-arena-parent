@@ -58,4 +58,12 @@ public class SuccessReponse extends Response{
         this.code = code;
         this.message = message;
     }
+
+    public Object getData() {
+        return data;
+    }
+
+    public void setData(Object data) {
+        this.data = data;
+    }
 }

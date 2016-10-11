@@ -99,7 +99,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
             final ArenaRoom arenaRoom = areanDubboService.findById(roomId);
             if (arenaRoom!=null && arenaRoom.getStatus() != ArenaRoomStatus.FINISHED) {//该房间未关闭,关闭的房间还是可以加入新房间
                 final HashMap<Object, Object> data = Maps.newHashMap();
-                final int index = arenaRoom.getPlayers().indexOf(roomId);
+                final int index = arenaRoom.getPlayerIds().indexOf(uid);
                 if (index > 0) {//该房间存在该用户
                     long practiceId = arenaRoom.getPractices().get(index);
                     if (practiceId > 0) {//练习存在

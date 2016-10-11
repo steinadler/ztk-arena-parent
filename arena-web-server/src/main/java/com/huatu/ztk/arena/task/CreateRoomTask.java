@@ -142,7 +142,7 @@ public class CreateRoomTask {
                         if (finalSize < MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
                             final Set<String> users = setOperations.members(roomUsersKey);
                             if (users.size()>0) {//存在玩家
-                                logger.info("players wait time out. users={}",users);
+                                logger.info("playerIds wait time out. users={}",users);
                                 redisTemplate.delete(roomUsersKey);//清除用户数据
                             }
                             // TODO: 10/9/16 是否要把这些用户重新放入队列 ?
@@ -157,7 +157,7 @@ public class CreateRoomTask {
                             final PracticeCard practiceCard = practiceCardDubboService.create(arenaRoom.getPracticePaper(), -1, AnswerCardType.ARENA_PAPER, uid);
                             practiceIds.add(practiceCard.getId());
                         }
-                        Update update = Update.update("players",users)
+                        Update update = Update.update("playerIds",users)
                                     .set("practices",practiceIds)
                                     .set("status", ArenaRoomStatus.RUNNING);
                         //更新房间数据
