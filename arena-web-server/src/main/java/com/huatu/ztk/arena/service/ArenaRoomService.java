@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -110,13 +111,14 @@ public class ArenaRoomService {
     }
 
 
-    public ArenaRoom findById(long roomId, long id) {
+    public ArenaRoom findById(long roomId, long uid) {
         final ArenaRoom arenaRoom = arenaRoomDao.findById(roomId);
         if (arenaRoom == null) {
             return arenaRoom;
         }
         // TODO: 10/11/16 1:此处设置玩家人数 2:权限判断
 //        arenaRoom.setPlayers();
+//        findPlayer();
         return arenaRoom;
     }
 
@@ -228,6 +230,19 @@ public class ArenaRoomService {
         return null;
     }
 
+    public Player findPlayer(long uid){
+        final UserDto userDto = userDubboService.findById(uid);
+        if (userDto == null) {
+            return null;
+        }
+        final Player player = Player.builder()
+                .uid(userDto.getId())
+                .avatar(userDto.getAvatar())
+                .nick(userDto.getNick())
+                .build();
+        return player;
+    }
+
     /**
      * 查询今日排行
      *
@@ -241,14 +256,9 @@ public class ArenaRoomService {
         for (String uidStr : strings) {
             //获胜场数
             final int winCount = zSetOperations.score(arenaDayRankKey, uidStr).intValue();
-            final UserDto userDto = userDubboService.findById(Long.valueOf(uidStr));
-            final Player player = Player.builder()
-                    .uid(userDto.getId())
-                    .avatar(userDto.getAvatar())
-                    .nick(userDto.getNick())
-                    .build();
+            final Player player = findPlayer(Long.valueOf(uidStr));
             final UserArenaRecord arenaRecord = UserArenaRecord.builder()
-                    .uid(userDto.getId())
+                    .uid(player.getUid())
                     .player(player)
                     .winCount(winCount)
                     .build();
