@@ -1,25 +1,16 @@
 package com.huatu.ztk.arena;
 
-import com.google.common.primitives.Longs;
 import com.huatu.ztk.arena.bean.ArenaRoom;
-import com.huatu.ztk.arena.bean.ArenaRoomStatus;
-import com.huatu.ztk.arena.common.ArenaErrors;
-import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.service.ArenaRoomService;
-import com.huatu.ztk.commons.spring.BizException;
-import com.huatu.ztk.user.bean.UserDto;
-import com.huatu.ztk.user.dubbo.UserDubboService;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
-
-import static com.huatu.ztk.arena.common.ArenaErrors.ROOM_NOT_EXIST;
 
 /**
  * Created by shaojieyue
@@ -46,7 +37,6 @@ public class ArenaRoomServiceTest extends BaseTest{
             Assert.assertEquals(arenaRoom.getQcount(),ArenaRoomService.ARENA_QCOUNT);
             Assert.assertTrue(arenaRoom.getCreateTime()>0);
             Assert.assertTrue(arenaRoom.getId()>0);
-            Assert.assertEquals(arenaRoom.getMaxPlayerCount(),count);
             Assert.assertEquals(arenaRoom.getTime(),ArenaRoomService.ARENA_LIMIT_TIME);
             Assert.assertNotNull(arenaRoom.getPracticePaper());
         }

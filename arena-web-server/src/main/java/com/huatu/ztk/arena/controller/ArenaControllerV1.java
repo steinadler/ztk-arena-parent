@@ -51,9 +51,11 @@ public class ArenaControllerV1 {
      * @return
      */
     @RequestMapping(value = "/{roomId}",method = RequestMethod.GET)
-    public ArenaRoom detail(@RequestHeader(required = false) String token,@RequestParam long roomId){
-        // TODO: 10/11/16 检查该用户是否有权限查看该房间
-        return null;
+    public ArenaRoom detail(@RequestHeader(required = false) String token,@RequestParam long roomId) throws BizException {
+        userSessionService.assertSession(token);
+        final long uid = userSessionService.getUid(token);
+        final ArenaRoom arenaRoom = arenaRoomService.findById(roomId, uid);
+        return arenaRoom;
     }
 
 }

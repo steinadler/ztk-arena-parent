@@ -20,46 +20,16 @@ public class AATest {
     private static final Logger logger = LoggerFactory.getLogger(AATest.class);
 
     public static void main(String[] args) {
-        List<ArenaResult> results = Lists.newArrayList();
-        final ArenaResult arenaResult = ArenaResult.builder()
-                .elapsedTime(1000)
-                .rcount(10)
-                .uid(RandomUtils.nextInt(10000000,30000000))
-                .build();
-        results.add(arenaResult);
+        List<Integer> results = Lists.newArrayList();
+        results.add(2);
+        results.add(1);
+        results.add(4);
+        results.add(3);
 
-        final ArenaResult arenaResult2 = ArenaResult.builder()
-                .elapsedTime(1000)
-                .rcount(20)
-                .uid(RandomUtils.nextInt(10000000,30000000))
-                .build();
-        results.add(arenaResult2);
-
-        final ArenaResult arenaResult3 = ArenaResult.builder()
-                .elapsedTime(3000)
-                .rcount(20)
-                .uid(RandomUtils.nextInt(10000000,30000000))
-                .build();
-        results.add(arenaResult3);
-
-        final ArenaResult arenaResult4 = ArenaResult.builder()
-                .elapsedTime(4000)
-                .rcount(4)
-                .uid(RandomUtils.nextInt(10000000,30000000))
-                .build();
-        results.add(arenaResult4);
-
-        Collections.sort(results, new Comparator<ArenaResult>() {
+        Collections.sort(results, new Comparator<Integer>() {
             @Override
-            public int compare(ArenaResult o1, ArenaResult o2) {
-                //默认正序排
-                long sub = o2.getRcount() - o1.getRcount();
-                if (sub != 0) {
-                    return (int) sub;
-                }
-
-                long subTime = o1.getElapsedTime() - o2.getElapsedTime();
-                return (int) subTime;
+            public int compare(Integer o1, Integer o2) {
+                return o2-o1;
             }
         });
         System.out.println(JsonUtil.toJson(results));
