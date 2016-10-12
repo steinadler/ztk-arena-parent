@@ -24,18 +24,20 @@ public class ArenaConfig {
     private int gameLimitTime;//比赛限时,单位:秒
     private int questionCount;//单场比赛试题个数
     private List<Module> modules;//竞技模块
+
     @Data
     @Builder
-    class Module{
+    private static class Module {
         private int id;
         private String name;
-
     }
+
     /**
      * 查询比赛规则
+     *
      * @return
      */
-    public static final ArenaConfig getConfig(){
+    public static final ArenaConfig getConfig() {
         final Module module = Module.builder().id(-1).name("智能推送").build();
         List modules = new ArrayList();
         modules.add(module);
