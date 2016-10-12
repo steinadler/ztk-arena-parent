@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 竞技场基础配置
  * Created by shaojieyue
@@ -20,17 +23,28 @@ public class ArenaConfig {
     private int roomCapacity;//房间最大人数
     private int gameLimitTime;//比赛限时,单位:秒
     private int questionCount;//单场比赛试题个数
+    private List<Module> modules;//竞技模块
+    @Data
+    @Builder
+    class Module{
+        private int id;
+        private String name;
 
+    }
     /**
      * 查询比赛规则
      * @return
      */
     public static final ArenaConfig getConfig(){
+        final Module module = Module.builder().id(-1).name("智能推送").build();
+        List modules = new ArrayList();
+        modules.add(module);
         return ArenaConfig.builder()
                 .waitTime(8)
                 .roomCapacity(4)
                 .gameLimitTime(16*60)
                 .questionCount(20)
+                .modules(modules)
                 .build();
     }
 }
