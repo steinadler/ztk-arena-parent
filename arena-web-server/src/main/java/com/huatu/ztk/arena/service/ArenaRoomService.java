@@ -123,6 +123,15 @@ public class ArenaRoomService {
             throw new BizException(CommonErrors.PERMISSION_DENIED);
         }*/
         ArenaRoom arenaRoom =  new ArenaRoom();
+        //设置房间基本信息
+        arenaRoom.setId(23449972);
+        arenaRoom.setType(3);
+        arenaRoom.setStatus(3);
+        arenaRoom.setModule("智能推送");
+        arenaRoom.setName("竞技赛场—智能推送—201605102434");
+        arenaRoom.setCreateTime(1467861939980L);
+        arenaRoom.setWinner(34693);
+
         ////设置各玩家uid
         List<Long> playerIds = Lists.newArrayList();
         playerIds.add(uid);
@@ -275,8 +284,9 @@ public class ArenaRoomService {
     public PageBean<ArenaRoomSimple> history(long uid, long cursor, int size, int cardType) {
         List<ArenaRoomSimple> records = Lists.newArrayList();
         ArenaRoomSimple record1 = new ArenaRoomSimple();
-        record1.setId(1111);
+        record1.setId(23449963);
         record1.setType(2);
+        record1.setStatus(3); //房间状态--比赛已结束
         record1.setModule("智能推送");
         record1.setName("竞技赛场—智能推送—201605102433");
         record1.setCreateTime(1467868477455L);
@@ -284,16 +294,18 @@ public class ArenaRoomService {
         record1.setWinner(34218);
 
         ArenaRoomSimple record2 = new ArenaRoomSimple();
-        record2.setId(2222);
+        record2.setId(23449972);
         record2.setType(3);
+        record2.setStatus(3);
         record2.setModule("智能推送");
         record2.setName("竞技赛场—智能推送—201605102434");
         record2.setCreateTime(1467861939980L);
         record2.setWinner(34693);
 
         ArenaRoomSimple record3 = new ArenaRoomSimple();
-        record3.setId(3333);
+        record3.setId(23449981);
         record3.setType(4);
+        record3.setStatus(3);
         record3.setModule("智能推送");
         record3.setName("竞技赛场—智能推送—201605102435");
         record3.setCreateTime(1467861943606L);
