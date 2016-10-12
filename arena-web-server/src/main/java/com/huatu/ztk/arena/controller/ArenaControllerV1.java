@@ -2,6 +2,7 @@ package com.huatu.ztk.arena.controller;
 
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomSimple;
+import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.PageBean;
 import com.huatu.ztk.commons.exception.BizException;
@@ -50,12 +51,21 @@ public class ArenaControllerV1 {
      * @param roomId 房间id
      * @return
      */
-    @RequestMapping(value = "/{roomId}",method = RequestMethod.GET)
+    @RequestMapping(value = "/{roomId}",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ArenaRoom detail(@RequestHeader(required = false) String token,@RequestParam long roomId) throws BizException {
         userSessionService.assertSession(token);
         final long uid = userSessionService.getUid(token);
         final ArenaRoom arenaRoom = arenaRoomService.findById(roomId, uid);
         return arenaRoom;
+    }
+
+    /**
+     * 竞技场基础配置
+     * @return
+     */
+    @RequestMapping(value = "/config",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ArenaConfig config(){
+        return ArenaConfig.getConfig();
     }
 
 }
