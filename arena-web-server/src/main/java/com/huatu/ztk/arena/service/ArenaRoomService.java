@@ -245,12 +245,12 @@ public class ArenaRoomService {
 
     /**
      * 查询今日排行
-     *
+     * @param date 查询某天的排行情况
      * @return
      */
-    public List<UserArenaRecord> findTodayRank() {
+    public List<UserArenaRecord> findTodayRank(long date) {
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
-        final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(System.currentTimeMillis(), "yyyymmdd"));
+        final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
         final Set<String> strings = zSetOperations.reverseRange(arenaDayRankKey, 0, TODAY_MAX_RANK_COUNT-1);
         List<UserArenaRecord> records = Lists.newArrayList();
         for (String uidStr : strings) {
@@ -272,8 +272,33 @@ public class ArenaRoomService {
                 return o2.getWinCount() - o1.getWinCount();//倒序排
             }
         });
-
+        for (int i = 0; i < records.size(); i++) {//设置名次
+            records.get(i).setRank(i+1);
+        }
         return records;
+    }
+
+    /**
+     * 查询我的某天的竞技记录
+     * @param uid 用户id
+     * @param date 要查询的日期
+     * @return
+     */
+    public UserArenaRecord findMyTodayRank(long uid,long date){
+        final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+        final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
+        //获胜场数
+        final int winCount = zSetOperations.score(arenaDayRankKey, uid+"").intValue();
+        //我的排行,redis rank从0算起
+        Long rank = Optional.ofNullable(zSetOperations.reverseRank(arenaDayRankKey, uid + "")).orElse(20000L)+1;
+        final Player player = findPlayer(uid);
+        final UserArenaRecord arenaRecord = UserArenaRecord.builder()
+                .uid(player.getUid())
+                .player(player)
+                .winCount(winCount)
+                .rank(rank.intValue())
+                .build();
+        return arenaRecord;
     }
 
 }
