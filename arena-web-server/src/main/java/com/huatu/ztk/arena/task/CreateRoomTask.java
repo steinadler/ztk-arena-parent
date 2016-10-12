@@ -6,7 +6,6 @@ import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
 import com.huatu.ztk.arena.common.Actions;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
-import com.huatu.ztk.arena.dao.ArenaRoomDao;
 import com.huatu.ztk.arena.dubbo.AreanDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.ModuleConstants;
@@ -14,21 +13,17 @@ import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import com.huatu.ztk.paper.bean.PracticeCard;
 import com.huatu.ztk.paper.common.AnswerCardType;
 import org.apache.commons.lang3.StringUtils;
-import org.aspectj.apache.bcel.generic.IINC;
-import org.eclipse.jetty.server.UserIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -130,7 +125,7 @@ public class CreateRoomTask {
                             setOperations.add(roomUsersKey,userId);
                             logger.info("add userId={} to roomId={}",userId,arenaRoomId);
                             Map data = Maps.newHashMap();
-                            data.put("action", Actions.JOIN_NEW_ARENA);
+                            data.put("action", Actions.USER_JOIN_NEW_ARENA);
                             //发送加入游戏通知
                             data.put("uid",Long.valueOf(userId));
                             data.put("roomId", arenaRoomId);

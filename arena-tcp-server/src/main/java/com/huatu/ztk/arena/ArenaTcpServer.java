@@ -59,8 +59,8 @@ public class ArenaTcpServer {
                             ch.pipeline().addLast(stringEncoder);
                             ch.pipeline().addLast(reponseEncoder);
                             ch.pipeline().addLast(new IdleStateHandler(0,0,5));
-                            ch.pipeline().addLast(new HeartbeatHandler());
                             ch.pipeline().addLast(stringDecoder);
+                            ch.pipeline().addLast(new HeartbeatHandler());
                             ch.pipeline().addLast(requestDecoder);
                             ch.pipeline().addLast(new ServerHandshakeHandler());
                             ch.pipeline().addLast(new BusinessHandler());

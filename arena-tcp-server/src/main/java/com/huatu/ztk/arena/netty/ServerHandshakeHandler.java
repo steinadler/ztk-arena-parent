@@ -8,13 +8,8 @@ import com.huatu.ztk.user.service.UserSessionService;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.xml.ParserContext;
-
-import java.util.Optional;
 
 /**
  * Created by shaojieyue
@@ -36,7 +31,7 @@ public class ServerHandshakeHandler extends SimpleChannelInboundHandler<Request>
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Request request) throws Exception {
-        if (request.getAction() != Actions.AUTHENTICATION) {//不是登录请求
+        if (request.getAction() != Actions.USER_AUTHENTICATION) {//不是登录请求
             authenticationFail(ctx);
             return;
         }

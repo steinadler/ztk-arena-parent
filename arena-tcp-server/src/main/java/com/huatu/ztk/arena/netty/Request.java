@@ -1,8 +1,6 @@
 package com.huatu.ztk.arena.netty;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +15,7 @@ import java.util.Map;
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 public class Request {
+    private String ticket;//请求和响应的标示,以此来让请求和响应对应起来
     private int action;
     private Map<String,String> params;
 }

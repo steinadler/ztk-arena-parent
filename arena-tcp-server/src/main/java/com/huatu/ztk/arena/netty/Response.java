@@ -9,6 +9,8 @@ import lombok.*;
 
 public abstract class Response {
     @Getter @Setter
+    private String ticket;//请求和响应的标示,以此来让请求和响应对应起来
+    @Getter @Setter
     protected int code;
     @Getter @Setter
     protected String message;

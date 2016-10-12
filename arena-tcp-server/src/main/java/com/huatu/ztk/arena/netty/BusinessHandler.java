@@ -44,7 +44,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
         logger.info("receive request:{}", JsonUtil.toJson(request));
         final Long uid = ctx.channel().attr(uidAttributeKey).get();
         switch (request.getAction()) {
-            case Actions.JOIN_NEW_ARENA: {
+            case Actions.USER_JOIN_NEW_ARENA: {
                 try {
                     if (!StringUtils.isNumeric(request.getParams().get("moduleId"))) {
                         ctx.writeAndFlush(ErrorResponse.INVALID_PARAM);
@@ -58,7 +58,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
                 break;
             }
 
-            case Actions.LEAVE_GAME: {
+            case Actions.USER_LEAVE_GAME: {
                 try {
                     proccessLeaveGame(ctx, uid);
                 }catch (Exception e){

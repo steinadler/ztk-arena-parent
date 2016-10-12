@@ -47,7 +47,7 @@ public class LaunchGameTask implements MessageListener{
             return;
         }
         int action = MapUtils.getInteger(data,"action",-1);
-        if (action == Actions.JOIN_NEW_ARENA) {//新用户加入房间动作
+        if (action == Actions.USER_JOIN_NEW_ARENA) {//新用户加入房间动作
             final long roomId = MapUtils.getLong(data, "roomId",-1L);
             final long newPlayerId = MapUtils.getLong(data, "uid",-1L);
             final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
@@ -92,9 +92,9 @@ public class LaunchGameTask implements MessageListener{
                 }
             }
 
-        }else if (action == Actions.LEAVE_GAME) {//用户离开房间
+        }else if (action == Actions.USER_LEAVE_GAME) {//用户离开房间
 
-        }else if (action == Actions.START_GAME) {//开始游戏动作
+        }else if (action == Actions.SYSTEM_START_GAME) {//开始游戏动作
 
         }
 
