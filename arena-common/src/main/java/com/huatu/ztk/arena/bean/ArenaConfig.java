@@ -25,8 +25,7 @@ public class ArenaConfig {
     private int questionCount;//单场比赛试题个数
     private List<Module> modules;//竞技模块
     @Data
-    @Builder
-    class Module{
+    static class Module{
         private int id;
         private String name;
 
@@ -36,7 +35,9 @@ public class ArenaConfig {
      * @return
      */
     public static final ArenaConfig getConfig(){
-        final Module module = Module.builder().id(-1).name("智能推送").build();
+        final Module module = new Module();
+        module.setId(-1);
+        module.setName("智能推送");
         List modules = new ArrayList();
         modules.add(module);
         return ArenaConfig.builder()

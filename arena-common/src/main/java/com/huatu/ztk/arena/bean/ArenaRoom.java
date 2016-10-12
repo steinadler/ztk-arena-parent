@@ -1,10 +1,8 @@
 package com.huatu.ztk.arena.bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.huatu.ztk.paper.bean.PracticePaper;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -30,6 +28,7 @@ public class ArenaRoom extends ArenaRoomSimple{
     @Transient
     private List<Player> players;//参加人员详情列表,该属性不存入mongo
     private List<Long> practices;//参加人员对应的练习id
+    @Getter(onMethod = @__({ @JsonIgnore}))
     private PracticePaper practicePaper;//房间对应的练习
     private List<ArenaResult> results;//竞技结果
 

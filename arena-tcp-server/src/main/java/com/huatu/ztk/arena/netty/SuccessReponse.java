@@ -1,7 +1,10 @@
 package com.huatu.ztk.arena.netty;
 
+import com.google.common.collect.Maps;
+import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.Player;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,8 +36,16 @@ public class SuccessReponse extends Response{
      * @param data
      * @return
      */
-    public static final SuccessReponse existGame(Map data){
+    public static final SuccessReponse existGame(ArenaRoom data){
         return new SuccessReponse(50003,data);
+    }
+
+    /**
+     * 不存在未完成的经济房间
+     * @return
+     */
+    public static final SuccessReponse noExistGame(){
+        return new SuccessReponse(50004,"不存在未完成的经济房间");
     }
 
     /**
@@ -43,7 +54,19 @@ public class SuccessReponse extends Response{
      * @return
      */
     public static final SuccessReponse newJoinPalyer(List<Player> players){
-        return new SuccessReponse(50003,players);
+        return new SuccessReponse(50005,players);
+    }
+
+    /**
+     * 开始游戏通知
+     * @param practiceId 用户练习id
+     * @param arenaId 房间id
+     * @return
+     */
+    public static final SuccessReponse startGame(long practiceId,long arenaId){
+        final HashMap<Object, Object> data = Maps.newHashMap();
+        data.put("practiceId",practiceId);
+        return new SuccessReponse(50006,data);
     }
 
     private SuccessReponse() {

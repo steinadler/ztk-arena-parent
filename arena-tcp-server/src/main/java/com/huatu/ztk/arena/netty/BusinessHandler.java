@@ -1,6 +1,5 @@
 package com.huatu.ztk.arena.netty;
 
-import com.google.common.collect.Maps;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
 import com.huatu.ztk.arena.common.Actions;
@@ -11,12 +10,11 @@ import com.huatu.ztk.commons.JsonUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-
-import java.util.HashMap;
 
 /**
  * Created by shaojieyue
@@ -43,24 +41,22 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
     protected void channelRead0(ChannelHandlerContext ctx, Request request) throws Exception {
         logger.info("receive request:{}", JsonUtil.toJson(request));
         final Long uid = ctx.channel().attr(uidAttributeKey).get();
+        Response response = null;
         switch (request.getAction()) {
-            case Actions.USER_JOIN_NEW_ARENA: {
+            case Actions.USER_JOIN_NEW_ARENA: {//用户加入竞技场
+                final Integer moduleId = MapUtils.getInteger(request.getParams(), "moduleId");
                 try {
-                    if (!StringUtils.isNumeric(request.getParams().get("moduleId"))) {
-                        ctx.writeAndFlush(ErrorResponse.INVALID_PARAM);
-                        return;
-                    }
-                    proccessJoinNewArena(ctx, uid,Integer.valueOf(request.getParams().get("moduleId")));
+                    response = proccessJoinNewArena(ctx, uid,moduleId);
                 }catch (Exception e){
                     logger.error("ex",e);
-                    ctx.writeAndFlush(ErrorResponse.JOIN_GAME_FAIL);
+                    response= ErrorResponse.LEAVE_GAME_FAIL;
                 }
                 break;
             }
 
-            case Actions.USER_LEAVE_GAME: {
+            case Actions.USER_LEAVE_GAME: {//用户离开竞技场
                 try {
-                    proccessLeaveGame(ctx, uid);
+                    response = proccessLeaveGame(ctx, uid);
                 }catch (Exception e){
                     logger.error("ex",e);
                     ctx.writeAndFlush(ErrorResponse.LEAVE_GAME_FAIL);
@@ -68,10 +64,47 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
                 break;
             }
 
+            case Actions.USER_EXIST_ARENA:{//查询自己是否存在正在进行的竞技
+                //查询用户正在进行的竞技场
+                final ArenaRoom arenaRoom = getUserArenaRoom(uid);
+                if (arenaRoom == null) {//不存在
+                    response = SuccessReponse.noExistGame();
+                }else {
+                    response = SuccessReponse.existGame(arenaRoom);
+                }
+                break;
+            }
+
+            case Actions.SYSTEM_START_GAME:{//系统通知开始游戏
+                final Long practiceId = MapUtils.getLong(request.getParams(), "practiceId");
+                final Long arenaId = MapUtils.getLong(request.getParams(), "arenaId");
+                response = SuccessReponse.startGame(practiceId,arenaId);
+                break;
+            }
+
             default:{//非法的请求
-                ctx.writeAndFlush(ErrorResponse.UNKNOW_ACTION);
+                response = ErrorResponse.UNKNOW_ACTION;
             }
         }
+
+        if (StringUtils.isNoneBlank(request.getTicket())) {
+            response.setTicket(request.getTicket());
+        }
+
+    }
+
+    /**
+     * 查询用户当前的竞技房间
+     * @param uid 用户id
+     * @return 没有则返回null
+     */
+    private ArenaRoom getUserArenaRoom(Long uid) {
+        if (uid == null) {
+            return null;
+        }
+        final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
+        final Long roomId = Long.valueOf(redisTemplate.opsForValue().get(userRoomKey));
+        return areanDubboService.findById(roomId);
     }
 
     /**
@@ -79,12 +112,12 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
      * @param ctx
      * @param uid
      */
-    private void proccessLeaveGame(ChannelHandlerContext ctx, Long uid) {
+    private Response proccessLeaveGame(ChannelHandlerContext ctx, Long uid) {
         final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
         redisTemplate.delete(userRoomKey);//删除用户正在进行的游戏
         //删除用户等待列表
         redisTemplate.opsForSet().remove(RedisArenaKeys.getArenaUsersKey(-1),uid+"");
-        ctx.writeAndFlush(SuccessReponse.leaveGameSuccess());
+        return SuccessReponse.leaveGameSuccess();
     }
 
     /**
@@ -92,21 +125,21 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
      * @param ctx
      * @param uid
      */
-    private void proccessJoinNewArena(ChannelHandlerContext ctx, Long uid,int moduleId) {
+    private Response proccessJoinNewArena(ChannelHandlerContext ctx, Long uid, Integer moduleId) {
+        if (moduleId == null) {
+            return ErrorResponse.INVALID_PARAM;
+        }
+
         final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
         if (redisTemplate.hasKey(userRoomKey)) {//用户存在未完成的房间
             final Long roomId = Long.valueOf(redisTemplate.opsForValue().get(userRoomKey));
             final ArenaRoom arenaRoom = areanDubboService.findById(roomId);
             if (arenaRoom!=null && arenaRoom.getStatus() != ArenaRoomStatus.FINISHED) {//该房间未关闭,关闭的房间还是可以加入新房间
-                final HashMap<Object, Object> data = Maps.newHashMap();
                 final int index = arenaRoom.getPlayerIds().indexOf(uid);
                 if (index > 0) {//该房间存在该用户
                     long practiceId = arenaRoom.getPractices().get(index);
                     if (practiceId > 0) {//练习存在
-                        data.put("practiceId",practiceId);
-                        data.put("roomId",arenaRoom.getId());
-                        ctx.writeAndFlush(SuccessReponse.existGame(data));
-                        return;
+                        return SuccessReponse.existGame(arenaRoom);
                     }else {
                         logger.error("roomId={} exist error practice id",arenaRoom.getId());
                     }
@@ -117,7 +150,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
         }
         //用户加入游戏等待
         redisTemplate.opsForSet().add(RedisArenaKeys.getArenaUsersKey(moduleId),uid+"");
-        ctx.writeAndFlush(SuccessReponse.joinGameSuccess());
+        return SuccessReponse.joinGameSuccess();
     }
 
     /**

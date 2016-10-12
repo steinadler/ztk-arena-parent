@@ -160,7 +160,7 @@ public class CreateRoomTask {
                         arenaRoom = null;//设置为null,表示该房间已经被占用
                         Map data = Maps.newHashMap();
                         data.put("roomId", arenaRoomId);
-                        data.put("action", Actions.START_GAME);
+                        data.put("action", Actions.SYSTEM_START_GAME);
                         data.put("uids",users);
                         data.put("practiceIds",practiceIds);//用户对应的练习列表
                         //通过mq发送游戏就绪通知

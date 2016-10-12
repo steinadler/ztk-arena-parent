@@ -8,6 +8,7 @@ import com.huatu.ztk.user.service.UserSessionService;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,21 +33,21 @@ public class ServerHandshakeHandler extends SimpleChannelInboundHandler<Request>
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Request request) throws Exception {
         if (request.getAction() != Actions.USER_AUTHENTICATION) {//不是登录请求
-            authenticationFail(ctx);
+            authenticationFail(ctx,request);
             return;
         }
 
         //请求参数有误
-        if (request.getParams() == null || Strings.isNullOrEmpty(request.getParams().get(TOKEN_KEY))) {
-            authenticationFail(ctx);
+        if (request.getParams() == null || Strings.isNullOrEmpty(request.getParams().get(TOKEN_KEY).toString())) {
+            authenticationFail(ctx,request);
             return;
         }
 
         final UserSessionService sessionService = ApplicationContextProvider.getApplicationContext().getBean(UserSessionService.class);
-        final long uid = sessionService.getUid(request.getParams().get(TOKEN_KEY));
+        final long uid = sessionService.getUid(request.getParams().get(TOKEN_KEY).toString());
         if (uid > 0) {//>0说明用户session处于有效状态
             //发回消息
-            ctx.writeAndFlush(SuccessReponse.loginSuccessResponse());
+            ctx.writeAndFlush(wapperResponse(SuccessReponse.loginSuccessResponse(),request));
             ctx.channel().attr(BusinessHandler.uidAttributeKey).set(uid);
             ctx.pipeline().remove(this);//认证成功后,移除该handler
             //把当前连接加入到cache,如果存在旧的连接,则返回旧连接
@@ -55,13 +56,20 @@ public class ServerHandshakeHandler extends SimpleChannelInboundHandler<Request>
                 oldChannel.close();//关闭旧连接
             }
         }else {//身份校验失败
-            authenticationFail(ctx);
+            authenticationFail(ctx,request);
         }
     }
 
-    private void authenticationFail(ChannelHandlerContext ctx) {
+    private Response wapperResponse(Response response,Request request){
+        if (StringUtils.isNoneBlank(request.getTicket())) {
+            response.setTicket(request.getTicket());
+        }
+        return response;
+    }
+
+    private void authenticationFail(ChannelHandlerContext ctx,Request request) {
         //发送结果
-        ctx.writeAndFlush(ErrorResponse.AUTHENTICATION_FAIL);
+        ctx.writeAndFlush(wapperResponse(ErrorResponse.AUTHENTICATION_FAIL,request));
         //关闭channel，断开连接
         ctx.channel().close();
     }

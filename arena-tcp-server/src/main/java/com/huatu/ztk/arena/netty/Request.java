@@ -17,5 +17,5 @@ import java.util.Map;
 public class Request {
     private String ticket;//请求和响应的标示,以此来让请求和响应对应起来
     private int action;
-    private Map<String,String> params;
+    private Map<String,Object> params;
 }
