@@ -16,7 +16,7 @@ public class ArenaWebServer {
     public static void main(String[] args) throws Exception {
         final Integer port = Integer.valueOf(args[0]);
         String serverIP = System.getProperty("server_ip");
-        WebServer webServer = new WebServer(serverIP,port,"/a");
+        WebServer webServer = new WebServer(serverIP,port,"/a", "http://etcd01:2379,http://etcd02:2379,http://etcd03:2379");
         webServer.setMinThreads(20)
                 .setMaxThreads(200)
                 .start();
