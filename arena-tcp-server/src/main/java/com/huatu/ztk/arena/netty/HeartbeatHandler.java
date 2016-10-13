@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 public class HeartbeatHandler extends SimpleChannelInboundHandler<String> {
     public static final String PING = "PING";//发送心跳内容
     private static final ByteBuf HEARTBEAT_SEQUENCE = Unpooled.unreleasableBuffer(
-            Unpooled.copiedBuffer(PING, CharsetUtil.UTF_8));  //2
+            Unpooled.copiedBuffer(PING+"\r\n", CharsetUtil.UTF_8));  //2
     public static final String PONG = "PONG";//心跳响应
 
     /**

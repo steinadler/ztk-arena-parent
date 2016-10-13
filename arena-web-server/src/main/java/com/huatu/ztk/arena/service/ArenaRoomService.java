@@ -41,13 +41,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class ArenaRoomService {
     private static final Logger logger = LoggerFactory.getLogger(ArenaRoomService.class);
-    public static final int ARENA_QCOUNT = 20;
-    /**
-     * 竞技限时
-     */
-    public static final int ARENA_LIMIT_TIME = 60*16;
     public static final int TODAY_MAX_RANK_COUNT = 20;
-
     @Resource(name = "redisTemplate")
     private RedisTemplate<String,String> redisTemplate;
 
@@ -70,7 +64,7 @@ public class ArenaRoomService {
      * 随机创建一个房间
      * @return
      */
-    public ArenaRoom create(Integer moduleId, int playerCount){
+    public ArenaRoom create(Integer moduleId){
         int type = ArenaRoomType.RANDOM_POINT;//默认是随机知识点
         String roomName = "竞技-综合知识点";
 
@@ -83,7 +77,7 @@ public class ArenaRoomService {
             moduleId = ModuleConstants.GOWUYUAN_MODULE_IDS.get(RandomUtils.nextInt(0,ModuleConstants.GOWUYUAN_MODULE_IDS.size()));
         }
 
-        final PracticePaper practicePaper = practiceDubboService.create(SubjectType.SUBJECT_GONGWUYUAN,moduleId,ARENA_QCOUNT);
+        final PracticePaper practicePaper = practiceDubboService.create(SubjectType.SUBJECT_GONGWUYUAN,moduleId,ArenaConfig.getConfig().getQuestionCount());
         final ValueOperations valueOperations = redisTemplate.opsForValue();
         final String roomIdKey = RedisArenaKeys.getRoomIdKey();
 
@@ -94,7 +88,7 @@ public class ArenaRoomService {
         int delta = RandomUtils.nextInt(1,4);//随机步长
         final Long id = valueOperations.increment(roomIdKey, delta);
         final ArenaRoom arenaRoom = ArenaRoom.builder()
-                .time(ARENA_LIMIT_TIME)
+                .time(ArenaConfig.getConfig().getGameLimitTime())
                 .practicePaper(practicePaper)
                 .qcount(practicePaper.getQcount())
                 .status(ArenaRoomStatus.CREATED)

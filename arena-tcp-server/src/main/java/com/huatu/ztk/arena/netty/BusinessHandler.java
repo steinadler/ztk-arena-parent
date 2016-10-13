@@ -91,6 +91,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
             response.setTicket(request.getTicket());
         }
 
+        ctx.writeAndFlush(response);
+
     }
 
     /**

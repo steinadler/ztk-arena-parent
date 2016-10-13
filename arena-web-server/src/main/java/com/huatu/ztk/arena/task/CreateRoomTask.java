@@ -2,6 +2,7 @@ package com.huatu.ztk.arena.task;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
 import com.huatu.ztk.arena.common.Actions;
@@ -40,11 +41,8 @@ import java.util.concurrent.TimeUnit;
 @Scope("singleton")
 public class CreateRoomTask {
     private static final Logger logger = LoggerFactory.getLogger(CreateRoomTask.class);
-    //用户进入游戏最大等待时间
-    public static final int USER_MAX_WAIT_TIME = 20000;
     //最小玩家人数
     public static final int MIN_COUNT_PALYER_OF_ROOM = 2;
-    public static final int MAX_PLAYER_COUNT = 4;
     /**
      * 任务是否运行的表示
      */
@@ -107,7 +105,7 @@ public class CreateRoomTask {
                     try {
                         if (arenaRoom == null) {
                             //创建房间
-                            arenaRoom = arenaRoomService.create(moduleId,MAX_PLAYER_COUNT);
+                            arenaRoom = arenaRoomService.create(moduleId);
                         }
                         final long arenaRoomId = arenaRoom.getId();
                         final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(arenaRoomId);
@@ -115,7 +113,7 @@ public class CreateRoomTask {
                         final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
                         long start = System.currentTimeMillis();
                         //拥有足够人数和等待超时,则跳出循环
-                        while (setOperations.size(roomUsersKey) < MAX_PLAYER_COUNT && System.currentTimeMillis()-start < USER_MAX_WAIT_TIME){
+                        while (setOperations.size(roomUsersKey) < ArenaConfig.getConfig().getRoomCapacity() && System.currentTimeMillis()-start < ArenaConfig.getConfig().getWaitTime()){
                             final String userId = setOperations.pop(arenaUsersKey);
                             if (StringUtils.isBlank(userId)) {
                                 Thread.sleep(1000);//没有玩家则休眠一段时间

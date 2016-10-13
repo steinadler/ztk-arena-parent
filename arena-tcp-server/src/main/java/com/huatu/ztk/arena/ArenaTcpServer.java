@@ -9,7 +9,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -24,6 +26,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  * Created time 2016-09-30 16:28
  */
 public class ArenaTcpServer {
+    private static final int MAX_FRAME_LENGTH = 1024 * 1024;
     private static final Logger logger = LoggerFactory.getLogger(ArenaTcpServer.class);
     private String host;
     private int port;
@@ -50,13 +53,15 @@ public class ArenaTcpServer {
             final RequestDecoder requestDecoder = new RequestDecoder();
             final ReponseEncoder reponseEncoder = new ReponseEncoder();
             final StringEncoder stringEncoder = new StringEncoder();
+            final LineBasedFrameEncoder lineBasedFrameEncoder = new LineBasedFrameEncoder();
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class) // (3)
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new LengthFieldPrepender(8));
+                            ch.pipeline().addLast(new LineBasedFrameDecoder(MAX_FRAME_LENGTH));
                             ch.pipeline().addLast(stringEncoder);
+                            ch.pipeline().addLast(lineBasedFrameEncoder);
                             ch.pipeline().addLast(reponseEncoder);
                             ch.pipeline().addLast(new IdleStateHandler(0,0,5));
                             ch.pipeline().addLast(stringDecoder);
