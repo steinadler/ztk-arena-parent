@@ -56,7 +56,7 @@ public class SuccessReponse extends Response{
      * @return
      */
     public static final SuccessReponse noExistGame(){
-        return new SuccessReponse(50004,"不存在未完成的经济房间");
+        return new SuccessReponse(50004,"不存在未完成的竞技房间");
     }
 
     /**
