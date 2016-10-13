@@ -3,6 +3,7 @@ package com.huatu.ztk.arena.netty;
 import com.google.common.collect.Maps;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.Player;
+import org.apache.commons.collections.map.HashedMap;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,10 +34,20 @@ public class SuccessReponse extends Response{
 
     /**
      * 存在未完成的游戏
-     * @param data
+     * @param arenaRoom
      * @return
      */
-    public static final SuccessReponse existGame(ArenaRoom data){
+    public static final SuccessReponse existGame(ArenaRoom arenaRoom,long uid){
+        Map data =  new HashedMap();
+        final int index = arenaRoom.getPlayerIds().indexOf(uid);
+        long practiceId =-1;
+        if (index > 0) {//该房间存在该用户
+            practiceId = arenaRoom.getPractices().get(index);
+        }
+        data.put("roomId",arenaRoom.getId());//房间号
+        data.put("practiceId",practiceId);//练习id
+        data.put("players",arenaRoom.getPlayers());//玩家列表
+        data.put("status",arenaRoom.getStatus());
         return new SuccessReponse(50003,data);
     }
 

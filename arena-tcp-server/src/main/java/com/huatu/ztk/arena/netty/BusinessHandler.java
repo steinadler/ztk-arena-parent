@@ -11,10 +11,14 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by shaojieyue
@@ -49,7 +53,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
                     response = proccessJoinNewArena(ctx, uid,moduleId);
                 }catch (Exception e){
                     logger.error("ex",e);
-                    response= ErrorResponse.LEAVE_GAME_FAIL;
+                    response= ErrorResponse.JOIN_GAME_FAIL;
                 }
                 break;
             }
@@ -70,7 +74,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
                 if (arenaRoom == null) {//不存在
                     response = SuccessReponse.noExistGame();
                 }else {
-                    response = SuccessReponse.existGame(arenaRoom);
+                    response = SuccessReponse.existGame(arenaRoom,uid);
                 }
                 break;
             }
@@ -79,6 +83,10 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
                 final Long practiceId = MapUtils.getLong(request.getParams(), "practiceId");
                 final Long arenaId = MapUtils.getLong(request.getParams(), "arenaId");
                 response = SuccessReponse.startGame(practiceId,arenaId);
+                final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
+                //保存用户正在进行的数据
+                redisTemplate.opsForValue().set(userRoomKey,arenaId.toString());
+                redisTemplate.expire(userRoomKey,30, TimeUnit.DAYS);//设置有效期,
                 break;
             }
 
@@ -139,12 +147,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
             if (arenaRoom!=null && arenaRoom.getStatus() != ArenaRoomStatus.FINISHED) {//该房间未关闭,关闭的房间还是可以加入新房间
                 final int index = arenaRoom.getPlayerIds().indexOf(uid);
                 if (index > 0) {//该房间存在该用户
-                    long practiceId = arenaRoom.getPractices().get(index);
-                    if (practiceId > 0) {//练习存在
-                        return SuccessReponse.existGame(arenaRoom);
-                    }else {
-                        logger.error("roomId={} exist error practice id",arenaRoom.getId());
-                    }
+                    return SuccessReponse.existGame(arenaRoom,uid);
                 }else {
                     logger.error("userId={} not in roomId={}",uid,roomId);
                 }
