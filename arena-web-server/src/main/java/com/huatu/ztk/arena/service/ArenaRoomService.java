@@ -134,7 +134,7 @@ public class ArenaRoomService {
         //查询该练习对应的竞技场房间
         final ArenaRoom arenaRoom = arenaRoomDao.findByPracticeId(practiceId);
         if (arenaRoom == null) {
-            logger.error("practiceId={} not find it`s arean room.");
+            logger.error("practiceId={} not find it`s arena room.");
             return;
         }
 

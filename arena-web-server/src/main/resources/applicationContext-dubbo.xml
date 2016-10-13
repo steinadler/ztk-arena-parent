@@ -10,7 +10,7 @@
     <!--使用multicast广播注册中心暴露服务地址 -->
     <dubbo:protocol name="dubbo" port="-1" serialization="kryo"/>
 
-    <bean id="areanDubboService" class="com.huatu.ztk.arena.service.ArenaDubboServiceImpl"></bean>
+    <bean id="arenaDubboService" class="com.huatu.ztk.arena.service.ArenaDubboServiceImpl"></bean>
     <dubbo:service version="1.0" interface="com.huatu.ztk.arena.dubbo.ArenaDubboService" ref="arenaDubboService"/>
 
     <dubbo:reference version="1.1" id="practiceDubboService"  interface="com.huatu.ztk.paper.api.PracticeDubboService"/>
