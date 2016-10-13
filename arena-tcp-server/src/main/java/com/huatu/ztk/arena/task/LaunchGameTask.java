@@ -67,7 +67,7 @@ public class LaunchGameTask implements MessageListener{
      */
     private void proccessStartGame(Map data) {
         final long roomId = MapUtils.getLong(data, "roomId",-1L);
-        final List<Long> uids = (List<Long>)MapUtils.getObject(data, "uids");
+        final List<Object> uids = (List<Object>)MapUtils.getObject(data, "uids");
         final List<Long> practiceIds = (List<Long>)MapUtils.getObject(data, "practiceIds");
         //检查参数合法性
         if (CollectionUtils.isEmpty(uids) || CollectionUtils.isEmpty(practiceIds) || uids.size()!=practiceIds.size()) {
@@ -77,7 +77,8 @@ public class LaunchGameTask implements MessageListener{
 
         //遍历房间玩家,发送开始游戏通知
         for (int i = 0; i < uids.size(); i++) {
-            long user = uids.get(i);
+            //此处主要是jackson会优先把uid转为int
+            long user = Long.valueOf(uids.get(i).toString());
             long practiceId = practiceIds.get(i);
             final Channel channel = UserChannelCache.getChannel(user);
             if (channel == null) {//== null说明用户长连接不存在该服务上

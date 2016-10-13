@@ -112,7 +112,7 @@ public class CreateRoomTask {
                         final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(arenaRoomId);
                         final String arenaUsersKey = RedisArenaKeys.getArenaUsersKey(moduleId);
                         final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
-                        long start = System.currentTimeMillis();
+                        long start = Long.MAX_VALUE;//开始时间,默认不过期
                         //拥有足够人数和等待超时,则跳出循环
                         while (setOperations.size(roomUsersKey) < ArenaConfig.getConfig().getRoomCapacity() && System.currentTimeMillis()-start < ArenaConfig.getConfig().getWaitTime()*1000){
                             final String userId = setOperations.pop(arenaUsersKey);
@@ -130,6 +130,11 @@ public class CreateRoomTask {
                             data.put("roomId", arenaRoomId);
                             //通过mq发送新人进入通知
                             rabbitTemplate.convertAndSend("game_notify_exchange","",data);
+
+                            //超时时间从第一个加入房间用户开始算起
+                            if (setOperations.size(roomUsersKey) == 1) {
+                                start = System.currentTimeMillis();//开始超时倒计时
+                            }
                         }
 
                         final Long finalSize = setOperations.size(roomUsersKey);
@@ -151,6 +156,7 @@ public class CreateRoomTask {
                             final PracticeCard practiceCard = practiceCardDubboService.create(arenaRoom.getPracticePaper(), -1, AnswerCardType.ARENA_PAPER, uid);
                             practiceIds.add(practiceCard.getId());
                         }
+
                         Update update = Update.update("playerIds",users)
                                     .set("practices",practiceIds)
                                     .set("status", ArenaRoomStatus.RUNNING);
