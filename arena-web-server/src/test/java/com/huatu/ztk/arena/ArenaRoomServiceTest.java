@@ -1,6 +1,5 @@
 package com.huatu.ztk.arena;
 
-import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import org.apache.commons.lang3.RandomUtils;
@@ -38,7 +37,6 @@ public class ArenaRoomServiceTest extends BaseTest{
             Assert.assertEquals(arenaRoom.getQcount(), ArenaConfig.getConfig().getQuestionCount());
             Assert.assertTrue(arenaRoom.getCreateTime()>0);
             Assert.assertTrue(arenaRoom.getId()>0);
-            Assert.assertEquals(arenaRoom.getTime(),ArenaConfig.getConfig().getGameLimitTime());
             Assert.assertNotNull(arenaRoom.getPracticePaper());
         }
     }

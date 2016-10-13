@@ -88,7 +88,7 @@ public class ArenaRoomService {
         int delta = RandomUtils.nextInt(1, 4);//随机步长
         final Long id = valueOperations.increment(roomIdKey, delta);
         final ArenaRoom arenaRoom = ArenaRoom.builder()
-                .time(ArenaConfig.getConfig().getGameLimitTime())
+                .limitTime(ArenaConfig.getConfig().getGameLimitTime())
                 .practicePaper(practicePaper)
                 .qcount(practicePaper.getQcount())
                 .playerIds(new ArrayList<Long>())
@@ -113,10 +113,10 @@ public class ArenaRoomService {
         if (!arenaRoom.getPlayerIds().contains(uid)) {
             throw new BizException(CommonErrors.PERMISSION_DENIED);
         }*/
-        ArenaRoom arenaRoom =  new ArenaRoom();
+        ArenaRoom arenaRoom = new ArenaRoom();
         //设置房间基本信息
         arenaRoom.setId(23449972);
-        arenaRoom.setTime(300);//比赛限时,单位:秒
+        arenaRoom.setLimitTime(300);//比赛限时,单位:秒
         arenaRoom.setType(3);
         arenaRoom.setStatus(3);
         arenaRoom.setModule("智能推送");
@@ -273,7 +273,7 @@ public class ArenaRoomService {
      * @param cursor 游标
      * @return
      */
-    public PageBean<ArenaRoomSimple> history(long uid, long cursor, int size, int cardType) {
+    public PageBean<ArenaRoomSimple> history(long uid, long cursor, int size) {
         List<ArenaRoomSimple> records = Lists.newArrayList();
         ArenaRoomSimple record1 = new ArenaRoomSimple();
         record1.setId(23449963);
