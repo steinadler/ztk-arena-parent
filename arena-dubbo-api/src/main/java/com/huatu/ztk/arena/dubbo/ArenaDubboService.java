@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.query.Update;
  * Created by shaojieyue
  * Created time 2016-10-08 19:57
  */
-public interface AreanDubboService {
+public interface ArenaDubboService {
 
     /**
      * 根据id查询房间

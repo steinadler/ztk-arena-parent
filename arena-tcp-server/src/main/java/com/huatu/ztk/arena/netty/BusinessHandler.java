@@ -4,7 +4,7 @@ import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
 import com.huatu.ztk.arena.common.Actions;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
-import com.huatu.ztk.arena.dubbo.AreanDubboService;
+import com.huatu.ztk.arena.dubbo.ArenaDubboService;
 import com.huatu.ztk.arena.util.ApplicationContextProvider;
 import com.huatu.ztk.commons.JsonUtil;
 import io.netty.channel.ChannelHandlerContext;
@@ -23,7 +23,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
     private static final Logger logger = LoggerFactory.getLogger(BusinessHandler.class);
     public static final AttributeKey<Long> uidAttributeKey = AttributeKey.valueOf("uid");
-    private AreanDubboService areanDubboService = ApplicationContextProvider.getApplicationContext().getBean(AreanDubboService.class);
+    private ArenaDubboService arenaDubboService = ApplicationContextProvider.getApplicationContext().getBean(ArenaDubboService.class);
     private RedisTemplate<String,String> redisTemplate = ApplicationContextProvider.getApplicationContext().getBean("redisTemplate",RedisTemplate.class);
 
     /**
@@ -106,7 +106,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
         }
         final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
         final Long roomId = Long.valueOf(redisTemplate.opsForValue().get(userRoomKey));
-        return areanDubboService.findById(roomId);
+        return arenaDubboService.findById(roomId);
     }
 
     /**
@@ -135,7 +135,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
         final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
         if (redisTemplate.hasKey(userRoomKey)) {//用户存在未完成的房间
             final Long roomId = Long.valueOf(redisTemplate.opsForValue().get(userRoomKey));
-            final ArenaRoom arenaRoom = areanDubboService.findById(roomId);
+            final ArenaRoom arenaRoom = arenaDubboService.findById(roomId);
             if (arenaRoom!=null && arenaRoom.getStatus() != ArenaRoomStatus.FINISHED) {//该房间未关闭,关闭的房间还是可以加入新房间
                 final int index = arenaRoom.getPlayerIds().indexOf(uid);
                 if (index > 0) {//该房间存在该用户

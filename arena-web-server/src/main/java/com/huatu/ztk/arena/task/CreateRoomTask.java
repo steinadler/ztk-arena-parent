@@ -7,7 +7,7 @@ import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
 import com.huatu.ztk.arena.common.Actions;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
-import com.huatu.ztk.arena.dubbo.AreanDubboService;
+import com.huatu.ztk.arena.dubbo.ArenaDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.ModuleConstants;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
@@ -61,7 +61,7 @@ public class CreateRoomTask {
     private RabbitTemplate rabbitTemplate;
 
     @Autowired
-    private AreanDubboService areanDubboService;
+    private ArenaDubboService arenaDubboService;
 
     @PostConstruct
     public void init() {
@@ -155,7 +155,7 @@ public class CreateRoomTask {
                                     .set("practices",practiceIds)
                                     .set("status", ArenaRoomStatus.RUNNING);
                         //更新房间数据
-                        areanDubboService.updateById(arenaRoomId,update);
+                        arenaDubboService.updateById(arenaRoomId,update);
                         arenaRoom = null;//设置为null,表示该房间已经被占用
                         Map data = Maps.newHashMap();
                         data.put("roomId", arenaRoomId);
