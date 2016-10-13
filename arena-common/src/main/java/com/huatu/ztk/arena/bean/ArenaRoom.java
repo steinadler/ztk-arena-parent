@@ -21,7 +21,7 @@ import java.util.List;
 @Builder
 @Document(collection = "ztk_arena_room")
 public class ArenaRoom extends ArenaRoomSimple{
-    private int time;//答题时间
+    private int time;//比赛限时
     private int qcount;//题量
     private List<Long> playerIds;//参加人员id列表
     @Transient

@@ -28,6 +28,11 @@
             <artifactId>spring-webmvc</artifactId>
         </dependency>
         <dependency>
+        <groupId>com.huatu.ztk</groupId>
+        <artifactId>spring-commons-response</artifactId>
+        <version>1.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>

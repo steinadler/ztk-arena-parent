@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
  */
 
 @RestController
-@RequestMapping(value = "/v1/arenas",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+@RequestMapping(value = "/v1/arenas", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ArenaControllerV1 {
     private static final Logger logger = LoggerFactory.getLogger(ArenaControllerV1.class);
 
@@ -32,27 +32,33 @@ public class ArenaControllerV1 {
 
     /**
      * 查询我的竞技记录
+     *
      * @param token
      * @param cursor
      * @return
      */
-    @RequestMapping(value = "/history",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Object history(@RequestHeader(required = false) String token,@RequestParam long cursor) throws BizException {
+    @RequestMapping(value = "/history", method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Object history(@RequestHeader(required = false) String token,
+                          @RequestParam(defaultValue = Long.MAX_VALUE + "") long cursor) throws BizException {
         userSessionService.assertSession(token);
+        if (cursor < 1) {//说明查询第一页，那么，cursor设置为最大值
+            cursor = Long.MAX_VALUE;
+        }
         //用户id
         long uid = userSessionService.getUid(token);
-        PageBean<ArenaRoomSimple> pageBean = arenaRoomService.history(uid,cursor);
+        PageBean<ArenaRoomSimple> pageBean = arenaRoomService.history(uid, cursor, 20, 5);
         return pageBean;
     }
 
     /**
      * 查询竞技记录详情
+     *
      * @param token
      * @param roomId 房间id
      * @return
      */
-    @RequestMapping(value = "/{roomId}",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ArenaRoom detail(@RequestHeader(required = false) String token,@RequestParam long roomId) throws BizException {
+    @RequestMapping(value = "/{roomId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ArenaRoom detail(@RequestHeader(required = false) String token, @PathVariable long roomId) throws BizException {
         userSessionService.assertSession(token);
         final long uid = userSessionService.getUid(token);
         final ArenaRoom arenaRoom = arenaRoomService.findById(roomId, uid);
@@ -61,10 +67,11 @@ public class ArenaControllerV1 {
 
     /**
      * 竞技场基础配置
+     *
      * @return
      */
-    @RequestMapping(value = "/config",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ArenaConfig config(){
+    @RequestMapping(value = "/config", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ArenaConfig config() {
         return ArenaConfig.getConfig();
     }
 
