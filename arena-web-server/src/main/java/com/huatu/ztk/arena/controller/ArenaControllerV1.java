@@ -36,7 +36,7 @@ public class ArenaControllerV1 {
      * @param cursor
      * @return
      */
-    @RequestMapping(value = "/history",method = RequestMethod.GET)
+    @RequestMapping(value = "/history",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object history(@RequestHeader(required = false) String token,@RequestParam long cursor) throws BizException {
         userSessionService.assertSession(token);
         //用户id
