@@ -18,5 +18,11 @@
                 <bean id="jsonMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
             </list>
         </property>
+        <!-- 自定义返回值拦截 -->
+        <property name="responseBodyAdvice">
+            <list>
+                <bean class="com.huatu.ztk.commons.spring.advice.WrapperResponseBodyAdvice"></bean>
+            </list>
+        </property>
     </bean>
 </beans>
