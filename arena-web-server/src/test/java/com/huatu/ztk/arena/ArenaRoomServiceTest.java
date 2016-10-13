@@ -1,5 +1,6 @@
 package com.huatu.ztk.arena;
 
+import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import org.apache.commons.lang3.RandomUtils;
@@ -32,12 +33,12 @@ public class ArenaRoomServiceTest extends BaseTest{
         int[] counts = new int[]{2,4,8};
         for (int i = 0; i < 60; i++) {
             int count = counts[RandomUtils.nextInt(0,counts.length)];
-            final ArenaRoom arenaRoom = arenaRoomService.create(-1, count);
+            final ArenaRoom arenaRoom = arenaRoomService.create(-1);
             Assert.assertNotNull(arenaRoom);
-            Assert.assertEquals(arenaRoom.getQcount(),ArenaRoomService.ARENA_QCOUNT);
+            Assert.assertEquals(arenaRoom.getQcount(), ArenaConfig.getConfig().getQuestionCount());
             Assert.assertTrue(arenaRoom.getCreateTime()>0);
             Assert.assertTrue(arenaRoom.getId()>0);
-            Assert.assertEquals(arenaRoom.getTime(),ArenaRoomService.ARENA_LIMIT_TIME);
+            Assert.assertEquals(arenaRoom.getTime(),ArenaConfig.getConfig().getGameLimitTime());
             Assert.assertNotNull(arenaRoom.getPracticePaper());
         }
     }

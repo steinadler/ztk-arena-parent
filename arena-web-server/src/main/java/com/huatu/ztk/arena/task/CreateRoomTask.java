@@ -96,6 +96,7 @@ public class CreateRoomTask {
                             Thread.sleep(3);
                         }
                     } catch (Exception e) {
+                        logger.error("wait lock ex",e);
                     }
                 }
                 logger.info("server_ip={},moduleId={} get the lock,and run task.",System.getProperty("server_ip"),moduleId);
@@ -165,7 +166,7 @@ public class CreateRoomTask {
                         rabbitTemplate.convertAndSend("game_notify_exchange",data);
                         logger.info("roomId={},users={} start game.",arenaRoomId,users);
                     }catch (Exception e){
-
+                        logger.error("ex",e);
                     }
                 }
                 //释放锁

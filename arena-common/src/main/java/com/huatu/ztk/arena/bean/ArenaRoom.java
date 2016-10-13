@@ -23,7 +23,6 @@ import java.util.List;
 public class ArenaRoom extends ArenaRoomSimple{
     private int time;//答题时间
     private int qcount;//题量
-    private int status;//房间状态
     private List<Long> playerIds;//参加人员id列表
     @Transient
     private List<Player> players;//参加人员详情列表,该属性不存入mongo

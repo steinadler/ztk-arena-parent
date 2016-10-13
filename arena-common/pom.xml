@@ -23,8 +23,8 @@
         </dependency>
         <dependency>
             <groupId>com.huatu.ztk</groupId>
-            <artifactId>spring-commons-response</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>spring-commons</artifactId>
+            <version>1.3-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

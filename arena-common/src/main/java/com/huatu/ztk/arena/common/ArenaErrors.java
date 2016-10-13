@@ -1,6 +1,7 @@
 package com.huatu.ztk.arena.common;
 
-import com.huatu.ztk.commons.spring.ErrorResult;
+
+import com.huatu.ztk.commons.exception.ErrorResult;
 
 /**
  * Created by shaojieyue

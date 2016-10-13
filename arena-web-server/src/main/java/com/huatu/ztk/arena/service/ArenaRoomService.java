@@ -55,9 +55,6 @@ public class ArenaRoomService {
     private PracticeCardDubboService practiceCardDubboService;
 
     @Autowired
-    private UserArenaRecordDao userArenaRecordDao;
-
-    @Autowired
     private UserDubboService userDubboService;
 
     /**
@@ -91,7 +88,6 @@ public class ArenaRoomService {
                 .time(ArenaConfig.getConfig().getGameLimitTime())
                 .practicePaper(practicePaper)
                 .qcount(practicePaper.getQcount())
-                .status(ArenaRoomStatus.CREATED)
                 .playerIds(new ArrayList<Long>())
                 .practices(new ArrayList<Long>())
                 .build();
@@ -100,6 +96,7 @@ public class ArenaRoomService {
         arenaRoom.setType(type);
         arenaRoom.setModule(roomName);
         arenaRoom.setName(roomName);
+        arenaRoom.setStatus(ArenaRoomStatus.CREATED);
         arenaRoomDao.insert(arenaRoom);
         return arenaRoom;
     }

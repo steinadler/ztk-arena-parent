@@ -133,6 +133,11 @@
             <groupId>com.huatu.ztk</groupId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.huatu.ztk</groupId>
+            <artifactId>spring-commons</artifactId>
+            <version>1.3-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
