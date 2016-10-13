@@ -163,7 +163,7 @@ public class CreateRoomTask {
                         data.put("uids",users);
                         data.put("practiceIds",practiceIds);//用户对应的练习列表
                         //通过mq发送游戏就绪通知
-                        rabbitTemplate.convertAndSend("game_notify_exchange",data);
+                        rabbitTemplate.convertAndSend("game_notify_exchange","",data);
                         logger.info("roomId={},users={} start game.",arenaRoomId,users);
                     }catch (Exception e){
                         logger.error("ex",e);
