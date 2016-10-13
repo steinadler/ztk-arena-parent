@@ -37,7 +37,7 @@ public class ArenaRoomServiceTest extends BaseTest{
             Assert.assertEquals(arenaRoom.getQcount(),ArenaRoomService.ARENA_QCOUNT);
             Assert.assertTrue(arenaRoom.getCreateTime()>0);
             Assert.assertTrue(arenaRoom.getId()>0);
-            Assert.assertEquals(arenaRoom.getTime(),ArenaRoomService.ARENA_LIMIT_TIME);
+            Assert.assertEquals(arenaRoom.getLimitTime(),ArenaRoomService.ARENA_LIMIT_TIME);
             Assert.assertNotNull(arenaRoom.getPracticePaper());
         }
     }
