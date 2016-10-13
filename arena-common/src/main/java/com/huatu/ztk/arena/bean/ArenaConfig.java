@@ -41,7 +41,7 @@ public class ArenaConfig {
         List modules = new ArrayList();
         modules.add(module);
         return ArenaConfig.builder()
-                .waitTime(10)
+                .waitTime(60)
                 .roomCapacity(4)
                 .gameLimitTime(300)
                 .questionCount(5)
