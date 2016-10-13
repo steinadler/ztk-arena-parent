@@ -1,8 +1,10 @@
 package com.huatu.ztk.arena.netty;
 
 import com.google.common.base.Strings;
+import com.huatu.ztk.arena.bean.Player;
 import com.huatu.ztk.arena.common.Actions;
 import com.huatu.ztk.arena.common.UserChannelCache;
+import com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService;
 import com.huatu.ztk.arena.util.ApplicationContextProvider;
 import com.huatu.ztk.user.service.UserSessionService;
 import io.netty.channel.Channel;
@@ -19,6 +21,7 @@ import org.slf4j.LoggerFactory;
 public class ServerHandshakeHandler extends SimpleChannelInboundHandler<Request> {
     private static final Logger logger = LoggerFactory.getLogger(ServerHandshakeHandler.class);
     public static final String TOKEN_KEY = "token";
+    final ArenaPlayerDubboService playerDubboService = ApplicationContextProvider.getApplicationContext().getBean(ArenaPlayerDubboService.class);
     /**
      * <strong>Please keep in mind that this method will be renamed to
      * {@code messageReceived(ChannelHandlerContext, I)} in 5.0.</strong>
@@ -46,8 +49,11 @@ public class ServerHandshakeHandler extends SimpleChannelInboundHandler<Request>
         final UserSessionService sessionService = ApplicationContextProvider.getApplicationContext().getBean(UserSessionService.class);
         final long uid = sessionService.getUid(request.getParams().get(TOKEN_KEY).toString());
         if (uid > 0) {//>0说明用户session处于有效状态
+            final Player player = playerDubboService.findById(uid);
             //发回消息
-            ctx.writeAndFlush(wapperResponse(SuccessReponse.loginSuccessResponse(),request));
+            final SuccessReponse response = SuccessReponse.loginSuccessResponse();
+            response.setData(player);
+            ctx.writeAndFlush(wapperResponse(response,request));
             ctx.channel().attr(BusinessHandler.uidAttributeKey).set(uid);
             ctx.pipeline().remove(this);//认证成功后,移除该handler
             //把当前连接加入到cache,如果存在旧的连接,则返回旧连接

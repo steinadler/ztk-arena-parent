@@ -57,6 +57,7 @@ public class SuccessReponse extends Response{
         return new SuccessReponse(50005,players);
     }
 
+
     /**
      * 开始游戏通知
      * @param practiceId 用户练习id
@@ -66,7 +67,20 @@ public class SuccessReponse extends Response{
     public static final SuccessReponse startGame(long practiceId,long arenaId){
         final HashMap<Object, Object> data = Maps.newHashMap();
         data.put("practiceId",practiceId);
+        data.put("arenaId",arenaId);
         return new SuccessReponse(50006,data);
+    }
+
+
+    /**
+     * 有用户离开房间,要发送通知
+     * @param uid
+     * @return
+     */
+    public static final SuccessReponse userLeaveGame(long uid){
+        final HashMap<Object, Object> data = Maps.newHashMap();
+        data.put("uid",uid);
+        return new SuccessReponse(50007,data);
     }
 
     private SuccessReponse() {

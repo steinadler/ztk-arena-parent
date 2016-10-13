@@ -12,4 +12,5 @@
     
     <dubbo:reference version="1.0" id="arenaDubboService" interface="com.huatu.ztk.arena.dubbo.ArenaDubboService"/>
     <dubbo:reference version="1.0" id="userDubboService" interface="com.huatu.ztk.user.dubbo.UserDubboService"/>
+    <dubbo:reference version="1.0" id="arenaPlayerDubboService" interface="com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService"/>
 </beans>
