@@ -8,7 +8,8 @@
  http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/mvc  http://www.springframework.org/schema/mvc/spring-mvc.xsd">
     <!-- Enables the Spring MVC @Controller programming model -->
     <mvc:annotation-driven />
-    <context:component-scan base-package="com.huatu" />
+    <!--此处一定要到控制层-->
+    <context:component-scan base-package="com.huatu.ztk.arena.controller" />
     <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping"/>
     <!-- Configure to plugin JSON as request and response in method handler -->
     <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">

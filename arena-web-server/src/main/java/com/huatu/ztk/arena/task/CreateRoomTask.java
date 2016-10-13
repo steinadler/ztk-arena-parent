@@ -90,7 +90,7 @@ public class CreateRoomTask {
                 while (running && locked){
                     try {
                         //通过setnx 来实现简单分布式锁
-                        locked = redisTemplate.opsForValue().setIfAbsent(RedisArenaKeys.getWorkLockKey(moduleId), System.currentTimeMillis() + "");
+                        locked = !redisTemplate.opsForValue().setIfAbsent(RedisArenaKeys.getWorkLockKey(moduleId), System.currentTimeMillis() + "");
                         if (locked) {
                             //锁被抢占,则sleep 一段时间
                             Thread.sleep(3);
