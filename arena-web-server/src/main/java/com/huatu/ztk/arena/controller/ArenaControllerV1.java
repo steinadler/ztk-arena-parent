@@ -66,7 +66,8 @@ public class ArenaControllerV1 {
     public ArenaRoom detail(@RequestHeader(required = false) String token, @PathVariable long roomId) throws BizException {
         userSessionService.assertSession(token);
         final long uid = userSessionService.getUid(token);
-        final ArenaRoom arenaRoom = arenaRoomService.findById(roomId, uid);
+        final ArenaRoom arenaRoom = arenaRoomService.findById(roomId);
+        // TODO: 10/14/16 检查本人是否有访问该房间的权限
         return arenaRoom;
     }
 

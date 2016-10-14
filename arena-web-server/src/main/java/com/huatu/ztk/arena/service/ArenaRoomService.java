@@ -1,8 +1,10 @@
 package com.huatu.ztk.arena.service;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import com.huatu.ztk.arena.bean.*;
+import com.huatu.ztk.arena.common.Actions;
 import com.huatu.ztk.arena.common.ArenaErrors;
 import com.huatu.ztk.arena.common.ArenaRoomType;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
@@ -23,6 +25,7 @@ import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -58,6 +61,9 @@ public class ArenaRoomService {
 
     @Autowired
     private UserDubboService userDubboService;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     /**
      * 随机创建一个房间
@@ -105,7 +111,7 @@ public class ArenaRoomService {
     }
 
 
-    public ArenaRoom findById(long roomId, long uid) throws BizException {
+    public ArenaRoom findById(long roomId){
 /*        final ArenaRoom arenaRoom = arenaRoomDao.findById(roomId);
         if (arenaRoom == null) {
             return arenaRoom;
@@ -126,14 +132,14 @@ public class ArenaRoomService {
 
         ////设置各玩家uid
         List<Long> playerIds = Lists.newArrayList();
-        playerIds.add(uid);
+        playerIds.add(34693L);
         playerIds.add(34693L); //胜者
         playerIds.add(12345L);
         arenaRoom.setPlayerIds(playerIds);
 
         //设置各玩家信息
         List<Player> players = Lists.newArrayList();
-        Player player1 = findPlayer(uid);
+        Player player1 = findPlayer(34693);
         Player player2 = Player.builder().uid(34693).nick("奋斗的小爆爆")
                 .avatar("http://tiku.huatu.com/cdn/images/vhuatu/avatars/l/lMIkOc5PsQFCSrO94xAxR4U9ULf.jpg").build();
         Player player3 = Player.builder().uid(12345).nick("采梦abcd")
@@ -157,7 +163,7 @@ public class ArenaRoomService {
         arenaRoom.setPracticePaper(practicePaper);
         //设置竞技结果
         List<ArenaResult> results = Lists.newArrayList();
-        ArenaResult result1 = ArenaResult.builder().uid(uid).rcount(5).elapsedTime(200).build();
+        ArenaResult result1 = ArenaResult.builder().uid(34693).rcount(5).elapsedTime(200).build();
         ArenaResult result2 = ArenaResult.builder().uid(34693).rcount(4).elapsedTime(250).build();
         ArenaResult result3 = ArenaResult.builder().uid(12345).rcount(3).elapsedTime(230).build();
         results.add(result1);
@@ -252,6 +258,12 @@ public class ArenaRoomService {
             final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(System.currentTimeMillis(), "yyyymmdd"));
             zSetOperations.incrementScore(arenaDayRankKey, arenaRoom.getWinner() + "", 1);
             redisTemplate.expire(arenaDayRankKey, 20, TimeUnit.DAYS);//记录20天有效
+
+            //发送消息,通知系统,给用户发送查看竞技结果通知
+            Map data = Maps.newHashMap();
+            data.put("action",Actions.SYSTEM_VIEW_ARENA_RESULT);
+            data.put("arenaId",arenaRoom.getId());
+            rabbitTemplate.convertAndSend("game_notify_exchange","",data);
         }
     }
 

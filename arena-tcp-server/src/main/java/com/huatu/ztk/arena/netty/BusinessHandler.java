@@ -43,7 +43,6 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Request request) throws Exception {
-        logger.info("receive request:{}", JsonUtil.toJson(request));
         final Long uid = ctx.channel().attr(uidAttributeKey).get();
         Response response = null;
         switch (request.getAction()) {
@@ -76,17 +75,6 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
                 }else {
                     response = SuccessReponse.existGame(arenaRoom,uid);
                 }
-                break;
-            }
-
-            case Actions.SYSTEM_START_GAME:{//系统通知开始游戏
-                final Long practiceId = MapUtils.getLong(request.getParams(), "practiceId");
-                final Long arenaId = MapUtils.getLong(request.getParams(), "arenaId");
-                response = SuccessReponse.startGame(practiceId,arenaId);
-                final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
-                //保存用户正在进行的数据
-                redisTemplate.opsForValue().set(userRoomKey,arenaId.toString());
-                redisTemplate.expire(userRoomKey,30, TimeUnit.DAYS);//设置有效期,
                 break;
             }
 

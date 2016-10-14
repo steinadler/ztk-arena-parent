@@ -34,4 +34,14 @@ public class Actions {
      * 系统开始游戏
      */
     public static final int SYSTEM_START_GAME = 11001;
+
+    /**
+     * 练习状态发生变化
+     */
+    public static final int SYSTEM_PRACTICE_STATUS_UPDATE=11002;
+
+    /**
+     * 通知用户查看竞技结果
+     */
+    public static final int SYSTEM_VIEW_ARENA_RESULT=11003;
 }
