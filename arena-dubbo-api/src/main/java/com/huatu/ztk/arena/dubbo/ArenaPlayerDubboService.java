@@ -1,5 +1,6 @@
 package com.huatu.ztk.arena.dubbo;
 
+import com.huatu.ztk.arena.bean.ArenaUserSummary;
 import com.huatu.ztk.arena.bean.Player;
 
 /**
@@ -9,9 +10,16 @@ import com.huatu.ztk.arena.bean.Player;
  */
 public interface ArenaPlayerDubboService {
     /**
-     * 根据id查询玩家
+     * 根据uid查询玩家
      * @param uid
      * @return
      */
     public Player findById(long uid);
+
+    /**
+     * 根据uid查询用户竞技场统计(胜负场次)
+     * @param uid
+     * @return
+     */
+    public ArenaUserSummary findSummaryById(long uid);
 }

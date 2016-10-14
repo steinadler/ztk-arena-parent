@@ -4,8 +4,8 @@ import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomSimple;
 import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaUserSummary;
+import com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
-import com.huatu.ztk.arena.service.ArenaSummaryService;
 import com.huatu.ztk.commons.PageBean;
 import com.huatu.ztk.commons.exception.BizException;
 import com.huatu.ztk.user.service.UserSessionService;
@@ -33,7 +33,7 @@ public class ArenaControllerV1 {
     private UserSessionService userSessionService;
 
     @Autowired
-    private ArenaSummaryService arenaSummaryService;
+    private ArenaPlayerDubboService arenaPlayerDubboService;
 
     /**
      * 查询我的竞技记录
@@ -42,7 +42,7 @@ public class ArenaControllerV1 {
      * @param cursor
      * @return
      */
-    @RequestMapping(value = "/history", method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/history", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object history(@RequestHeader(required = false) String token,
                           @RequestParam(defaultValue = Long.MAX_VALUE + "") long cursor) throws BizException {
         userSessionService.assertSession(token);
@@ -83,13 +83,15 @@ public class ArenaControllerV1 {
 
     /**
      * 查询用户竞技场统计
+     *
      * @return
      */
     @RequestMapping(value = "/summary", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ArenaUserSummary summary(@RequestHeader(required = false) String token) throws BizException {
         userSessionService.assertSession(token);
         final long uid = userSessionService.getUid(token);
-        return arenaSummaryService.findByUid(uid);
+        ArenaUserSummary summary = arenaPlayerDubboService.findSummaryById(uid);
+        return summary;
     }
 
 }
