@@ -94,6 +94,26 @@ public class SuccessReponse extends Response{
         return new SuccessReponse(50007,data);
     }
 
+    /**
+     * 用户提交答案
+     * @param data
+     * @return
+     */
+    public static final SuccessReponse userSubmitQuestion(Map data){
+        return new SuccessReponse(50008,data);
+    }
+
+    /**
+     * 查看竞技结果通知
+     * @param arenaId
+     * @return
+     */
+    public static final SuccessReponse arenaView(long arenaId){
+        Map data = Maps.newHashMap();
+        data.put("arenaId",arenaId);
+        return new SuccessReponse(50009,data);
+    }
+
     private SuccessReponse() {
     }
 

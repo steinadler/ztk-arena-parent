@@ -23,14 +23,28 @@
         </rabbit:bindings>
     </rabbit:fanout-exchange>
 
+    <!--声明队列， 如果队列不存在，auto-declare="true"会自动创建队列-->
+    <rabbit:queue id="submit_answers_queue_arena" name="submit_answers_queue_arena" durable="true" auto-declare="true" auto-delete="false"/>
+    <!-- exchange queue binging key 绑定 -->
+    <rabbit:fanout-exchange id="submit_answers" name="submit_answers" auto-declare="true" durable="true" auto-delete="false" >
+        <rabbit:bindings>
+            <rabbit:binding  queue="submit_answers_queue_arena">
+            </rabbit:binding>
+        </rabbit:bindings>
+    </rabbit:fanout-exchange>
+
     <!--通知消息队列-->
     <rabbit:fanout-exchange id="game_notify_exchange" name="game_notify_exchange" auto-declare="true" durable="true" auto-delete="false" >
     </rabbit:fanout-exchange>
 
 
     <bean id="practiceMessageListener" class="com.huatu.ztk.arena.task.PracticeMessageListener"></bean>
+    <bean id="submitAnswersListener" class="com.huatu.ztk.arena.task.SubmitAnswersListener"></bean>
     <!-- queue litener  观察 监听模式 当有消息到达时会通知监听在对应的队列上的监听对象-->
     <rabbit:listener-container connection-factory="connectionFactory" acknowledge="auto">
         <rabbit:listener queue-names="submit_practice_arena" ref="practiceMessageListener"/>
+        <rabbit:listener queue-names="submit_answers_queue_arena" ref="submitAnswersListener"/>
     </rabbit:listener-container>
+    
+    
 </beans>

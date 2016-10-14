@@ -105,7 +105,7 @@ public class ArenaRoomService {
     }
 
 
-    public ArenaRoom findById(long roomId, long uid) throws BizException {
+    public ArenaRoom findById(long roomId){
 /*        final ArenaRoom arenaRoom = arenaRoomDao.findById(roomId);
         if (arenaRoom == null) {
             return arenaRoom;
@@ -126,14 +126,14 @@ public class ArenaRoomService {
 
         ////设置各玩家uid
         List<Long> playerIds = Lists.newArrayList();
-        playerIds.add(uid);
+        playerIds.add(34693L);
         playerIds.add(34693L); //胜者
         playerIds.add(12345L);
         arenaRoom.setPlayerIds(playerIds);
 
         //设置各玩家信息
         List<Player> players = Lists.newArrayList();
-        Player player1 = findPlayer(uid);
+        Player player1 = findPlayer(34693);
         Player player2 = Player.builder().uid(34693).nick("奋斗的小爆爆")
                 .avatar("http://tiku.huatu.com/cdn/images/vhuatu/avatars/l/lMIkOc5PsQFCSrO94xAxR4U9ULf.jpg").build();
         Player player3 = Player.builder().uid(12345).nick("采梦abcd")
@@ -157,7 +157,7 @@ public class ArenaRoomService {
         arenaRoom.setPracticePaper(practicePaper);
         //设置竞技结果
         List<ArenaResult> results = Lists.newArrayList();
-        ArenaResult result1 = ArenaResult.builder().uid(uid).rcount(5).elapsedTime(200).build();
+        ArenaResult result1 = ArenaResult.builder().uid(34693).rcount(5).elapsedTime(200).build();
         ArenaResult result2 = ArenaResult.builder().uid(34693).rcount(4).elapsedTime(250).build();
         ArenaResult result3 = ArenaResult.builder().uid(12345).rcount(3).elapsedTime(230).build();
         results.add(result1);

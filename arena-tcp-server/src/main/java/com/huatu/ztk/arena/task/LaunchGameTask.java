@@ -31,6 +31,7 @@ import java.util.Map;
  */
 public class LaunchGameTask implements MessageListener{
     private static final Logger logger = LoggerFactory.getLogger(LaunchGameTask.class);
+    public static final String ATCION_FIELD = "atcion";
 
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
@@ -56,8 +57,46 @@ public class LaunchGameTask implements MessageListener{
             proccessUserLeaveArena(data);
         }else if (action == Actions.SYSTEM_START_GAME) {//开始游戏动作
             proccessStartGame(data);
-        }else {
+        }else if (action == Actions.SYSTEM_PRACTICE_STATUS_UPDATE) {
+            proccessUserSubmitQuestion(data);
+        }else if (action == Actions.SYSTEM_VIEW_ARENA_RESULT) {
+            proccessArenaView(data);
+        } else {
             logger.error("unknow action={},data={}",action,data);
+        }
+    }
+
+    /**
+     * 查看竞技结果通知
+     * @param data
+     */
+    private void proccessArenaView(Map data) {
+        final long arenaId = MapUtils.getLongValue(data, "arenaId");
+        final long[] users = getRoomUsers(arenaId);
+        for (long user : users) {//遍历,挨个发送通知
+            final Channel channel = UserChannelCache.getChannel(user);
+            if (channel == null) {//不存在则不处理
+                continue;
+            }
+            //通知用户查看结果
+            channel.writeAndFlush(SuccessReponse.arenaView(arenaId));
+        }
+    }
+
+    /**
+     * 答题记录更新,发送通知
+     * @param data
+     */
+    private void proccessUserSubmitQuestion(Map data) {
+        final long[] users = getRoomUsers(MapUtils.getLongValue(data, "arenaId"));
+        for (long user : users) {//遍历,挨个发送通知
+            final Channel channel = UserChannelCache.getChannel(user);
+            if (channel == null) {//不存在则不处理
+                continue;
+            }
+            data.remove(ATCION_FIELD);//移除action属性
+            //通知用户
+            channel.writeAndFlush(SuccessReponse.userSubmitQuestion(data));
         }
     }
 
