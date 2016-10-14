@@ -78,7 +78,6 @@ public class SubmitAnswersListener implements MessageListener {
         Map data = Maps.newHashMap();
         data.put("arenaId",arenaId);
         data.put("uid",uid);
-        data.put("practiceId",answerCard.getId());
         data.put("rcount",rcount);
         data.put("action", Actions.SYSTEM_PRACTICE_STATUS_UPDATE);
         rabbitTemplate.convertAndSend("game_notify_exchange","",data);

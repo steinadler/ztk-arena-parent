@@ -31,7 +31,7 @@ import java.util.Map;
  */
 public class LaunchGameTask implements MessageListener{
     private static final Logger logger = LoggerFactory.getLogger(LaunchGameTask.class);
-    public static final String ATCION_FIELD = "atcion";
+    public static final String ATCION_FIELD = "action";
 
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
@@ -50,7 +50,7 @@ public class LaunchGameTask implements MessageListener{
             logger.error("ex",e);
             return;
         }
-        int action = MapUtils.getInteger(data,"action",-1);
+        int action = MapUtils.getInteger(data,ATCION_FIELD,-1);
         if (action == Actions.USER_JOIN_NEW_ARENA) {//新用户加入房间动作
             proccessNewUserJionArena(data);
         }else if (action == Actions.USER_LEAVE_GAME) {//用户离开房间
@@ -78,6 +78,7 @@ public class LaunchGameTask implements MessageListener{
             if (channel == null) {//不存在则不处理
                 continue;
             }
+            logger.info("send message uid={},channel={}",user,channel);
             //通知用户查看结果
             channel.writeAndFlush(SuccessReponse.arenaView(arenaId));
         }
