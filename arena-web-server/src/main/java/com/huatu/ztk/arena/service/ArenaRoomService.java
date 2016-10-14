@@ -338,6 +338,12 @@ public class ArenaRoomService {
     public List<UserArenaRecord> findTodayRank(long date) {
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
+        //设置用户胜场数据用以排名使用
+        zSetOperations.incrementScore(arenaDayRankKey, 13117013 + "", 200);
+        zSetOperations.incrementScore(arenaDayRankKey, 13281923 + "", 135);
+        zSetOperations.incrementScore(arenaDayRankKey, 13281922 + "", 96);
+        zSetOperations.incrementScore(arenaDayRankKey, 13281921 + "", 95);
+        zSetOperations.incrementScore(arenaDayRankKey, 13281920 + "", 94);
         final Set<String> strings = zSetOperations.reverseRange(arenaDayRankKey, 0, TODAY_MAX_RANK_COUNT - 1);
         List<UserArenaRecord> records = Lists.newArrayList();
         for (String uidStr : strings) {

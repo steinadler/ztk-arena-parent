@@ -1,5 +1,6 @@
 package com.huatu.ztk.arena.service;
 
+import com.huatu.ztk.arena.bean.ArenaUserSummary;
 import com.huatu.ztk.arena.bean.Player;
 import com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService;
 import com.huatu.ztk.user.bean.UserDto;
@@ -37,5 +38,21 @@ public class ArenaPlayerDubboServiceImpl implements ArenaPlayerDubboService {
                 .nick(userDto.getNick())
                 .build();
         return player;
+    }
+
+    /**
+     * 根据uid查询该用户的竞技统计
+     * @param uid
+     * @return
+     */
+    @Override
+    public ArenaUserSummary findSummaryById(long uid) {
+        final ArenaUserSummary userSummary = ArenaUserSummary.builder()
+                .failCount(18)
+                .winCount(200)
+                .uid(uid)
+                .build();
+
+        return userSummary;
     }
 }
