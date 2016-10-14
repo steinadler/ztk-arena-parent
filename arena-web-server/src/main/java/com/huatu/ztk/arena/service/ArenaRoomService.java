@@ -1,8 +1,10 @@
 package com.huatu.ztk.arena.service;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import com.huatu.ztk.arena.bean.*;
+import com.huatu.ztk.arena.common.Actions;
 import com.huatu.ztk.arena.common.ArenaErrors;
 import com.huatu.ztk.arena.common.ArenaRoomType;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
@@ -23,6 +25,7 @@ import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -58,6 +61,9 @@ public class ArenaRoomService {
 
     @Autowired
     private UserDubboService userDubboService;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     /**
      * 随机创建一个房间
@@ -252,6 +258,12 @@ public class ArenaRoomService {
             final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(System.currentTimeMillis(), "yyyymmdd"));
             zSetOperations.incrementScore(arenaDayRankKey, arenaRoom.getWinner() + "", 1);
             redisTemplate.expire(arenaDayRankKey, 20, TimeUnit.DAYS);//记录20天有效
+
+            //发送消息,通知系统,给用户发送查看竞技结果通知
+            Map data = Maps.newHashMap();
+            data.put("action",Actions.SYSTEM_VIEW_ARENA_RESULT);
+            data.put("arenaId",arenaRoom.getId());
+            rabbitTemplate.convertAndSend("game_notify_exchange","",data);
         }
     }
 
