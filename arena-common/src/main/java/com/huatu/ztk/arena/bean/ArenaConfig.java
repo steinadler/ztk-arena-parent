@@ -25,7 +25,7 @@ public class ArenaConfig {
     private int questionCount;//单场比赛试题个数
     private List<Module> modules;//竞技模块
     @Data
-    static class Module{
+    public static class Module{
         private int id;
         private String name;
 

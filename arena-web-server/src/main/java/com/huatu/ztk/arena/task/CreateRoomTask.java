@@ -65,13 +65,9 @@ public class CreateRoomTask {
 
     @PostConstruct
     public void init() {
-        //每个模块维护一个集合
-        for (Integer moduleId : ModuleConstants.GOWUYUAN_MODULE_IDS) {
-            startWork(moduleId);
+        for (ArenaConfig.Module module : ArenaConfig.getConfig().getModules()) {
+            startWork(module.getId());
         }
-
-        startWork(-1);//-1 表示智能推送
-
         //添加停止任务线程
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
