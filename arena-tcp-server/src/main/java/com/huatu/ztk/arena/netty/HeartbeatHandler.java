@@ -20,7 +20,7 @@ public class HeartbeatHandler extends SimpleChannelInboundHandler<String> {
             Unpooled.copiedBuffer(PING+"\r\n", CharsetUtil.UTF_8));  //2
     public static final String PONG = "PONG";//心跳响应
     private static final ByteBuf HEARTBEAT_PONG = Unpooled.unreleasableBuffer(
-            Unpooled.copiedBuffer(PING+"\r\n", CharsetUtil.UTF_8));  //2
+            Unpooled.copiedBuffer(PONG+"\r\n", CharsetUtil.UTF_8));  //2
 
     /**
      * <strong>Please keep in mind that this method will be renamed to
