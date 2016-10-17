@@ -3,13 +3,10 @@ package com.huatu.ztk.arena.service;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.huatu.ztk.arena.bean.*;
-import com.huatu.ztk.arena.common.Actions;
 import com.huatu.ztk.arena.common.ArenaRoomType;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.dao.ArenaRoomDao;
 import com.huatu.ztk.commons.*;
-import com.huatu.ztk.commons.exception.BizException;
-import com.huatu.ztk.commons.exception.CommonErrors;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import com.huatu.ztk.paper.api.PracticeDubboService;
 import com.huatu.ztk.paper.bean.AnswerCard;
@@ -107,8 +104,8 @@ public class ArenaRoomService {
     }
 
 
-    public ArenaRoom findById(long roomId) {
-        final ArenaRoom arenaRoom = arenaRoomDao.findById(roomId);
+    public ArenaRoom findById(long arenaId) {
+        final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
         if (arenaRoom == null) {
             return arenaRoom;
         }

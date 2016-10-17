@@ -2,6 +2,7 @@ package com.huatu.ztk.arena.service;
 
 import com.huatu.ztk.arena.bean.ArenaUserSummary;
 import com.huatu.ztk.arena.bean.Player;
+import com.huatu.ztk.arena.dao.ArenaUserSummaryDao;
 import com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService;
 import com.huatu.ztk.user.bean.UserDto;
 import com.huatu.ztk.user.dubbo.UserDubboService;
@@ -19,6 +20,8 @@ public class ArenaPlayerDubboServiceImpl implements ArenaPlayerDubboService {
     @Autowired
     private UserDubboService userDubboService;
 
+    @Autowired
+    private ArenaUserSummaryDao arenaUserSummarydao;
 
     /**
      * 根据id查询玩家
@@ -47,12 +50,14 @@ public class ArenaPlayerDubboServiceImpl implements ArenaPlayerDubboService {
      */
     @Override
     public ArenaUserSummary findSummaryById(long uid) {
-        final ArenaUserSummary userSummary = ArenaUserSummary.builder()
-                .failCount(18)
-                .winCount(200)
-                .uid(uid)
-                .build();
+        final ArenaUserSummary arenaUserSummary = arenaUserSummarydao.findById(getTotalSummaryId(uid));
+        if (arenaUserSummary == null) {
+            // TODO: 10/17/16 模拟数据,后期去掉
+        }
+        return arenaUserSummary;
+    }
 
-        return userSummary;
+    private String getTotalSummaryId(long uid){
+        return uid+"-1";
     }
 }

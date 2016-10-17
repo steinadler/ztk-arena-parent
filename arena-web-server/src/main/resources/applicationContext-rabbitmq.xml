@@ -33,6 +33,16 @@
         </rabbit:bindings>
     </rabbit:fanout-exchange>
 
+    <rabbit:queue id="close_arena_queue_summary" name="close_arena_queue_summary" durable="true" auto-declare="true" auto-delete="false"/>
+    <!--房间关闭通知-->
+    <rabbit:fanout-exchange id="close_arena_exchange" name="close_arena_exchange" auto-declare="true" durable="true" auto-delete="false" >
+        <rabbit:bindings>
+            <rabbit:binding  queue="close_arena_queue_summary">
+            </rabbit:binding>
+        </rabbit:bindings>
+    </rabbit:fanout-exchange>
+
+
     <!--通知消息队列-->
     <rabbit:fanout-exchange id="game_notify_exchange" name="game_notify_exchange" auto-declare="true" durable="true" auto-delete="false" >
     </rabbit:fanout-exchange>
@@ -40,10 +50,12 @@
 
     <bean id="practiceMessageListener" class="com.huatu.ztk.arena.task.PracticeMessageListener"></bean>
     <bean id="submitAnswersListener" class="com.huatu.ztk.arena.task.SubmitAnswersListener"></bean>
+    <bean id="closeArenaListener" class="com.huatu.ztk.arena.task.CloseArenaListener"></bean>
     <!-- queue litener  观察 监听模式 当有消息到达时会通知监听在对应的队列上的监听对象-->
     <rabbit:listener-container connection-factory="connectionFactory" acknowledge="auto">
         <rabbit:listener queue-names="submit_practice_arena" ref="practiceMessageListener"/>
         <rabbit:listener queue-names="submit_answers_queue_arena" ref="submitAnswersListener"/>
+        <rabbit:listener queue-names="close_arena_queue_summary" ref="closeArenaListener"/>
     </rabbit:listener-container>
     
     
