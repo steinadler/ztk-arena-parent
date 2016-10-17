@@ -49,6 +49,7 @@ public class ArenaConfig {
             m.setName(module1.getName());
             modules.add(m);
         });
+        // TODO: 10/17/16 需要设置状态,并做排序,开放的放在前边
         return ArenaConfig.builder()
                 .waitTime(60)
                 .roomCapacity(2)

@@ -8,6 +8,7 @@ import com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.PageBean;
 import com.huatu.ztk.commons.exception.BizException;
+import com.huatu.ztk.commons.exception.CommonErrors;
 import com.huatu.ztk.user.service.UserSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +68,11 @@ public class ArenaControllerV1 {
         userSessionService.assertSession(token);
         final long uid = userSessionService.getUid(token);
         final ArenaRoom arenaRoom = arenaRoomService.findById(roomId);
-        // TODO: 10/14/16 检查本人是否有访问该房间的权限
+        if (arenaRoom != null) {
+            if (arenaRoom.getPlayerIds().indexOf(uid)<0) {//检查权限
+                throw new BizException(CommonErrors.PERMISSION_DENIED);
+            }
+        }
         return arenaRoom;
     }
 
