@@ -44,9 +44,11 @@ public class ArenaRankControllerV1 {
     public Object ranks(@RequestHeader(required = false) String token) throws BizException {
         userSessionService.assertSession(token);
         long date = System.currentTimeMillis();
+        //用户id
+        long uid = userSessionService.getUid(token);
         //查询排行列表
         List<UserArenaRecord> list = arenaRoomService.findTodayRank(date);
-        final UserArenaRecord myTodayRank = arenaRoomService.findMyTodayRank(userSessionService.getUid(token), date);
+        final UserArenaRecord myTodayRank = arenaRoomService.findMyTodayRank(uid, date);
         Map data = new HashMap();
         data.put("ranks", list);
         data.put("myRank", myTodayRank);

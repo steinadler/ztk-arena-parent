@@ -70,7 +70,7 @@ public class ArenaRoomService {
      *
      * @return
      */
-    public ArenaRoom create(Integer moduleId){
+    public ArenaRoom create(Integer moduleId) {
         int type = ArenaRoomType.RANDOM_POINT;//默认是随机知识点
         String roomName = "竞技-综合知识点";
 
@@ -83,7 +83,7 @@ public class ArenaRoomService {
             moduleId = ModuleConstants.GOWUYUAN_MODULE_IDS.get(RandomUtils.nextInt(0, ModuleConstants.GOWUYUAN_MODULE_IDS.size()));
         }
         //此处生成的PracticePaper没有组成试卷name，应参考微信组试卷逻辑
-        final PracticePaper practicePaper = practiceDubboService.create(SubjectType.SUBJECT_GONGWUYUAN,moduleId,ArenaConfig.getConfig().getQuestionCount());
+        final PracticePaper practicePaper = practiceDubboService.create(SubjectType.SUBJECT_GONGWUYUAN, moduleId, ArenaConfig.getConfig().getQuestionCount());
         final ValueOperations valueOperations = redisTemplate.opsForValue();
         final String roomIdKey = RedisArenaKeys.getRoomIdKey();
 
@@ -111,7 +111,7 @@ public class ArenaRoomService {
     }
 
 
-    public ArenaRoom findById(long roomId){
+    public ArenaRoom findById(long roomId) {
 /*        final ArenaRoom arenaRoom = arenaRoomDao.findById(roomId);
         if (arenaRoom == null) {
             return arenaRoom;
@@ -261,9 +261,9 @@ public class ArenaRoomService {
 
             //发送消息,通知系统,给用户发送查看竞技结果通知
             Map data = Maps.newHashMap();
-            data.put("action",Actions.SYSTEM_VIEW_ARENA_RESULT);
-            data.put("arenaId",arenaRoom.getId());
-            rabbitTemplate.convertAndSend("game_notify_exchange","",data);
+            data.put("action", Actions.SYSTEM_VIEW_ARENA_RESULT);
+            data.put("arenaId", arenaRoom.getId());
+            rabbitTemplate.convertAndSend("game_notify_exchange", "", data);
         }
     }
 
@@ -393,8 +393,8 @@ public class ArenaRoomService {
     public UserArenaRecord findMyTodayRank(long uid, long date) {
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
-        //获胜场数
-        final int winCount = zSetOperations.score(arenaDayRankKey, uid + "").intValue();
+        //获胜场数,若用户未参加过比赛rdeis不存在相应的胜场value，将其设置为0
+        final int winCount = Optional.ofNullable(zSetOperations.score(arenaDayRankKey, uid + "")).orElse(0.0).intValue();
         //我的排行,redis rank从0算起
         Long rank = Optional.ofNullable(zSetOperations.reverseRank(arenaDayRankKey, uid + "")).orElse(20000L) + 1;
         final Player player = findPlayer(uid);
