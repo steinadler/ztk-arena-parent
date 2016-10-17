@@ -1,5 +1,6 @@
 package com.huatu.ztk.arena.bean;
 
+import com.huatu.ztk.commons.ModuleConstants;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,6 +41,14 @@ public class ArenaConfig {
         module.setName("智能推送");
         List modules = new ArrayList();
         modules.add(module);
+
+        //遍历公务员模块
+        ModuleConstants.GOWUYUAN_MODULES.forEach(module1->{
+            Module m= new Module();
+            m.setId(module1.getId());
+            m.setName(module1.getName());
+            modules.add(m);
+        });
         return ArenaConfig.builder()
                 .waitTime(60)
                 .roomCapacity(2)
