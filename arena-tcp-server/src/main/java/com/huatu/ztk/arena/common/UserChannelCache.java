@@ -1,6 +1,8 @@
 package com.huatu.ztk.arena.common;
 
 import com.google.common.cache.Cache;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import io.netty.channel.Channel;
 
 import java.util.concurrent.TimeUnit;
@@ -14,8 +16,19 @@ import static com.google.common.cache.CacheBuilder.newBuilder;
 public class UserChannelCache {
     private static final Cache<Long, Channel> USER_CHANNEL_CACHE =
             newBuilder()
-                    .expireAfterAccess(1, TimeUnit.HOURS)//缓存时间
-                    .maximumSize(1000)//最大1000
+                    .expireAfterAccess(2,TimeUnit.HOURS)
+                    .removalListener(new RemovalListener<Long,Channel>(){
+                        @Override
+                        public void onRemoval(RemovalNotification<Long, Channel> notification) {
+                            final Channel channel = notification.getValue();
+                            if (channel == null) {
+                                return;
+                            }
+                            if (channel.isActive()) {//如果还是处于活跃状态,则把其再次加入缓存
+                                USER_CHANNEL_CACHE.put(notification.getKey(),channel);
+                            }
+                        }
+                    })
                     .build();
 
     public static final Channel getChannel(long uid){

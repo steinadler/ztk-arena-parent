@@ -1,5 +1,6 @@
 package com.huatu.ztk.arena.bean;
 
+import com.huatu.ztk.commons.ModuleConstants;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,7 +26,7 @@ public class ArenaConfig {
     private int questionCount;//单场比赛试题个数
     private List<Module> modules;//竞技模块
     @Data
-    static class Module{
+    public static class Module{
         private int id;
         private String name;
 
@@ -40,9 +41,17 @@ public class ArenaConfig {
         module.setName("智能推送");
         List modules = new ArrayList();
         modules.add(module);
+
+        //遍历公务员模块
+        ModuleConstants.GOWUYUAN_MODULES.forEach(module1->{
+            Module m= new Module();
+            m.setId(module1.getId());
+            m.setName(module1.getName());
+            modules.add(m);
+        });
         return ArenaConfig.builder()
                 .waitTime(60)
-                .roomCapacity(4)
+                .roomCapacity(2)
                 .gameLimitTime(300)
                 .questionCount(5)
                 .modules(modules)
