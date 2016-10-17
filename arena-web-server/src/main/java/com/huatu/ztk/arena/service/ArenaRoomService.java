@@ -140,15 +140,19 @@ public class ArenaRoomService {
         }
 
         //竞技结果
-        List<ArenaResult> results = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArrayList<>());
+        ArenaResult[] results = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArenaResult[arenaRoom.getPractices().size()]);
 
         final long uid = answerCard.getUserId();
+        int userIndex = arenaRoom.getPlayerIds().indexOf(uid);
+        if (userIndex < 0) {
+            logger.error("user not in arenaRoom={},practiceId={},uid={}",arenaRoom.getId(),practiceId,uid);
+            return;
+        }
+
         //遍历已有结果,防止重复处理
-        for (ArenaResult result : results) {
-            if (result.getUid() == uid) {//已经处理过的,不需要再进行处理
-                logger.warn(" practiceId={} is in ArenaRoom results,so skip it.");
-                return;
-            }
+        if (Arrays.stream(results).anyMatch(result->result!=null && result.getUid() == uid)) {//已经处理过的,不需要再进行处理
+            logger.warn(" practiceId={} is in ArenaRoom results,so skip it.",practiceId);
+            return;
         }
 
         final ArenaResult arenaResult = ArenaResult.builder()
@@ -158,7 +162,7 @@ public class ArenaRoomService {
                 .build();
 
         //添加新的竞技结果
-        results.add(arenaResult);
+        results[userIndex]=arenaResult;
         //更新竞技排名
         arenaRoom.setResults(results);
 
@@ -169,7 +173,7 @@ public class ArenaRoomService {
         logger.info("add arena result arenaId={}, data={}", arenaRoom.getId(), JsonUtil.toJson(arenaResult));
         //更新用户竞技记录
         updateUserArenaRecord(arenaRoom.getId(), answerCard, uid);
-        if (results.size() == arenaRoom.getPlayerIds().size()) {//说明都已经交卷
+        if (Arrays.stream(results).filter(result ->result!=null).count() == arenaRoom.getPlayerIds().size()) {//说明都已经交卷
             closeArena(arenaRoom.getId());//关闭房间
         }
     }
@@ -180,11 +184,11 @@ public class ArenaRoomService {
      */
     public void closeArena(long arenaId){
         final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
-        final List<ArenaResult> arenaResults = Optional.of(arenaRoom.getResults()).orElse(new ArrayList<>(arenaRoom.getPlayerIds().size()));
+        ArenaResult[] arenaResults = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArenaResult[arenaRoom.getPractices().size()]);
         //存在未交卷的用户
-        if (arenaResults.size() < arenaRoom.getPlayerIds().size()) {//存在未交卷的
-            for (int i = 0; i < arenaResults.size(); i++) {
-                if (arenaResults.get(i) == null) {//未交卷
+        if (Arrays.stream(arenaResults).filter(result ->result!=null).count() < arenaRoom.getPlayerIds().size()) {//存在未交卷的
+            for (int i = 0; i < arenaResults.length; i++) {
+                if (arenaResults[i] == null) {//未交卷
                     final Long practiceId = arenaRoom.getPractices().get(i);
                     AnswerCard answerCard = practiceCardDubboService.findById(practiceId);
                     final ArenaResult arenaResult = ArenaResult.builder()
@@ -193,7 +197,7 @@ public class ArenaRoomService {
                             .uid(answerCard.getUserId())
                             .build();
                     //设置用户竞技结果
-                    arenaResults.set(i,arenaResult);
+                    arenaResults[i]=arenaResult;
                 }
             }
             arenaRoom.setResults(arenaResults);
@@ -216,7 +220,7 @@ public class ArenaRoomService {
         }
         //设置胜者id
         arenaRoom.setWinner(winner.getUid());
-
+        arenaRoomDao.save(arenaRoom);
         //所有的竞技结果已经处理完,需要对第一名进行胜场+1
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         //第一名的用户胜利场次+1

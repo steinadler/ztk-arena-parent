@@ -68,7 +68,17 @@ public class ArenaRoomServiceTest extends BaseTest{
         arenaRoomService.addArenaResult(practiceId);
         AnswerCard answerCard = practiceCardDubboService.findById(practiceId);
         arenaRoom = arenaRoomService.findById(roomId);
-        ArenaResult arenaResult = arenaRoom.getResults().get(arenaRoom.getPractices().indexOf(answerCard.getId()));
+        ArenaResult arenaResult = arenaRoom.getResults()[arenaRoom.getPractices().indexOf(answerCard.getId())];
+        Assert.assertEquals(answerCard.getRcount(),arenaResult.getRcount());
+        Assert.assertEquals(answerCard.getExpendTime(),arenaResult.getElapsedTime());
+        Assert.assertEquals(answerCard.getUserId(),arenaResult.getUid());
+        Assert.assertEquals(arenaRoom.getStatus(),ArenaRoomStatus.RUNNING);
+        Assert.assertEquals(0,arenaRoom.getWinner());
+
+        arenaRoomService.addArenaResult(practiceId);
+        answerCard = practiceCardDubboService.findById(practiceId);
+        arenaRoom = arenaRoomService.findById(roomId);
+        arenaResult = arenaRoom.getResults()[arenaRoom.getPractices().indexOf(answerCard.getId())];
         Assert.assertEquals(answerCard.getRcount(),arenaResult.getRcount());
         Assert.assertEquals(answerCard.getExpendTime(),arenaResult.getElapsedTime());
         Assert.assertEquals(answerCard.getUserId(),arenaResult.getUid());
@@ -79,7 +89,7 @@ public class ArenaRoomServiceTest extends BaseTest{
         arenaRoomService.addArenaResult(practiceId);
         answerCard = practiceCardDubboService.findById(practiceId);
         arenaRoom = arenaRoomService.findById(roomId);
-        arenaResult = arenaRoom.getResults().get(arenaRoom.getPractices().indexOf(answerCard.getId()));
+        arenaResult = arenaRoom.getResults()[arenaRoom.getPractices().indexOf(answerCard.getId())];
         Assert.assertEquals(answerCard.getRcount(),arenaResult.getRcount());
         Assert.assertEquals(answerCard.getExpendTime(),arenaResult.getElapsedTime());
         Assert.assertEquals(answerCard.getUserId(),arenaResult.getUid());
@@ -90,7 +100,7 @@ public class ArenaRoomServiceTest extends BaseTest{
         arenaRoomService.addArenaResult(practiceId);
         answerCard = practiceCardDubboService.findById(practiceId);
         arenaRoom = arenaRoomService.findById(roomId);
-        arenaResult = arenaRoom.getResults().get(arenaRoom.getPractices().indexOf(answerCard.getId()));
+        arenaResult = arenaRoom.getResults()[arenaRoom.getPractices().indexOf(answerCard.getId())];
         Assert.assertEquals(answerCard.getRcount(),arenaResult.getRcount());
         Assert.assertEquals(answerCard.getExpendTime(),arenaResult.getElapsedTime());
         Assert.assertEquals(answerCard.getUserId(),arenaResult.getUid());
@@ -102,14 +112,29 @@ public class ArenaRoomServiceTest extends BaseTest{
         arenaRoomService.addArenaResult(practiceId);
         answerCard = practiceCardDubboService.findById(practiceId);
         arenaRoom = arenaRoomService.findById(roomId);
-        arenaResult = arenaRoom.getResults().get(arenaRoom.getPractices().indexOf(answerCard.getId()));
+        arenaResult = arenaRoom.getResults()[arenaRoom.getPractices().indexOf(answerCard.getId())];
         Assert.assertEquals(answerCard.getRcount(),arenaResult.getRcount());
         Assert.assertEquals(answerCard.getExpendTime(),arenaResult.getElapsedTime());
         Assert.assertEquals(answerCard.getUserId(),arenaResult.getUid());
         Assert.assertEquals(arenaRoom.getStatus(),ArenaRoomStatus.FINISHED);
-        Assert.assertEquals(1525088653376749568L,arenaRoom.getWinner());
+        Assert.assertEquals(10239481,arenaRoom.getWinner());
+    }
 
-
-
+    @Test
+    public void closeArenaTest(){
+        final int roomId = 52487248;
+        //初始化
+        ArenaRoom arenaRoom = arenaRoomService.findById(roomId);
+        arenaRoom.setStatus(ArenaRoomStatus.RUNNING);
+        arenaRoom.setResults(null);
+        arenaRoom.setWinner(0);
+        arenaRoomDao.save(arenaRoom);
+        arenaRoomService.closeArena(roomId);
+        arenaRoom = arenaRoomService.findById(roomId);
+        Assert.assertEquals(arenaRoom.getStatus(),ArenaRoomStatus.FINISHED);
+        Assert.assertEquals(10239481,arenaRoom.getWinner());
+        for (ArenaResult arenaResult : arenaRoom.getResults()) {
+            Assert.assertNotNull(arenaResult);
+        }
     }
 }

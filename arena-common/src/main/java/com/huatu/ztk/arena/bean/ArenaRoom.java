@@ -29,6 +29,6 @@ public class ArenaRoom extends ArenaRoomSimple{
     private List<Long> practices;//参加人员对应的练习id
     @Getter(onMethod = @__({ @JsonIgnore}))
     private PracticePaper practicePaper;//房间对应的练习
-    private List<ArenaResult> results;//竞技结果
+    private ArenaResult[] results;//竞技结果
 
 }

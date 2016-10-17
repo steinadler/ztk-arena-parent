@@ -8,9 +8,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by shaojieyue
@@ -20,18 +18,10 @@ public class AATest {
     private static final Logger logger = LoggerFactory.getLogger(AATest.class);
 
     public static void main(String[] args) {
-        List<Integer> results = Lists.newArrayList();
-        results.add(2);
-        results.add(1);
-        results.add(4);
-        results.add(3);
+        int[] ints = new int[]{1,3,3,4};
+        System.out.println(Arrays.stream(ints).anyMatch(i->i==1));
+        System.out.println(Arrays.stream(ints).anyMatch(i->i==3));
+        System.out.println(Arrays.stream(ints).anyMatch(i->i==5));
 
-        Collections.sort(results, new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                return o2-o1;
-            }
-        });
-        System.out.println(JsonUtil.toJson(results));
     }
 }
