@@ -20,9 +20,6 @@ public class ArenaPlayerDubboServiceImpl implements ArenaPlayerDubboService {
     @Autowired
     private UserDubboService userDubboService;
 
-    @Autowired
-    private ArenaUserSummaryDao arenaUserSummarydao;
-
     /**
      * 根据id查询玩家
      *
@@ -41,23 +38,5 @@ public class ArenaPlayerDubboServiceImpl implements ArenaPlayerDubboService {
                 .nick(userDto.getNick())
                 .build();
         return player;
-    }
-
-    /**
-     * 根据uid查询该用户的竞技统计
-     * @param uid
-     * @return
-     */
-    @Override
-    public ArenaUserSummary findSummaryById(long uid) {
-        final ArenaUserSummary arenaUserSummary = arenaUserSummarydao.findById(getTotalSummaryId(uid));
-        if (arenaUserSummary == null) {
-            // TODO: 10/17/16 模拟数据,后期去掉
-        }
-        return arenaUserSummary;
-    }
-
-    private String getTotalSummaryId(long uid){
-        return uid+"-1";
     }
 }

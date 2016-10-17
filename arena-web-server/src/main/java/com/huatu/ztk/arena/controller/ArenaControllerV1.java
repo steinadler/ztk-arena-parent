@@ -5,6 +5,7 @@ import com.huatu.ztk.arena.bean.ArenaRoomSimple;
 import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaUserSummary;
 import com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService;
+import com.huatu.ztk.arena.dubbo.ArenaUserSummaryDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.PageBean;
 import com.huatu.ztk.commons.exception.BizException;
@@ -34,7 +35,7 @@ public class ArenaControllerV1 {
     private UserSessionService userSessionService;
 
     @Autowired
-    private ArenaPlayerDubboService arenaPlayerDubboService;
+    private ArenaUserSummaryDubboService arenaUserSummaryDubboService;
 
     /**
      * 查询我的竞技记录
@@ -60,19 +61,20 @@ public class ArenaControllerV1 {
      * 查询竞技记录详情
      *
      * @param token
-     * @param roomId 房间id
+     * @param arenaId 竞技房间id
      * @return
      */
-    @RequestMapping(value = "/{roomId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ArenaRoom detail(@RequestHeader(required = false) String token, @PathVariable long roomId) throws BizException {
+    @RequestMapping(value = "/{arenaId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ArenaRoom detail(@RequestHeader(required = false) String token, @PathVariable long arenaId) throws BizException {
         userSessionService.assertSession(token);
         final long uid = userSessionService.getUid(token);
-        final ArenaRoom arenaRoom = arenaRoomService.findById(roomId);
-        if (arenaRoom != null) {
-            if (arenaRoom.getPlayerIds().indexOf(uid)<0) {//检查权限
-                throw new BizException(CommonErrors.PERMISSION_DENIED);
-            }
-        }
+        final ArenaRoom arenaRoom = arenaRoomService.findById(arenaId);
+        // TODO: 2016/10/17 上线前做权限验证--放开注释的代码
+//        if (arenaRoom != null) {
+//            if (arenaRoom.getPlayerIds().indexOf(uid)<0) {//检查权限
+//                throw new BizException(CommonErrors.PERMISSION_DENIED);
+//            }
+//        }
         return arenaRoom;
     }
 
@@ -95,7 +97,7 @@ public class ArenaControllerV1 {
     public ArenaUserSummary summary(@RequestHeader(required = false) String token) throws BizException {
         userSessionService.assertSession(token);
         final long uid = userSessionService.getUid(token);
-        ArenaUserSummary summary = arenaPlayerDubboService.findSummaryById(uid);
+        ArenaUserSummary summary = arenaUserSummaryDubboService.findSummaryById(uid);
         return summary;
     }
 
