@@ -67,18 +67,18 @@ public class ArenaRoomService {
      */
     public ArenaRoom create(Integer moduleId) {
         int type = ArenaRoomType.RANDOM_POINT;//默认是随机知识点
-        String roomName = "竞技-智能推送";
+        String roomName = "竞技-智能推送" + "-" + DateFormatUtils.format(System.currentTimeMillis(), "yyyyMMddHHmm");
         String moduleName = "智能推送";
         final Module module = ModuleConstants.getModuleById(moduleId);
         if (module != null) {
-            roomName = "竞技-" + module.getName();
+            roomName = "竞技-" + module.getName() + "-" + DateFormatUtils.format(System.currentTimeMillis(), "yyyyMMddHHmm");
             moduleName = module.getName();
             type = ArenaRoomType.SPECIFIED_POINT;
         } else {//查询不到,说明是随机知识点
             //随机选取模块
             moduleId = ModuleConstants.GOWUYUAN_MODULE_IDS.get(RandomUtils.nextInt(0, ModuleConstants.GOWUYUAN_MODULE_IDS.size()));
         }
-        //此处生成的PracticePaper没有组成试卷name，应参考微信组试卷逻辑
+
         final PracticePaper practicePaper = practiceDubboService.create(SubjectType.SUBJECT_GONGWUYUAN, moduleId, ArenaConfig.getConfig().getQuestionCount());
         final ValueOperations valueOperations = redisTemplate.opsForValue();
         final String roomIdKey = RedisArenaKeys.getRoomIdKey();
@@ -107,8 +107,8 @@ public class ArenaRoomService {
     }
 
 
-    public ArenaRoom findById(long arenaId) {
-        final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
+    public ArenaRoom findById(long roomId) {
+        final ArenaRoom arenaRoom = arenaRoomDao.findById(roomId);
         if (arenaRoom == null) {
             return arenaRoom;
         }
@@ -257,7 +257,7 @@ public class ArenaRoomService {
         List<ArenaRoomSimple> records = Lists.newArrayList();
         ArenaRoomSimple record1 = new ArenaRoomSimple();
         record1.setId(23449963);
-        record1.setType(2);
+        record1.setType(1);
         record1.setStatus(3); //房间状态--比赛已结束
         record1.setModule("智能推送");
         record1.setName("竞技赛场—智能推送—201605102433");
@@ -267,7 +267,7 @@ public class ArenaRoomService {
 
         ArenaRoomSimple record2 = new ArenaRoomSimple();
         record2.setId(23449972);
-        record2.setType(3);
+        record2.setType(1);
         record2.setStatus(3);
         record2.setModule("智能推送");
         record2.setName("竞技赛场—智能推送—201605102434");
@@ -276,7 +276,7 @@ public class ArenaRoomService {
 
         ArenaRoomSimple record3 = new ArenaRoomSimple();
         record3.setId(23449981);
-        record3.setType(4);
+        record3.setType(2);
         record3.setStatus(3);
         record3.setModule("智能推送");
         record3.setName("竞技赛场—智能推送—201605102435");
