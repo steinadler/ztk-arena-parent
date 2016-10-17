@@ -2,14 +2,11 @@ package com.huatu.ztk.arena.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.primitives.Longs;
 import com.huatu.ztk.arena.bean.*;
 import com.huatu.ztk.arena.common.Actions;
-import com.huatu.ztk.arena.common.ArenaErrors;
 import com.huatu.ztk.arena.common.ArenaRoomType;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.dao.ArenaRoomDao;
-import com.huatu.ztk.arena.dao.UserArenaRecordDao;
 import com.huatu.ztk.commons.*;
 import com.huatu.ztk.commons.exception.BizException;
 import com.huatu.ztk.commons.exception.CommonErrors;
@@ -20,7 +17,6 @@ import com.huatu.ztk.paper.bean.PracticePaper;
 import com.huatu.ztk.paper.common.AnswerCardType;
 import com.huatu.ztk.user.bean.UserDto;
 import com.huatu.ztk.user.dubbo.UserDubboService;
-import org.apache.commons.collections.comparators.ComparableComparator;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
@@ -30,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.ZSetOperations;
-import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -72,11 +67,12 @@ public class ArenaRoomService {
      */
     public ArenaRoom create(Integer moduleId) {
         int type = ArenaRoomType.RANDOM_POINT;//默认是随机知识点
-        String roomName = "竞技-综合知识点";
-
+        String roomName = "竞技-智能推送";
+        String moduleName = "智能推送";
         final Module module = ModuleConstants.getModuleById(moduleId);
         if (module != null) {
             roomName = "竞技-" + module.getName();
+            moduleName = module.getName();
             type = ArenaRoomType.SPECIFIED_POINT;
         } else {//查询不到,说明是随机知识点
             //随机选取模块
@@ -103,7 +99,7 @@ public class ArenaRoomService {
         arenaRoom.setCreateTime(System.currentTimeMillis());
         arenaRoom.setId(id);
         arenaRoom.setType(type);
-        arenaRoom.setModule(roomName);
+        arenaRoom.setModule(moduleName);
         arenaRoom.setName(roomName);
         arenaRoom.setStatus(ArenaRoomStatus.CREATED);
         arenaRoomDao.insert(arenaRoom);
@@ -111,65 +107,11 @@ public class ArenaRoomService {
     }
 
 
-    public ArenaRoom findById(long roomId) {
-/*        final ArenaRoom arenaRoom = arenaRoomDao.findById(roomId);
+    public ArenaRoom findById(long arenaId) {
+        final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
         if (arenaRoom == null) {
             return arenaRoom;
         }
-        if (!arenaRoom.getPlayerIds().contains(uid)) {
-            throw new BizException(CommonErrors.PERMISSION_DENIED);
-        }*/
-        ArenaRoom arenaRoom = new ArenaRoom();
-        //设置房间基本信息
-        arenaRoom.setId(23449972);
-        arenaRoom.setLimitTime(300);//比赛限时,单位:秒
-        arenaRoom.setType(3);
-        arenaRoom.setStatus(3);
-        arenaRoom.setModule("智能推送");
-        arenaRoom.setName("竞技赛场—智能推送—201605102434");
-        arenaRoom.setCreateTime(1467861939980L);
-        arenaRoom.setWinner(34693);
-
-        ////设置各玩家uid
-        List<Long> playerIds = Lists.newArrayList();
-        playerIds.add(34693L);
-        playerIds.add(34693L); //胜者
-        playerIds.add(12345L);
-        arenaRoom.setPlayerIds(playerIds);
-
-        //设置各玩家信息
-        List<Player> players = Lists.newArrayList();
-        Player player1 = findPlayer(34693);
-        Player player2 = Player.builder().uid(34693).nick("奋斗的小爆爆")
-                .avatar("http://tiku.huatu.com/cdn/images/vhuatu/avatars/l/lMIkOc5PsQFCSrO94xAxR4U9ULf.jpg").build();
-        Player player3 = Player.builder().uid(12345).nick("采梦abcd")
-                .avatar("http://tiku.huatu.com/cdn/images/vhuatu/avatars/default.png").build();
-        players.add(player1);
-        players.add(player2);
-        players.add(player3);
-        arenaRoom.setPlayers(players);
-        //设置各玩家对应的练习id
-        List<Long> practices = Lists.newArrayList();
-        practices.add(24330159L);
-        practices.add(24330124L);
-        practices.add(24330108L);
-        arenaRoom.setPractices(practices);
-        //设置房间比赛用题数量
-        arenaRoom.setQcount(5);
-        //设置竞技场状态--已结束
-        arenaRoom.setStatus(ArenaRoomStatus.FINISHED);
-        //设置竞技试卷
-        PracticePaper practicePaper = practiceDubboService.create(1, 392, 5);
-        arenaRoom.setPracticePaper(practicePaper);
-        //设置竞技结果
-        List<ArenaResult> results = Lists.newArrayList();
-        ArenaResult result1 = ArenaResult.builder().uid(34693).rcount(5).elapsedTime(200).build();
-        ArenaResult result2 = ArenaResult.builder().uid(34693).rcount(4).elapsedTime(250).build();
-        ArenaResult result3 = ArenaResult.builder().uid(12345).rcount(3).elapsedTime(230).build();
-        results.add(result1);
-        results.add(result2);
-        results.add(result3);
-        arenaRoom.setResults(results);
         return arenaRoom;
     }
 
@@ -177,20 +119,18 @@ public class ArenaRoomService {
     /**
      * 添加新的竞技结果
      *
-     * @param id
+     * @param practiceId
      */
-    public void addArenaResult(long id) {
-        AnswerCard answerCard = practiceCardDubboService.findById(id);
+    public void addArenaResult(long practiceId) {
+        AnswerCard answerCard = practiceCardDubboService.findById(practiceId);
         if (answerCard == null) {
-            logger.error("practiceId={} not exist", id);
+            logger.error("practiceId={} not exist", practiceId);
             return;
         }
 
         if (answerCard.getType() != AnswerCardType.ARENA_PAPER) {//只处理竞技场的答题卡
             return;
         }
-
-        final long practiceId = answerCard.getId();
 
         //查询该练习对应的竞技场房间
         final ArenaRoom arenaRoom = arenaRoomDao.findByPracticeId(practiceId);
@@ -200,7 +140,7 @@ public class ArenaRoomService {
         }
 
         //竞技结果
-        List<ArenaResult> results = Optional.of(arenaRoom.getResults()).orElse(new ArrayList<>());
+        List<ArenaResult> results = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArrayList<>());
 
         final long uid = answerCard.getUserId();
         //遍历已有结果,防止重复处理
@@ -211,11 +151,9 @@ public class ArenaRoomService {
             }
         }
 
-        final UserDto userDto = userDubboService.findById(uid);
         final ArenaResult arenaResult = ArenaResult.builder()
                 .elapsedTime(answerCard.getExpendTime())
                 .rcount(answerCard.getRcount())
-                .nick(userDto.getNick())
                 .uid(uid)
                 .build();
 
@@ -224,57 +162,83 @@ public class ArenaRoomService {
         //更新竞技排名
         arenaRoom.setResults(results);
 
-        //答题结果已经够数,说明都已经交卷
-        if (arenaRoom.getResults().size() >= arenaRoom.getPlayerIds().size()) {
-            //状态设置为已完成
-            arenaRoom.setStatus(ArenaRoomStatus.FINISHED);
-            int maxRcount = -1;
-            ArenaResult winner = null;//胜者id
-            for (ArenaResult result : results) {//遍历答题结果,获取计算出胜者id
-                if (result.getRcount() > maxRcount) {//正确数量多,取新的
-                    maxRcount = result.getRcount();
-                    winner = result;
-                } else if (result.getRcount() == maxRcount) {//两人答对数量一样
-                    if (result.getElapsedTime() < winner.getElapsedTime()) {//当两人答对数量一致,那么用时短的获胜
-                        winner = result;
-                    }
-                }
-            }
-            //设置胜者id
-            arenaRoom.setWinner(winner.getUid());
-        }
         arenaRoomDao.save(arenaRoom);
 
         //删除用户的房间状态
         redisTemplate.delete(RedisArenaKeys.getUserRoomKey(uid));
-        logger.info("add arena result roomId={}, data={}", arenaRoom.getId(), JsonUtil.toJson(arenaResult));
+        logger.info("add arena result arenaId={}, data={}", arenaRoom.getId(), JsonUtil.toJson(arenaResult));
         //更新用户竞技记录
-        updateUserArenaRecord(arenaRoom.getId(), answerCard, userDto);
-
-        //所有的竞技结果已经处理完,需要对第一名进行胜场+1
-        if (arenaRoom.getStatus() == ArenaRoomStatus.FINISHED) {
-            final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
-            //第一名的用户胜利场次+1
-            final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(System.currentTimeMillis(), "yyyymmdd"));
-            zSetOperations.incrementScore(arenaDayRankKey, arenaRoom.getWinner() + "", 1);
-            redisTemplate.expire(arenaDayRankKey, 20, TimeUnit.DAYS);//记录20天有效
-
-            //发送消息,通知系统,给用户发送查看竞技结果通知
-            Map data = Maps.newHashMap();
-            data.put("action", Actions.SYSTEM_VIEW_ARENA_RESULT);
-            data.put("arenaId", arenaRoom.getId());
-            rabbitTemplate.convertAndSend("game_notify_exchange", "", data);
+        updateUserArenaRecord(arenaRoom.getId(), answerCard, uid);
+        if (results.size() == arenaRoom.getPlayerIds().size()) {//说明都已经交卷
+            closeArena(arenaRoom.getId());//关闭房间
         }
     }
 
     /**
+     * 关闭竞技场
+     * @param arenaId 竞技场id
+     */
+    public void closeArena(long arenaId){
+        final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
+        final List<ArenaResult> arenaResults = Optional.of(arenaRoom.getResults()).orElse(new ArrayList<>(arenaRoom.getPlayerIds().size()));
+        //存在未交卷的用户
+        if (arenaResults.size() < arenaRoom.getPlayerIds().size()) {//存在未交卷的
+            for (int i = 0; i < arenaResults.size(); i++) {
+                if (arenaResults.get(i) == null) {//未交卷
+                    final Long practiceId = arenaRoom.getPractices().get(i);
+                    AnswerCard answerCard = practiceCardDubboService.findById(practiceId);
+                    final ArenaResult arenaResult = ArenaResult.builder()
+                            .elapsedTime(answerCard.getExpendTime())
+                            .rcount(answerCard.getRcount())
+                            .uid(answerCard.getUserId())
+                            .build();
+                    //设置用户竞技结果
+                    arenaResults.set(i,arenaResult);
+                }
+            }
+            arenaRoom.setResults(arenaResults);
+        }
+
+        //设置为已结束状态
+        arenaRoom.setStatus(ArenaRoomStatus.FINISHED);
+
+        int maxRcount = -1;
+        ArenaResult winner = null;//胜者id
+        for (ArenaResult result : arenaRoom.getResults()) {//遍历答题结果,获取计算出胜者id
+            if (result.getRcount() > maxRcount) {//正确数量多,取新的
+                maxRcount = result.getRcount();
+                winner = result;
+            } else if (result.getRcount() == maxRcount) {//两人答对数量一样
+                if (result.getElapsedTime() < winner.getElapsedTime()) {//当两人答对数量一致,那么用时短的获胜
+                    winner = result;
+                }
+            }
+        }
+        //设置胜者id
+        arenaRoom.setWinner(winner.getUid());
+
+        //所有的竞技结果已经处理完,需要对第一名进行胜场+1
+        final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+        //第一名的用户胜利场次+1
+        final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(System.currentTimeMillis(), "yyyymmdd"));
+        zSetOperations.incrementScore(arenaDayRankKey, arenaRoom.getWinner() + "", 1);
+        redisTemplate.expire(arenaDayRankKey, 20, TimeUnit.DAYS);//记录20天有效
+
+        //发送消息,通知系统,给用户发送查看竞技结果通知
+        Map data = Maps.newHashMap();
+        data.put("arenaId", arenaRoom.getId());
+        //发送竞技场关闭通知
+        rabbitTemplate.convertAndSend("close_arena_exchange", "", data);
+
+    }
+
+    /**
      * 更新用户竞技记录
-     *
-     * @param arenaId
+     *  @param arenaId
      * @param answerCard
      * @param userDto
      */
-    private void updateUserArenaRecord(long arenaId, AnswerCard answerCard, UserDto userDto) {
+    private void updateUserArenaRecord(long arenaId, AnswerCard answerCard, long userDto) {
         logger.info("update userId={} UserArenaRecord,arenaId={}", answerCard.getId(), arenaId);
     }
 
