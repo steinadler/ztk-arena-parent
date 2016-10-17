@@ -1,14 +1,18 @@
 package com.huatu.ztk.arena.dao;
 
 import com.huatu.ztk.arena.bean.ArenaUserSummary;
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 /**
+ * 竞技场统计dao
  * Created by shaojieyue
  * Created time 2016-10-17 16:29
  */
@@ -19,10 +23,35 @@ public class ArenaUserSummaryDao {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    public void updateSummary(){
+    /**
+     * 根据id更新竞技场统计信息
+     * @param id
+     * @param update
+     */
+    public boolean updateSummary(String id,Update update){
+        final Query query = Query.query(Criteria.where("_id").is(id));
+        mongoTemplate.updateFirst(query,update,ArenaUserSummary.class);
     }
 
     public ArenaUserSummary findById(String id) {
         return mongoTemplate.findById(id, ArenaUserSummary.class);
+    }
+
+    /**
+     * 获取用户当天统计id
+     * @param uid
+     * @return
+     */
+    public String getTodaySummaryId(long uid){
+        return uid+ DateFormatUtils.format(System.currentTimeMillis(),"yyyyMMdd");
+    }
+
+    /**
+     * 获取用户总统计id
+     * @param uid
+     * @return
+     */
+    public String getTotalSummaryId(long uid){
+        return uid+"-1";
     }
 }
