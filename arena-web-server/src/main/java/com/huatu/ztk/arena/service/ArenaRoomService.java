@@ -325,6 +325,7 @@ public class ArenaRoomService {
         record2.setCreateTime(1467861939980L);
         record2.setWinner(34693);
 
+
         ArenaRoomSimple record3 = new ArenaRoomSimple();
         record3.setId(23449981);
         record3.setType(2);
@@ -371,9 +372,9 @@ public class ArenaRoomService {
         final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
         //设置用户胜场数据用以排名使用
         zSetOperations.add(arenaDayRankKey, 13117013 + "", 200);
-        zSetOperations.add(arenaDayRankKey, 13281923 + "", 135);
-        zSetOperations.add(arenaDayRankKey, 13281922 + "", 96);
         zSetOperations.add(arenaDayRankKey, 13281921 + "", 95);
+        zSetOperations.add(arenaDayRankKey, 13281922 + "", 96);
+        zSetOperations.add(arenaDayRankKey, 13281923 + "", 135);
         zSetOperations.add(arenaDayRankKey, 13281920 + "", 94);
         final Set<String> strings = zSetOperations.reverseRange(arenaDayRankKey, 0, TODAY_MAX_RANK_COUNT - 1);
         List<UserArenaRecord> records = Lists.newArrayList();
