@@ -27,8 +27,8 @@ public class ArenaRoomDao {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    public ArenaRoom findById(long roomId) {
-        return mongoTemplate.findById(roomId,ArenaRoom.class);
+    public ArenaRoom findById(long arenaId) {
+        return mongoTemplate.findById(arenaId,ArenaRoom.class);
     }
 
     public void save(ArenaRoom arenaRoom) {
@@ -40,11 +40,11 @@ public class ArenaRoomDao {
         mongoTemplate.insert(arenaRoom);
     }
 
-    public void updateById(long roomId,Update update){
+    public void updateById(long arenaId,Update update){
         if (update == null) {
             return;
         }
-        final Query query = new Query(Criteria.where("_id").is(roomId));
+        final Query query = new Query(Criteria.where("_id").is(arenaId));
         mongoTemplate.updateFirst(query,update,"ztk_arena_room");
     }
 
