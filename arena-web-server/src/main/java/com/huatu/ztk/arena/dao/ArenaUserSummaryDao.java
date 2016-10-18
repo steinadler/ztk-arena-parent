@@ -1,6 +1,8 @@
 package com.huatu.ztk.arena.dao;
 
 import com.huatu.ztk.arena.bean.ArenaUserSummary;
+import com.huatu.ztk.commons.JsonUtil;
+import com.mongodb.WriteResult;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +32,8 @@ public class ArenaUserSummaryDao {
      */
     public boolean updateSummary(String id,Update update){
         final Query query = Query.query(Criteria.where("_id").is(id));
-        mongoTemplate.updateFirst(query,update,ArenaUserSummary.class);
+        WriteResult writeResult = mongoTemplate.updateFirst(query, update, ArenaUserSummary.class);
+        return writeResult.isUpdateOfExisting();
     }
 
     public ArenaUserSummary findById(String id) {
@@ -53,5 +56,15 @@ public class ArenaUserSummaryDao {
      */
     public String getTotalSummaryId(long uid){
         return uid+"-1";
+    }
+
+
+    /**
+     * 插入一条统计记录
+     * @param arenaUserSummary
+     */
+    public void insertSummary(ArenaUserSummary arenaUserSummary) {
+        logger.info("insert new summary={}", JsonUtil.toJson(arenaUserSummary));
+        mongoTemplate.insert(arenaUserSummary);
     }
 }
