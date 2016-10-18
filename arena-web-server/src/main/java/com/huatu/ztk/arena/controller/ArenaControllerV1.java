@@ -68,11 +68,12 @@ public class ArenaControllerV1 {
         userSessionService.assertSession(token);
         final long uid = userSessionService.getUid(token);
         final ArenaRoom arenaRoom = arenaRoomService.findById(arenaId);
-        if (arenaRoom != null) {
+        // TODO: 2016/10/18  上线放开代码
+       /* if (arenaRoom != null) {
             if (arenaRoom.getPlayerIds().indexOf(uid)<0) {//检查权限,用户是否在该房间参赛
                 throw new BizException(CommonErrors.PERMISSION_DENIED);
             }
-        }
+        }*/
         return arenaRoom;
     }
 

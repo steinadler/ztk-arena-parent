@@ -25,9 +25,18 @@ public class ArenaUserSummaryDubboServiceImpl implements ArenaUserSummaryDubboSe
     @Override
     public ArenaUserSummary findSummaryById(long uid) {
         final ArenaUserSummary arenaUserSummary = arenaUserSummarydao.findById(getTotalSummaryId(uid));
-        if (arenaUserSummary == null) {
+        // TODO: 2016/10/18  上线放开代码
+/*        if (arenaUserSummary == null) {
             logger.info("find arenaUserSummary is null，uid={}",uid);
             return new ArenaUserSummary();
+        }*/
+        if (arenaUserSummary == null) {
+            final ArenaUserSummary userSummary = ArenaUserSummary.builder()
+                    .failCount(18)
+                    .winCount(200)
+                    .uid(uid)
+                    .build();
+            return userSummary;
         }
         return arenaUserSummary;
     }
