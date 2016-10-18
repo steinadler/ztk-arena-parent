@@ -112,10 +112,12 @@ public class ArenaRoomDao {
      * @return
      */
     public List<ArenaRoomSimple> findForPage(long uid, long cursor, int size) {
+
         //返回playerIds包含uid，竞技比赛已结束的结果集
         final Criteria criteria = Criteria.where("playerIds").in(uid)
                 .and("status").is(ArenaRoomStatus.FINISHED)
                 .and("_id").lt(cursor);
+
         //设置数据返回记录条数，按创建时间倒序排列
         Query query = new Query(criteria);
         query.limit(size).with(new Sort(Sort.Direction.DESC, "createTime"));
