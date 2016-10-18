@@ -1,11 +1,16 @@
 package com.huatu.ztk.arena.dao;
 
+import com.google.common.collect.Lists;
 import com.huatu.ztk.arena.bean.ArenaRoom;
+import com.huatu.ztk.arena.bean.ArenaRoomSimple;
+import com.huatu.ztk.arena.bean.ArenaRoomStatus;
 import com.huatu.ztk.commons.JsonUtil;
+import com.huatu.ztk.paper.common.AnswerCardStatus;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -28,7 +33,7 @@ public class ArenaRoomDao {
     private MongoTemplate mongoTemplate;
 
     public ArenaRoom findById(long arenaId) {
-        return mongoTemplate.findById(arenaId,ArenaRoom.class);
+        return mongoTemplate.findById(arenaId, ArenaRoom.class);
     }
 
     public void save(ArenaRoom arenaRoom) {
@@ -40,16 +45,17 @@ public class ArenaRoomDao {
         mongoTemplate.insert(arenaRoom);
     }
 
-    public void updateById(long arenaId,Update update){
+    public void updateById(long arenaId, Update update) {
         if (update == null) {
             return;
         }
         final Query query = new Query(Criteria.where("_id").is(arenaId));
-        mongoTemplate.updateFirst(query,update,"ztk_arena_room");
+        mongoTemplate.updateFirst(query, update, "ztk_arena_room");
     }
 
     /**
      * 通过id批量查询房间信息
+     *
      * @param roomIds
      * @return
      */
@@ -71,10 +77,11 @@ public class ArenaRoomDao {
 
     /**
      * 根据练习id查询竞技场
+     *
      * @param practiceId
      * @return
      */
-    public ArenaRoom findByPracticeId(long practiceId){
+    public ArenaRoom findByPracticeId(long practiceId) {
         final Criteria criteria = Criteria.where("practices").in(practiceId);
         final List<ArenaRoom> rooms = mongoTemplate.find(new Query(criteria), ArenaRoom.class);
         ArenaRoom arenaRoom = null;
@@ -83,5 +90,30 @@ public class ArenaRoomDao {
         }
 
         return arenaRoom;
+    }
+
+    /**
+     * 分页查询我的竞技记录
+     *
+     * @param uid    用户id
+     * @param cursor 游标
+     * @return
+     */
+    public List<ArenaRoomSimple> findForPage(long uid, long cursor, int size) {
+        //返回playerIds包含uid，竞技比赛已结束的结果集
+        final Criteria criteria = Criteria.where("playerIds").in(uid)
+                .and("status").is(ArenaRoomStatus.FINISHED)
+                .and("_id").lt(cursor);
+        //设置数据返回记录条数，按创建时间倒序排列
+        Query query = new Query(criteria);
+        query.limit(size).with(new Sort(Sort.Direction.DESC, "createTime"));
+
+        List<ArenaRoom> records = mongoTemplate.find(query, ArenaRoom.class);
+        //将mongo查询结果转为只包含房间基本信息的list类型
+        List<ArenaRoomSimple> results = Lists.newArrayList();
+        if (CollectionUtils.isNotEmpty(records)) {
+            results.addAll(records);
+        }
+        return results;
     }
 }

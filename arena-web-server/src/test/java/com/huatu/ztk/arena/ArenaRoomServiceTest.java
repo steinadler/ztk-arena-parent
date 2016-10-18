@@ -1,11 +1,9 @@
 package com.huatu.ztk.arena;
 
-import com.huatu.ztk.arena.bean.ArenaConfig;
-import com.huatu.ztk.arena.bean.ArenaResult;
-import com.huatu.ztk.arena.bean.ArenaRoom;
-import com.huatu.ztk.arena.bean.ArenaRoomStatus;
+import com.huatu.ztk.arena.bean.*;
 import com.huatu.ztk.arena.dao.ArenaRoomDao;
 import com.huatu.ztk.arena.service.ArenaRoomService;
+import com.huatu.ztk.commons.JsonUtil;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import com.huatu.ztk.paper.bean.AnswerCard;
 import org.apache.commons.lang3.RandomUtils;
@@ -17,7 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by shaojieyue
@@ -131,10 +130,31 @@ public class ArenaRoomServiceTest extends BaseTest{
         arenaRoomDao.save(arenaRoom);
         arenaRoomService.closeArena(roomId);
         arenaRoom = arenaRoomService.findById(roomId);
+        Assert.assertNotNull(arenaRoom);
+        Assert.assertEquals(arenaRoom.getQcount(),ArenaConfig.getConfig().getQuestionCount());
         Assert.assertEquals(arenaRoom.getStatus(),ArenaRoomStatus.FINISHED);
         Assert.assertEquals(10239481,arenaRoom.getWinner());
         for (ArenaResult arenaResult : arenaRoom.getResults()) {
             Assert.assertNotNull(arenaResult);
         }
+    }
+
+    @Test
+    public void historyTest(){
+        final long userId = 10264614;
+        long cursor = Long.MAX_VALUE;
+        List<ArenaRoomSimple> records = arenaRoomDao.findForPage(userId,cursor,20);
+        Assert.assertNotNull(records);
+        Assert.assertTrue(records.size()<=20);
+        List<Integer> statusList = records.stream().map(bean->bean.getStatus()).collect(Collectors.toList());
+        for(Integer status: statusList){
+            Assert.assertEquals(status,new Integer(3));
+        }
+        List<Long> winnerList = records.stream().map(bean->bean.getWinner()).collect(Collectors.toList());
+        for(Long winner: winnerList){
+            Assert.assertNotNull(winner);
+        }
+       logger.info("records={}", JsonUtil.toJson(records));
+
     }
 }

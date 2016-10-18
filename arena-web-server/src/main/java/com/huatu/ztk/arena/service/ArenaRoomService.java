@@ -14,6 +14,7 @@ import com.huatu.ztk.paper.bean.PracticePaper;
 import com.huatu.ztk.paper.common.AnswerCardType;
 import com.huatu.ztk.user.bean.UserDto;
 import com.huatu.ztk.user.dubbo.UserDubboService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
@@ -28,7 +29,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 /**
  * 竞技场服务层
@@ -305,6 +305,10 @@ public class ArenaRoomService {
      * @return
      */
     public PageBean<ArenaRoomSimple> history(long uid, long cursor, int size) {
+//        List<ArenaRoomSimple> records = arenaRoomDao.findForPage(uid,cursor,size);
+//        if(CollectionUtils.isEmpty(records)){
+//            return new PageBean<>();
+//        }
         List<ArenaRoomSimple> records = Lists.newArrayList();
         ArenaRoomSimple record1 = new ArenaRoomSimple();
         record1.setId(23449963);
