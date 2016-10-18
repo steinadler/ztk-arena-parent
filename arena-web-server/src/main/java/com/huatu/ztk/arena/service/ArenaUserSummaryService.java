@@ -1,5 +1,6 @@
 package com.huatu.ztk.arena.service;
 
+import com.huatu.ztk.arena.bean.ArenaUserSummary;
 import com.huatu.ztk.arena.dao.ArenaUserSummaryDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,23 +23,32 @@ public class ArenaUserSummaryService {
     /**
      * 更新用户竞技统计
      * @param uid 用户id
-     * @param winner 用户是否是胜者
+     * @param isWinner 用户是否是胜者
      */
-    public void updateUserSummary(long uid,boolean winner){
-        // TODO: 10/17/16 是否存在
-        String key = null;
-        if (winner) {
-            key = "winCount";
-        }else {
-            key = "failCount";
-        }
+    public void updateUserSummary(long uid,boolean isWinner){
+        String key = isWinner ? "winCount" : "failCount";
         Update update = new Update().inc(key,1);
+
         //更新用户当天统计
-        final boolean b = arenaUserSummaryDao.updateSummary(arenaUserSummaryDao.getTodaySummaryId(uid), update);
-        if (!b) {
-            //init
-        }
+        updateUserSummary(uid, isWinner, update, arenaUserSummaryDao.getTodaySummaryId(uid));
+
         //更新用户总记录统计
-        arenaUserSummaryDao.updateSummary(arenaUserSummaryDao.getTotalSummaryId(uid),update);
+        updateUserSummary(uid, isWinner, update, arenaUserSummaryDao.getTotalSummaryId(uid));
+    }
+
+    private void updateUserSummary(long uid, boolean isWinner, Update update, String summaryId) {
+        logger.info("update summary,uid={},isWinner={},summaryId={}", uid, isWinner, summaryId);
+        final boolean isExist = arenaUserSummaryDao.updateSummary(summaryId, update);
+
+        //如果不存在，新建记录
+        if (!isExist) {
+            ArenaUserSummary todaySummary = ArenaUserSummary.builder()
+                    .id(summaryId)
+                    .uid(uid)
+                    .winCount(isWinner ? 1 : 0)
+                    .failCount(isWinner ? 0 : 1)
+                    .build();
+            arenaUserSummaryDao.insertSummary(todaySummary);
+        }
     }
 }
