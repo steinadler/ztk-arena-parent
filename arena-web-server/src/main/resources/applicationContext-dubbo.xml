@@ -13,6 +13,7 @@
     <bean id="arenaDubboService" class="com.huatu.ztk.arena.service.ArenaDubboServiceImpl"></bean>
     <bean id="arenaPlayerDubboService" class="com.huatu.ztk.arena.service.ArenaPlayerDubboServiceImpl"></bean>
     <bean id="arenaUserSummaryDubboService" class="com.huatu.ztk.arena.service.ArenaUserSummaryDubboServiceImpl"></bean>
+
     <dubbo:service version="1.0" interface="com.huatu.ztk.arena.dubbo.ArenaDubboService" ref="arenaDubboService"/>
     <dubbo:service version="1.0" interface="com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService" ref="arenaPlayerDubboService"/>
     <dubbo:service version="1.0" interface="com.huatu.ztk.arena.dubbo.ArenaUserSummaryDubboService" ref="arenaUserSummaryDubboService"/>
