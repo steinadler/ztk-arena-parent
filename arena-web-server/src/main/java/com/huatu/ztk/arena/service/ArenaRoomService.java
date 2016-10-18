@@ -104,65 +104,17 @@ public class ArenaRoomService {
         return arenaRoom;
     }
 
-
+    /**
+     * 查询竞技记录详情
+     *
+     * @param arenaId 竞技房间id
+     * @return
+     */
     public ArenaRoom findById(long arenaId) {
-        // TODO: 2016/10/17 上线前做代码调整，放开注释的代码，去掉模拟数据
-//        final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
-//        if (arenaRoom == null) {
-//            return arenaRoom;
-//        }
-        ArenaRoom arenaRoom = new ArenaRoom();
-        //设置房间基本信息
-        arenaRoom.setId(23449972);
-        arenaRoom.setLimitTime(300);//比赛限时,单位:秒
-        arenaRoom.setType(1);
-        arenaRoom.setStatus(3);
-        arenaRoom.setModule("智能推送");
-        arenaRoom.setName("竞技赛场—智能推送—201605102434");
-        arenaRoom.setCreateTime(1467861939980L);
-        arenaRoom.setWinner(34693);
-
-        ////设置各玩家uid
-        List<Long> playerIds = Lists.newArrayList();
-        playerIds.add(13117013L);
-        playerIds.add(34693L); //胜者
-        playerIds.add(12345L);
-        arenaRoom.setPlayerIds(playerIds);
-
-        //设置各玩家信息
-        List<Player> players = Lists.newArrayList();
-        Player player1 = findPlayer(13117013);
-        Player player2 = Player.builder().uid(34693).nick("奋斗的小爆爆")
-                .avatar("http://tiku.huatu.com/cdn/images/vhuatu/avatars/l/lMIkOc5PsQFCSrO94xAxR4U9ULf.jpg").build();
-        Player player3 = Player.builder().uid(12345).nick("采梦abcd")
-                .avatar("http://tiku.huatu.com/cdn/images/vhuatu/avatars/default.png").build();
-        players.add(player1);
-        players.add(player2);
-        players.add(player3);
-        arenaRoom.setPlayers(players);
-        //设置各玩家对应的练习id
-        List<Long> practices = Lists.newArrayList();
-        practices.add(24330159L);
-        practices.add(24330124L);
-        practices.add(24330108L);
-        arenaRoom.setPractices(practices);
-        //设置房间比赛用题数量
-        arenaRoom.setQcount(5);
-        //设置竞技场状态--已结束
-        arenaRoom.setStatus(ArenaRoomStatus.FINISHED);
-        //设置竞技试卷
-        PracticePaper practicePaper = practiceDubboService.create(1, 392, 5);
-        arenaRoom.setPracticePaper(practicePaper);
-        //设置竞技结果
-        List<ArenaResult> results = Lists.newArrayList();
-        ArenaResult result1 = ArenaResult.builder().uid(13117013).rcount(5).elapsedTime(200).build();
-        ArenaResult result2 = ArenaResult.builder().uid(34693).rcount(4).elapsedTime(250).build();
-        ArenaResult result3 = ArenaResult.builder().uid(12345).rcount(3).elapsedTime(230).build();
-        results.add(result1);
-        results.add(result2);
-        results.add(result3);
-        ArenaResult[] arenaResults = new ArenaResult[results.size()];
-        arenaRoom.setResults(results.toArray(arenaResults));
+        final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
+        if (arenaRoom == null) {
+            return arenaRoom;
+        }
         return arenaRoom;
     }
 
@@ -231,13 +183,14 @@ public class ArenaRoomService {
 
     /**
      * 关闭竞技场
+     *
      * @param arenaId 竞技场id
      */
-    public void closeArena(long arenaId){
+    public void closeArena(long arenaId) {
         final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
         ArenaResult[] arenaResults = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArenaResult[arenaRoom.getPractices().size()]);
         //存在未交卷的用户
-        if (Arrays.stream(arenaResults).filter(result ->result!=null).count() < arenaRoom.getPlayerIds().size()) {//存在未交卷的
+        if (Arrays.stream(arenaResults).filter(result -> result != null).count() < arenaRoom.getPlayerIds().size()) {//存在未交卷的
             for (int i = 0; i < arenaResults.length; i++) {
                 if (arenaResults[i] == null) {//未交卷
                     final Long practiceId = arenaRoom.getPractices().get(i);
@@ -248,7 +201,7 @@ public class ArenaRoomService {
                             .uid(answerCard.getUserId())
                             .build();
                     //设置用户竞技结果
-                    arenaResults[i]=arenaResult;
+                    arenaResults[i] = arenaResult;
                 }
             }
             arenaRoom.setResults(arenaResults);
@@ -289,7 +242,8 @@ public class ArenaRoomService {
 
     /**
      * 更新用户竞技记录
-     *  @param arenaId
+     *
+     * @param arenaId
      * @param answerCard
      * @param userDto
      */
@@ -305,44 +259,11 @@ public class ArenaRoomService {
      * @return
      */
     public PageBean<ArenaRoomSimple> history(long uid, long cursor, int size) {
-//        List<ArenaRoomSimple> records = arenaRoomDao.findForPage(uid,cursor,size);
-//        if(CollectionUtils.isEmpty(records)){
-//            return new PageBean<>();
-//        }
-        List<ArenaRoomSimple> records = Lists.newArrayList();
-        ArenaRoomSimple record1 = new ArenaRoomSimple();
-        record1.setId(23449963);
-        record1.setType(1);
-        record1.setStatus(3); //房间状态--比赛已结束
-        record1.setModule("智能推送");
-        record1.setName("竞技赛场—智能推送—201605102433");
-        record1.setCreateTime(1467868477455L);
-        //前端在竞技历史界面展示胜负时，根据userId匹配，如当前userId与winner相同，则表示该参赛者为该房间的胜者，
-        record1.setWinner(34218);
 
-        ArenaRoomSimple record2 = new ArenaRoomSimple();
-        record2.setId(23449972);
-        record2.setType(1);
-        record2.setStatus(3);
-        record2.setModule("智能推送");
-        record2.setName("竞技赛场—智能推送—201605102434");
-        record2.setCreateTime(1467861939980L);
-        record2.setWinner(34693);
-
-
-        ArenaRoomSimple record3 = new ArenaRoomSimple();
-        record3.setId(23449981);
-        record3.setType(2);
-        record3.setStatus(3);
-        record3.setModule("智能推送");
-        record3.setName("竞技赛场—智能推送—201605102435");
-        record3.setCreateTime(1467861943606L);
-        record3.setWinner(35548);
-
-        records.add(record1);
-        records.add(record2);
-        records.add(record3);
-
+        List<ArenaRoomSimple> records = arenaRoomDao.findForPage(uid,cursor,size);
+        if(CollectionUtils.isEmpty(records)){
+            return new PageBean<ArenaRoomSimple>();
+        }
         long newCursor = cursor;
         if (records.size() > 0) {//最晚的一条练习的id作为下次请求的游标
             newCursor = records.get(records.size() - 1).getId();
@@ -352,6 +273,12 @@ public class ArenaRoomService {
         return pageBean;
     }
 
+    /**
+     * 根据uid查询用户相关信息
+     *
+     * @param uid
+     * @return
+     */
     public Player findPlayer(long uid) {
         final UserDto userDto = userDubboService.findById(uid);
         if (userDto == null) {
@@ -374,12 +301,6 @@ public class ArenaRoomService {
     public List<UserArenaRecord> findTodayRank(long date) {
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
-        //设置用户胜场数据用以排名使用
-        zSetOperations.add(arenaDayRankKey, 13117013 + "", 200);
-        zSetOperations.add(arenaDayRankKey, 13281921 + "", 95);
-        zSetOperations.add(arenaDayRankKey, 13281922 + "", 96);
-        zSetOperations.add(arenaDayRankKey, 13281923 + "", 135);
-        zSetOperations.add(arenaDayRankKey, 13281920 + "", 94);
         final Set<String> strings = zSetOperations.reverseRange(arenaDayRankKey, 0, TODAY_MAX_RANK_COUNT - 1);
         List<UserArenaRecord> records = Lists.newArrayList();
         for (String uidStr : strings) {

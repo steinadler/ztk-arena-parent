@@ -32,6 +32,12 @@ public class ArenaRoomDao {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    /**
+     * 查询竞技记录详情
+     *
+     * @param arenaId 竞技房间id
+     * @return
+     */
     public ArenaRoom findById(long arenaId) {
         return mongoTemplate.findById(arenaId, ArenaRoom.class);
     }
@@ -45,6 +51,12 @@ public class ArenaRoomDao {
         mongoTemplate.insert(arenaRoom);
     }
 
+    /**
+     * 根据arenaId 更新指定房间的数据
+     *
+     * @param arenaId
+     * @param update
+     */
     public void updateById(long arenaId, Update update) {
         if (update == null) {
             return;

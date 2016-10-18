@@ -36,6 +36,11 @@ public class ArenaUserSummaryDao {
         return writeResult.isUpdateOfExisting();
     }
 
+    /**
+     * 根据uid查询该用户的竞技统计
+     *
+     * @return
+     */
     public ArenaUserSummary findById(String id) {
         return mongoTemplate.findById(id, ArenaUserSummary.class);
     }

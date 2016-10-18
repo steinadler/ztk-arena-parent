@@ -22,10 +22,10 @@ public class ArenaUserSummaryDubboServiceImplTest extends BaseTest {
     public void findSummaryByIdTest(){
         String  id = "10264614-1"; //用户胜负数据统计id格式：uid+"-1"
         final ArenaUserSummary arenaUserSummary = arenaUserSummarydao.findById(id);
-//        Assert.assertNotNull(arenaUserSummary);
-//        Assert.assertEquals(arenaUserSummary.getFailCount(),0);
-//        Assert.assertEquals(arenaUserSummary.getWinCount(),2);
-//        logger.info("arenaUserSummary={}", JsonUtil.toJson(arenaUserSummary));
+        Assert.assertNotNull(arenaUserSummary);
+        Assert.assertEquals(arenaUserSummary.getFailCount(),0);
+        Assert.assertEquals(arenaUserSummary.getWinCount(),2);
+        logger.info("arenaUserSummary={}", JsonUtil.toJson(arenaUserSummary));
     }
 
 }
