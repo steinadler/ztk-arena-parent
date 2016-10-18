@@ -6,6 +6,7 @@ import com.huatu.ztk.arena.bean.*;
 import com.huatu.ztk.arena.common.ArenaRoomType;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.dao.ArenaRoomDao;
+import com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService;
 import com.huatu.ztk.commons.*;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import com.huatu.ztk.paper.api.PracticeDubboService;
@@ -57,6 +58,9 @@ public class ArenaRoomService {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private ArenaPlayerDubboService arenaPlayerDubboService;
 
     /**
      * 随机创建一个房间
@@ -274,25 +278,6 @@ public class ArenaRoomService {
     }
 
     /**
-     * 根据uid查询用户相关信息
-     *
-     * @param uid
-     * @return
-     */
-    public Player findPlayer(long uid) {
-        final UserDto userDto = userDubboService.findById(uid);
-        if (userDto == null) {
-            return null;
-        }
-        final Player player = Player.builder()
-                .uid(userDto.getId())
-                .avatar(userDto.getAvatar())
-                .nick(userDto.getNick())
-                .build();
-        return player;
-    }
-
-    /**
      * 查询今日排行
      *
      * @param date 查询某天的排行情况
@@ -306,7 +291,7 @@ public class ArenaRoomService {
         for (String uidStr : strings) {
             //获胜场数
             final int winCount = zSetOperations.score(arenaDayRankKey, uidStr).intValue();
-            final Player player = findPlayer(Long.valueOf(uidStr));
+            final Player player = arenaPlayerDubboService.findById(Long.valueOf(uidStr));
             final UserArenaRecord arenaRecord = UserArenaRecord.builder()
                     .uid(player.getUid())
                     .player(player)
@@ -342,7 +327,7 @@ public class ArenaRoomService {
         final int winCount = Optional.ofNullable(zSetOperations.score(arenaDayRankKey, uid + "")).orElse(0.0).intValue();
         //我的排行,redis rank从0算起
         Long rank = Optional.ofNullable(zSetOperations.reverseRank(arenaDayRankKey, uid + "")).orElse(20000L) + 1;
-        final Player player = findPlayer(uid);
+        final Player player = arenaPlayerDubboService.findById(uid);
         final UserArenaRecord arenaRecord = UserArenaRecord.builder()
                 .uid(player.getUid())
                 .player(player)
