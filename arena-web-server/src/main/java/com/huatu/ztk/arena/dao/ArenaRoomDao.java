@@ -123,7 +123,7 @@ public class ArenaRoomDao {
         query.limit(size).with(new Sort(Sort.Direction.DESC, "createTime"));
 
         List<ArenaRoom> records = mongoTemplate.find(query, ArenaRoom.class);
-        //将mongo查询结果转为只包含房间基本信息的list类型
+        //转换方法返回list类型
         List<ArenaRoomSimple> results = Lists.newArrayList();
         if (CollectionUtils.isNotEmpty(records)) {
             results.addAll(records);

@@ -4,7 +4,6 @@ import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomSimple;
 import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaUserSummary;
-import com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService;
 import com.huatu.ztk.arena.dubbo.ArenaUserSummaryDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.PageBean;

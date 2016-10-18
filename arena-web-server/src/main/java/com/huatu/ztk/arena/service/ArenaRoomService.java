@@ -13,7 +13,6 @@ import com.huatu.ztk.paper.api.PracticeDubboService;
 import com.huatu.ztk.paper.bean.AnswerCard;
 import com.huatu.ztk.paper.bean.PracticePaper;
 import com.huatu.ztk.paper.common.AnswerCardType;
-import com.huatu.ztk.user.bean.UserDto;
 import com.huatu.ztk.user.dubbo.UserDubboService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
