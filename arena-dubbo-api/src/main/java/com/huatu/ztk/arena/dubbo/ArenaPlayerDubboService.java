@@ -9,6 +9,7 @@ import com.huatu.ztk.arena.bean.Player;
  * Created time 2016-10-13 14:46
  */
 public interface ArenaPlayerDubboService {
+
     /**
      * 根据uid查询玩家
      * @param uid
@@ -16,10 +17,4 @@ public interface ArenaPlayerDubboService {
      */
     public Player findById(long uid);
 
-    /**
-     * 根据uid查询用户竞技场统计(胜负场次)
-     * @param uid
-     * @return
-     */
-    public ArenaUserSummary findSummaryById(long uid);
 }

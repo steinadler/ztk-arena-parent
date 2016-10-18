@@ -23,14 +23,7 @@ public class ArenaUserSummaryDao {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    /**
-     * 根据id更新竞技场统计信息
-     * @param id
-     * @param update
-     */
-    public boolean updateSummary(String id,Update update){
-        final Query query = Query.query(Criteria.where("_id").is(id));
-        mongoTemplate.updateFirst(query,update,ArenaUserSummary.class);
+    public void updateSummary(){
     }
 
     public ArenaUserSummary findById(String id) {
