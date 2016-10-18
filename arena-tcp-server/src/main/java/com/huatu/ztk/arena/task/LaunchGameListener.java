@@ -1,12 +1,10 @@
 package com.huatu.ztk.arena.task;
 
 import com.google.common.collect.Lists;
-import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.Player;
 import com.huatu.ztk.arena.common.Actions;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.common.UserChannelCache;
-import com.huatu.ztk.arena.dubbo.ArenaDubboService;
 import com.huatu.ztk.arena.netty.SuccessReponse;
 import com.huatu.ztk.commons.JsonUtil;
 import com.huatu.ztk.user.bean.UserDto;
@@ -29,8 +27,8 @@ import java.util.Map;
  * Created by shaojieyue
  * Created time 2016-10-09 17:11
  */
-public class LaunchGameTask implements MessageListener{
-    private static final Logger logger = LoggerFactory.getLogger(LaunchGameTask.class);
+public class LaunchGameListener implements MessageListener{
+    private static final Logger logger = LoggerFactory.getLogger(LaunchGameListener.class);
     public static final String ATCION_FIELD = "action";
 
     @Autowired
@@ -59,28 +57,8 @@ public class LaunchGameTask implements MessageListener{
             proccessStartGame(data);
         }else if (action == Actions.SYSTEM_PRACTICE_STATUS_UPDATE) {
             proccessUserSubmitQuestion(data);
-        }else if (action == Actions.SYSTEM_VIEW_ARENA_RESULT) {
-            proccessArenaView(data);
-        } else {
+        }else {
             logger.error("unknow action={},data={}",action,data);
-        }
-    }
-
-    /**
-     * 查看竞技结果通知
-     * @param data
-     */
-    private void proccessArenaView(Map data) {
-        final long arenaId = MapUtils.getLongValue(data, "arenaId");
-        final long[] users = getRoomUsers(arenaId);
-        for (long user : users) {//遍历,挨个发送通知
-            final Channel channel = UserChannelCache.getChannel(user);
-            if (channel == null) {//不存在则不处理
-                continue;
-            }
-            logger.info("send message uid={},channel={}",user,channel);
-            //通知用户查看结果
-            channel.writeAndFlush(SuccessReponse.arenaView(arenaId));
         }
     }
 
