@@ -28,8 +28,9 @@ public class ArenaUserSummaryDubboServiceImpl implements ArenaUserSummaryDubboSe
         // TODO: 2016/10/18  上线放开代码
 /*        if (arenaUserSummary == null) {
             logger.info("find arenaUserSummary is null，uid={}",uid);
-            return new ArenaUserSummary();
+            return arenaUserSummary;
         }*/
+
         if (arenaUserSummary == null) {
             final ArenaUserSummary userSummary = ArenaUserSummary.builder()
                     .failCount(18)
