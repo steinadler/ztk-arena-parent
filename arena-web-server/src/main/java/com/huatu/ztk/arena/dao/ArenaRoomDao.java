@@ -42,10 +42,20 @@ public class ArenaRoomDao {
         return mongoTemplate.findById(arenaId, ArenaRoom.class);
     }
 
+    /**
+     * 保存竞技信息
+     *
+     * @param arenaRoom
+     */
     public void save(ArenaRoom arenaRoom) {
         mongoTemplate.save(arenaRoom);
     }
 
+    /**
+     * 创建一个竞技房间
+     *
+     * @return
+     */
     public void insert(ArenaRoom arenaRoom) {
         logger.info("insert arena room ,data={}", JsonUtil.toJson(arenaRoom));
         mongoTemplate.insert(arenaRoom);
