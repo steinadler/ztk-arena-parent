@@ -158,6 +158,12 @@ public class CreateRoomTask {
                                     .set("status", ArenaRoomStatus.RUNNING);
                         //更新房间数据
                         arenaDubboService.updateById(arenaRoomId,update);
+
+                        for (long user : users) {//为用户设置各自正在进行的房间
+                            final String userRoomKey = RedisArenaKeys.getUserRoomKey(user);
+                            redisTemplate.opsForValue().set(userRoomKey,arenaRoomId+"");
+                        }
+
                         arenaRoom = null;//设置为null,表示该房间已经被占用
                         Map data = Maps.newHashMap();
                         data.put("roomId", arenaRoomId);
