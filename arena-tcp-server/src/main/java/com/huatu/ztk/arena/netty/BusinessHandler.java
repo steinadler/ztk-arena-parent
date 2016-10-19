@@ -134,7 +134,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
             final ArenaRoom arenaRoom = arenaDubboService.findById(roomId);
             if (arenaRoom!=null && arenaRoom.getStatus() != ArenaRoomStatus.FINISHED) {//该房间未关闭,关闭的房间还是可以加入新房间
                 final int index = arenaRoom.getPlayerIds().indexOf(uid);
-                if (index > 0) {//该房间存在该用户
+                if (index >= 0) {//该房间存在该用户
                     return SuccessReponse.existGame(arenaRoom,uid);
                 }else {
                     logger.error("userId={} not in roomId={}",uid,roomId);
