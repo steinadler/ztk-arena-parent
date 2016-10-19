@@ -14,6 +14,8 @@ import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,11 +56,13 @@ public class ArenaTcpServer {
             final ReponseEncoder reponseEncoder = new ReponseEncoder();
             final StringEncoder stringEncoder = new StringEncoder();
             final LineBasedFrameEncoder lineBasedFrameEncoder = new LineBasedFrameEncoder();
+            final LoggingHandler loggingHandler = new LoggingHandler(LogLevel.DEBUG);
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class) // (3)
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
+                            ch.pipeline().addLast(loggingHandler);
                             ch.pipeline().addLast(new LineBasedFrameDecoder(MAX_FRAME_LENGTH));
                             ch.pipeline().addLast(stringEncoder);
                             ch.pipeline().addLast(lineBasedFrameEncoder);
