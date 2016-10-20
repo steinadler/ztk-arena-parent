@@ -374,10 +374,10 @@ public class ArenaRoomService {
         final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
         // TODO: 2016/10/18  上线去掉测试数据
         zSetOperations.add(arenaDayRankKey, 13117013 + "", 200);
-        zSetOperations.add(arenaDayRankKey, 13281921 + "", 95);
-        zSetOperations.add(arenaDayRankKey, 13281922 + "", 96);
-        zSetOperations.add(arenaDayRankKey, 13281923 + "", 135);
-        zSetOperations.add(arenaDayRankKey, 13281920 + "", 94);
+        zSetOperations.add(arenaDayRankKey, 1369230 + "", 95);
+        zSetOperations.add(arenaDayRankKey, 1415162 + "", 96);
+        zSetOperations.add(arenaDayRankKey, 3480386 + "", 135);
+        zSetOperations.add(arenaDayRankKey, 7066639 + "", 94);
 
         final Set<String> strings = zSetOperations.reverseRange(arenaDayRankKey, 0, TODAY_MAX_RANK_COUNT - 1);
         List<UserArenaRecord> records = Lists.newArrayList();
