@@ -116,7 +116,7 @@ public class LaunchGameListener implements MessageListener{
      * @param data
      */
     private void proccessUserLeaveArena(Map data) {
-        final long roomId = MapUtils.getLong(data, "roomId",-1L);
+        final long roomId = MapUtils.getLong(data, "arenaId",-1L);
         final long leaveUid = MapUtils.getLong(data, "uid",-1L);
         final long[] users = getRoomUsers(roomId);
         for (long user : users) {//遍历为每个用户发送,用户离开房间通知

@@ -1,12 +1,16 @@
 package com.huatu.ztk.arena.netty;
 
+import com.google.common.collect.Maps;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
 import com.huatu.ztk.arena.common.Actions;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
+import com.huatu.ztk.arena.common.UserChannelCache;
 import com.huatu.ztk.arena.dubbo.ArenaDubboService;
 import com.huatu.ztk.arena.util.ApplicationContextProvider;
 import com.huatu.ztk.commons.JsonUtil;
+import com.huatu.ztk.commons.ModuleConstants;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
@@ -15,7 +19,9 @@ import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +35,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
     public static final AttributeKey<Long> uidAttributeKey = AttributeKey.valueOf("uid");
     private ArenaDubboService arenaDubboService = ApplicationContextProvider.getApplicationContext().getBean(ArenaDubboService.class);
     private RedisTemplate<String,String> redisTemplate = ApplicationContextProvider.getApplicationContext().getBean("redisTemplate",RedisTemplate.class);
+    private RabbitTemplate rabbitTemplate = ApplicationContextProvider.getApplicationContext().getBean("rabbitTemplate",RabbitTemplate.class);
 
     /**
      * <strong>Please keep in mind that this method will be renamed to
@@ -112,9 +119,29 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
      */
     private Response proccessLeaveGame(ChannelHandlerContext ctx, Long uid) {
         final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
-        redisTemplate.delete(userRoomKey);//删除用户正在进行的游戏
-        //删除用户等待列表
-        redisTemplate.opsForSet().remove(RedisArenaKeys.getArenaUsersKey(-1),uid+"");
+        final String arenaIdStr = redisTemplate.opsForValue().get(userRoomKey);
+        final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
+        if (StringUtils.isNoneBlank(arenaIdStr)) {//说明用户已经加入房间
+            final Long arenaId = Long.valueOf(arenaIdStr);
+            final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(arenaId);
+            setOperations.remove(roomUsersKey,uid.toString());//从房间中该删除该用户
+            Map data = Maps.newHashMap();
+            data.put("arenaId",arenaId);
+            data.put("uid",uid);
+            data.put("action",Actions.USER_LEAVE_GAME);
+            //发送用户离开房间通知
+            rabbitTemplate.convertAndSend("game_notify_exchange","",data);
+        }else {//没有则说明用户还处于等待池中
+
+            //此处遍历是可以的,正常来说,用户加入游戏就会存在于房间中,所以很小几率在等待池,
+            //也就是说,这段代码应该不会运行
+            //删除所有模块的
+            for (Integer moduleId : ModuleConstants.GOWUYUAN_MODULE_IDS) {
+                setOperations.remove(RedisArenaKeys.getArenaUsersKey(moduleId),uid+"");
+            }
+            //删除智能推送的
+            setOperations.remove(RedisArenaKeys.getArenaUsersKey(-1),uid+"");
+        }
         return SuccessReponse.leaveGameSuccess();
     }
 
