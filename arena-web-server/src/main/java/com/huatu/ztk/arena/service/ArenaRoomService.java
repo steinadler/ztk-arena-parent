@@ -424,8 +424,8 @@ public class ArenaRoomService {
         final UserArenaRecord arenaRecord = UserArenaRecord.builder()
                 .uid(player.getUid())
                 .player(player)
-                .winCount(winCount.isPresent() == true ? null : winCount.get().intValue())//若用户未参加过比赛胜场返回为null
-                .rank(rank.isPresent() == true ? null : rank.get().intValue() + 1) //若用户未参加过比赛排行返回为null，返回排行从1开始
+                .winCount(winCount.isPresent() == false ? null : winCount.get().intValue())//若用户未参加过比赛胜场返回为null
+                .rank(rank.isPresent() == false ? null : rank.get().intValue() + 1) //若用户未参加过比赛排行返回为null，返回排行从1开始
                 .build();
         return arenaRecord;
     }
