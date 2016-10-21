@@ -416,16 +416,16 @@ public class ArenaRoomService {
     public UserArenaRecord findMyTodayRank(long uid, long date) {
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
-        //获胜场数,
-        final Optional<Double> winCount = Optional.ofNullable(zSetOperations.score(arenaDayRankKey, uid + ""));
+        //获胜场数,若用户未参加过比赛rdeis胜场返回为null
+        final int winCount = Optional.ofNullable(zSetOperations.score(arenaDayRankKey, uid + "")).orElse(null).intValue();
         //我的排行,redis rank从0算起
-        final Optional<Long> rank = Optional.ofNullable(zSetOperations.reverseRank(arenaDayRankKey, uid + ""));
+        Long rank = Optional.ofNullable(zSetOperations.reverseRank(arenaDayRankKey, uid + "")).orElse(null) + 1;
         final Player player = arenaPlayerDubboService.findById(uid);
         final UserArenaRecord arenaRecord = UserArenaRecord.builder()
                 .uid(player.getUid())
                 .player(player)
-                .winCount(winCount.isPresent() == false ? null : winCount.get().intValue())//若用户未参加过比赛胜场返回为null
-                .rank(rank.isPresent() == false ? null : rank.get().intValue() + 1) //若用户未参加过比赛排行返回为null，返回排行从1开始
+                .winCount(winCount)
+                .rank(rank.intValue())
                 .build();
         return arenaRecord;
     }
