@@ -44,7 +44,7 @@ public class SuccessReponse extends Response{
         if (index > 0) {//该房间存在该用户
             practiceId = arenaRoom.getPractices().get(index);
         }
-        data.put("roomId",arenaRoom.getId());//房间号
+        data.put("arenaId",arenaRoom.getId());//房间号
         data.put("practiceId",practiceId);//练习id
         data.put("players",arenaRoom.getPlayers());//玩家列表
         data.put("status",arenaRoom.getStatus());

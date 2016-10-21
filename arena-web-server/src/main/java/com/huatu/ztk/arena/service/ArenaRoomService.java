@@ -426,7 +426,7 @@ public class ArenaRoomService {
         if (rank.isPresent()) {
             return null;
         }
-        
+
         final Player player = arenaPlayerDubboService.findById(uid);
         final UserArenaRecord arenaRecord = UserArenaRecord.builder()
                 .uid(player.getUid())

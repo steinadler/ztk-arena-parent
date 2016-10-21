@@ -79,6 +79,8 @@ public class SubmitAnswersListener implements MessageListener {
         data.put("arenaId",arenaId);
         data.put("uid",uid);
         data.put("rcount",rcount);
+        //总的做题量
+        data.put("acount",answerCard.getRcount()+answerCard.getWcount());
         data.put("action", Actions.SYSTEM_PRACTICE_STATUS_UPDATE);
         rabbitTemplate.convertAndSend("game_notify_exchange","",data);
     }
