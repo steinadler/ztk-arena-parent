@@ -416,7 +416,7 @@ public class ArenaRoomService {
     public UserArenaRecord findMyTodayRank(long uid, long date) {
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
-        //获胜场数,若用户未参加过比赛rdeis不存在相应的胜场value，将其设置为0
+        //获胜场数,若用户未参加过比赛胜场返回为null
         final Optional<Double> winCount = Optional.ofNullable(zSetOperations.score(arenaDayRankKey, uid + ""));
         if (winCount.isPresent()) {
             return null;
@@ -426,13 +426,12 @@ public class ArenaRoomService {
         if (rank.isPresent()) {
             return null;
         }
-        
         final Player player = arenaPlayerDubboService.findById(uid);
         final UserArenaRecord arenaRecord = UserArenaRecord.builder()
                 .uid(player.getUid())
                 .player(player)
                 .winCount(winCount.get().intValue())
-                .rank(rank.get().intValue()+1)
+                .rank(rank.get().intValue() + 1) //返回排行从1开始
                 .build();
         return arenaRecord;
     }
