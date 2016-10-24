@@ -159,6 +159,7 @@ public class CreateRoomTask {
 
                         Update update = Update.update("playerIds",users)
                                     .set("practices",practiceIds)
+                                    .set("createTime",System.currentTimeMillis())//重新设置开始时间,倒计时时间以此为起始时间
                                     .set("status", ArenaRoomStatus.RUNNING);
                         //更新房间数据
                         arenaDubboService.updateById(arenaRoomId,update);

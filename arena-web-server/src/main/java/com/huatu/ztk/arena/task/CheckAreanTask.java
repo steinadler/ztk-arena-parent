@@ -31,6 +31,11 @@ public class CheckAreanTask {
 
     private static final long ONE_HOUR = 60 * 60 * 1000L;
 
+    /**
+     * 延迟关闭时间长度
+     */
+    public static final int DELAY_CLOSE_TIME = 3*60*1000;
+
     //定时任务隔2分钟执行一次
     @Scheduled(cron = "0 0/2 * * * ?")
     public void run(){
@@ -44,8 +49,8 @@ public class CheckAreanTask {
         final List<ArenaRoom> rooms = mongoTemplate.find(new Query(criteria), ArenaRoom.class);
 
         for (ArenaRoom room : rooms) {
-            long arenaEndTime = room.getCreateTime() + room.getLimitTime();
-
+            //关闭时间 要加上延迟时间,防止用户时间进行完之后提交,到时提交数据无效
+            long arenaEndTime = room.getCreateTime() + room.getLimitTime()*1000 + DELAY_CLOSE_TIME;
             //超过做题时间,将房间关闭
             if (currentTime > arenaEndTime) {
                 logger.info("auto close room ,obj={}", JsonUtil.toJson(room));
