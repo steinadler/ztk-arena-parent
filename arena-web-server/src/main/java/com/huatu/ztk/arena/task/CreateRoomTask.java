@@ -76,9 +76,16 @@ public class CreateRoomTask {
 
                 //遍历释放锁
                 for (ArenaConfig.Module module : ArenaConfig.getConfig().getModules()) {
+
                     //释放锁
-                    redisTemplate.delete(RedisArenaKeys.getWorkLockKey(module.getId()));
-                    logger.info("release lock,moduleId={}",module.getId());
+                    final String workLockKey = RedisArenaKeys.getWorkLockKey(module.getId());
+
+                    //获取锁的值
+                    final String value = redisTemplate.opsForValue().get(workLockKey);
+                    if (getLockValue().equals(value)) {//如果是自己抢到的锁,才删除
+                        redisTemplate.delete(workLockKey);
+                        logger.info("release lock,moduleId={}",module.getId());
+                    }
                 }
 
             }
@@ -94,10 +101,10 @@ public class CreateRoomTask {
                 while (running && locked){
                     try {
                         //通过setnx 来实现简单分布式锁
-                        locked = !redisTemplate.opsForValue().setIfAbsent(RedisArenaKeys.getWorkLockKey(moduleId), System.currentTimeMillis() + "");
+                        locked = !redisTemplate.opsForValue().setIfAbsent(RedisArenaKeys.getWorkLockKey(moduleId), getLockValue()).booleanValue();
                         if (locked) {
                             //锁被抢占,则sleep 一段时间
-                            Thread.sleep(3);
+                            TimeUnit.SECONDS.sleep(3);
                         }
                     } catch (Exception e) {
                         logger.error("wait lock ex",e);
@@ -191,5 +198,9 @@ public class CreateRoomTask {
             }
         }).start();
         logger.info("moduleId={} work started.",moduleId);
+    }
+
+    private String getLockValue() {
+        return System.getProperty("server_name")+System.getProperty("server_ip");
     }
 }
