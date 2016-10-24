@@ -127,7 +127,6 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
         final String arenaIdStr = redisTemplate.opsForValue().get(userRoomKey);
         final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
         if (StringUtils.isNoneBlank(arenaIdStr)) {//说明用户已经加入房间
-            redisTemplate.delete(userRoomKey);//删除用户正在进行的房间标示
             final Long arenaId = Long.valueOf(arenaIdStr);
             final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(arenaId);
             setOperations.remove(roomUsersKey,uid.toString());//从房间中该删除该用户
@@ -147,6 +146,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
             //删除智能推送的
             setOperations.remove(RedisArenaKeys.getArenaUsersKey(-1),uid+"");
         }
+        redisTemplate.delete(userRoomKey);//删除用户正在进行的房间标示
         return SuccessReponse.leaveGameSuccess();
     }
 
