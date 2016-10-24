@@ -73,11 +73,12 @@ public class CreateRoomTask {
             @Override
             public void run() {
                 running = false;//停止任务
-                
+
                 //遍历释放锁
                 for (ArenaConfig.Module module : ArenaConfig.getConfig().getModules()) {
                     //释放锁
                     redisTemplate.delete(RedisArenaKeys.getWorkLockKey(module.getId()));
+                    logger.info("release lock,moduleId={}",module.getId());
                 }
 
             }
@@ -147,11 +148,13 @@ public class CreateRoomTask {
                         final Long finalSize = setOperations.size(roomUsersKey);
                         if (finalSize < MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
                             final Set<String> users = setOperations.members(roomUsersKey);
-                            if (users.size()>0) {//存在玩家
-                                logger.info("playerIds wait time out. users={}",users);
-                                redisTemplate.delete(roomUsersKey);//清除用户数据
+                            logger.info("playerIds wait time out. users={}",users);
+                            redisTemplate.delete(roomUsersKey);//清除用户数据
+                            for (String user : users) {
+                                final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(user));
+                                //清除用户占用的房间
+                                redisTemplate.opsForValue().set(userRoomKey,arenaRoomId+"");
                             }
-                            // TODO: 10/9/16 是否要把这些用户重新放入队列 ?
                             continue;
                         }
 
