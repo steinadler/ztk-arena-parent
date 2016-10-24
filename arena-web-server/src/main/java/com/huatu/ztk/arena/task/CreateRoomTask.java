@@ -160,7 +160,7 @@ public class CreateRoomTask {
                             for (String user : users) {
                                 final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(user));
                                 //清除用户占用的房间
-                                redisTemplate.opsForValue().set(userRoomKey,arenaRoomId+"");
+                                redisTemplate.delete(userRoomKey);
                             }
                             continue;
                         }
