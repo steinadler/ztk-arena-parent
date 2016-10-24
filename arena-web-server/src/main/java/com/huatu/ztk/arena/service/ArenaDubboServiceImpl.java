@@ -3,6 +3,7 @@ package com.huatu.ztk.arena.service;
 import com.google.common.collect.Lists;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.Player;
+import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.dao.ArenaRoomDao;
 import com.huatu.ztk.arena.dubbo.ArenaDubboService;
 import com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,21 +30,30 @@ public class ArenaDubboServiceImpl implements ArenaDubboService {
     @Autowired
     private ArenaPlayerDubboService arenaPlayerDubboService;
 
+    @Autowired
+    private RedisTemplate<String,String> redisTemplate;
+
     /**
      * 根据id查询房间
-     *
+     *q
      * @param id
      * @return
      */
     @Override
     public ArenaRoom findById(long id) {
         final ArenaRoom arenaRoom = arenaRoomDao.findById(id);
-        if (CollectionUtils.isNotEmpty(arenaRoom.getPlayerIds())) {
-            final List<Player> players = arenaRoom.getPlayerIds().stream().map(uid -> {
-                return arenaPlayerDubboService.findById(uid);
-            }).collect(Collectors.toList());
-            arenaRoom.setPlayers(players);
+        redisTemplate.opsForSet();
+        final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(id);
+        List<Long> playerIds = null;
+        if (CollectionUtils.isNotEmpty(arenaRoom.getPlayerIds())) {//
+            playerIds = arenaRoom.getPlayerIds();
+        }else {
+            //竞技场还没有玩家,则从redis里面查询
+            //在玩家在等待其他用户时,玩家id没有存入竞技场,只是存入了redis
+            playerIds = redisTemplate.opsForSet().members(roomUsersKey).stream().map(userId -> Long.valueOf(userId)).collect(Collectors.toList());
         }
+
+        arenaRoom.setPlayers(arenaPlayerDubboService.findBatch(playerIds));
         return arenaRoom;
     }
 
