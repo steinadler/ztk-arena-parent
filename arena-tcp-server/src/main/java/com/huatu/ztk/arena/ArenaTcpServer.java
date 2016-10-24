@@ -79,7 +79,7 @@ public class ArenaTcpServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(loggingHandler);
+//                            ch.pipeline().addLast(loggingHandler);
                             ch.pipeline().addLast(new LineBasedFrameDecoder(MAX_FRAME_LENGTH));
                             ch.pipeline().addLast(stringEncoder);
                             ch.pipeline().addLast(lineBasedFrameEncoder);

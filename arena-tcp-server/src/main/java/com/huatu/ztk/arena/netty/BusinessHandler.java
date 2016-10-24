@@ -108,8 +108,13 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
             return null;
         }
         final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
-        final Long roomId = Long.valueOf(redisTemplate.opsForValue().get(userRoomKey));
-        return arenaDubboService.findById(roomId);
+        //用户存在的房间id
+        final String arenaId = redisTemplate.opsForValue().get(userRoomKey);
+
+        if (StringUtils.isBlank(arenaId)) {//为空说明用户目前没有加入房间
+            return null;
+        }
+        return arenaDubboService.findById(Long.valueOf(arenaId));
     }
 
     /**
@@ -122,6 +127,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
         final String arenaIdStr = redisTemplate.opsForValue().get(userRoomKey);
         final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
         if (StringUtils.isNoneBlank(arenaIdStr)) {//说明用户已经加入房间
+            redisTemplate.delete(userRoomKey);//删除用户正在进行的房间标示
             final Long arenaId = Long.valueOf(arenaIdStr);
             final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(arenaId);
             setOperations.remove(roomUsersKey,uid.toString());//从房间中该删除该用户
@@ -132,7 +138,6 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
             //发送用户离开房间通知
             rabbitTemplate.convertAndSend("game_notify_exchange","",data);
         }else {//没有则说明用户还处于等待池中
-
             //此处遍历是可以的,正常来说,用户加入游戏就会存在于房间中,所以很小几率在等待池,
             //也就是说,这段代码应该不会运行
             //删除所有模块的
@@ -183,6 +188,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause.printStackTrace();
         ctx.writeAndFlush(ErrorResponse.INVALID_PARAM);
     }
 }
