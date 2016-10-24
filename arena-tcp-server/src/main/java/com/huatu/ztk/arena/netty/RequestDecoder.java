@@ -34,9 +34,7 @@ public class RequestDecoder extends MessageToMessageDecoder<String> {
         final Request request = JsonUtil.toObject(msg, Request.class);
 
         if (StringUtils.isBlank(request.getTicket())) {//检查ticket
-            final ErrorResponse invalidParam = ErrorResponse.INVALID_PARAM;
-            invalidParam.setMessage("ticket 不能为空");
-            ctx.writeAndFlush(invalidParam);
+            ctx.writeAndFlush(ErrorResponse.INVALID_PARAM);
             return;
         }
         out.add(request);
