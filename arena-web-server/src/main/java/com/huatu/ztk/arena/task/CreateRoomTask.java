@@ -73,6 +73,13 @@ public class CreateRoomTask {
             @Override
             public void run() {
                 running = false;//停止任务
+                
+                //遍历释放锁
+                for (ArenaConfig.Module module : ArenaConfig.getConfig().getModules()) {
+                    //释放锁
+                    redisTemplate.delete(RedisArenaKeys.getWorkLockKey(module.getId()));
+                }
+
             }
         }));
     }
@@ -177,8 +184,6 @@ public class CreateRoomTask {
                         logger.error("ex",e);
                     }
                 }
-                //释放锁
-                redisTemplate.delete(RedisArenaKeys.getWorkLockKey(moduleId));
                 logger.info("moduleId={} work stoped",moduleId);
             }
         }).start();
