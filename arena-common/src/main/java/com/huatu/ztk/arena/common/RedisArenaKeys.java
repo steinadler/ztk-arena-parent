@@ -63,5 +63,13 @@ public class RedisArenaKeys {
         return "arena_module_lock_"+module;
     }
 
+    /**
+     * 定时任务锁
+     * @return
+     */
+    public static final String getScheduledLockKey(){
+        return "arena_scheduled_lock";
+    }
+
 
 }

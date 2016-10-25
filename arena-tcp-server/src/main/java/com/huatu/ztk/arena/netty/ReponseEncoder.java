@@ -28,6 +28,8 @@ public class ReponseEncoder extends MessageToMessageEncoder<Response> {
      */
     @Override
     protected void encode(ChannelHandlerContext ctx, Response response, List<Object> out) throws Exception {
-        out.add(JsonUtil.toJson(response));
+        final String message = JsonUtil.toJson(response);
+        System.out.println("write message="+message);
+        out.add(message);
     }
 }

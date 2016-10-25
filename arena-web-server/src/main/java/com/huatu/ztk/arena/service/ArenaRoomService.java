@@ -198,6 +198,11 @@ public class ArenaRoomService {
             return;
         }
 
+        if (arenaRoom.getStatus() == ArenaRoomStatus.FINISHED) {//已经结束,则不需要处理
+            logger.info("arenaId={} are finished,no process,practiceId={}",arenaRoom.getId(),practiceId);
+            return;
+        }
+
         //竞技结果
         ArenaResult[] results = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArenaResult[arenaRoom.getPractices().size()]);
 
