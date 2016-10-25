@@ -116,6 +116,7 @@ public class ArenaRoomService {
     public ArenaRoom findById(long arenaId) {
         final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
         if (arenaRoom == null) {
+            /*假数据*/
             //设置房间基本信息
             arenaRoom.setId(23449972);
             arenaRoom.setLimitTime(300);//比赛限时,单位:秒
