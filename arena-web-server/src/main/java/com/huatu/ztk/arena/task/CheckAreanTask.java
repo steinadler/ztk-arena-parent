@@ -1,7 +1,9 @@
 package com.huatu.ztk.arena.task;
 
+import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
+import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.JsonUtil;
 import org.slf4j.Logger;
@@ -10,10 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by shaojieyue
@@ -29,6 +34,10 @@ public class CheckAreanTask {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+
+    @Autowired
+    private RedisTemplate<String,String> redisTemplate;
+
     private static final long ONE_HOUR = 60 * 60 * 1000L;
 
     /**
@@ -36,11 +45,31 @@ public class CheckAreanTask {
      */
     public static final int DELAY_CLOSE_TIME = 3*60*1000;
 
+
+    @PostConstruct
+    public void init() {
+        //添加停止任务线程
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //释放定时任务锁
+                redisTemplate.delete(RedisArenaKeys.getScheduledLockKey());
+                logger.info("release lock,lock={}",RedisArenaKeys.getScheduledLockKey());
+            }
+        }));
+    }
+
     //定时任务隔2分钟执行一次
     @Scheduled(cron = "0 0/2 * * * ?")
     public void run(){
         logger.info("auto close room task start.");
+        //锁是否被抢占
+        redisTemplate.opsForValue().setIfAbsent(RedisArenaKeys.getScheduledLockKey(), getLockValue());
 
+        //自己没有抢占到锁,则不进行处理
+        if (!getLockValue().equals(redisTemplate.opsForValue().get(RedisArenaKeys.getScheduledLockKey()))) {
+            return;
+        }
         long currentTime = System.currentTimeMillis();
         long threeHoursAgo = currentTime - 3 * ONE_HOUR;
 
@@ -62,5 +91,9 @@ public class CheckAreanTask {
             }
         }
 
+    }
+
+    private String getLockValue() {
+        return System.getProperty("server_name")+System.getProperty("server_ip");
     }
 }
