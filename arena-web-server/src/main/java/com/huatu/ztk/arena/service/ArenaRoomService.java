@@ -114,62 +114,7 @@ public class ArenaRoomService {
      * @return
      */
     public ArenaRoom findById(long arenaId) {
-/*        final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
-        if (arenaRoom == null) {
-            return arenaRoom;
-        }*/
-        ArenaRoom arenaRoom = new ArenaRoom();
-        //设置房间基本信息
-        arenaRoom.setId(23449972);
-        arenaRoom.setLimitTime(300);//比赛限时,单位:秒
-        arenaRoom.setType(1);
-        arenaRoom.setStatus(3);
-        arenaRoom.setModule("智能推送");
-        arenaRoom.setName("竞技赛场—智能推送—201605102434");
-        arenaRoom.setCreateTime(1467861939980L);
-        arenaRoom.setWinner(34693);
-
-        ////设置各玩家uid
-        List<Long> playerIds = Lists.newArrayList();
-        playerIds.add(13117013L);
-        playerIds.add(34693L); //胜者
-        playerIds.add(12345L);
-        arenaRoom.setPlayerIds(playerIds);
-
-        //设置各玩家信息
-        List<Player> players = Lists.newArrayList();
-        Player player1 = arenaPlayerDubboService.findById(13117013);
-        Player player2 = Player.builder().uid(34693).nick("奋斗的小爆爆")
-                .avatar("http://tiku.huatu.com/cdn/images/vhuatu/avatars/l/lMIkOc5PsQFCSrO94xAxR4U9ULf.jpg").build();
-        Player player3 = Player.builder().uid(12345).nick("采梦abcd")
-                .avatar("http://tiku.huatu.com/cdn/images/vhuatu/avatars/default.png").build();
-        players.add(player1);
-        players.add(player2);
-        players.add(player3);
-        arenaRoom.setPlayers(players);
-        //设置各玩家对应的练习id
-        List<Long> practices = Lists.newArrayList();
-        practices.add(24330159L);
-        practices.add(24330124L);
-        practices.add(24330108L);
-        arenaRoom.setPractices(practices);
-        //设置房间比赛用题数量
-        arenaRoom.setQcount(5);
-        //设置竞技场状态--已结束
-        arenaRoom.setStatus(ArenaRoomStatus.FINISHED);
-        //设置竞技试卷
-        PracticePaper practicePaper = practiceDubboService.create(1, 392, 5);
-        arenaRoom.setPracticePaper(practicePaper);
-        //设置竞技结果
-        List<ArenaResult> results = Lists.newArrayList();
-        ArenaResult result1 = ArenaResult.builder().uid(13117013).rcount(5).elapsedTime(200).build();
-        ArenaResult result2 = ArenaResult.builder().uid(34693).rcount(4).elapsedTime(250).build();
-        ArenaResult result3 = ArenaResult.builder().uid(12345).rcount(3).elapsedTime(230).build();
-        results.add(result1);
-        results.add(result2);
-        results.add(result3);
-        ArenaResult[] arenaResults = new ArenaResult[results.size()];
-        arenaRoom.setResults(results.toArray(arenaResults));
+        final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
         return arenaRoom;
     }
 
