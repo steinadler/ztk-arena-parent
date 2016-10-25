@@ -63,7 +63,7 @@ public class SubmitAnswersListener implements MessageListener {
 
         final ArenaRoom arenaRoom = arenaRoomService.findById(Long.valueOf(arenaId));
         if (arenaRoom == null || arenaRoom.getStatus() == ArenaRoomStatus.FINISHED) {//房间不存在或者已经结束,则不进行处理
-            logger.error("arena room status ex,arenaId={},data={}",arenaId,arenaRoom);
+            logger.error("arena room status ex,arenaId={},data={}",arenaId,JsonUtil.toJson(arenaRoom));
             return;
         }
 
