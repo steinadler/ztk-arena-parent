@@ -63,7 +63,7 @@ public class ArenaConfig {
 //        });
         return ArenaConfig.builder()
                 .waitTime(60)
-                .roomCapacity(2)
+                .roomCapacity(4)
                 .gameLimitTime(300)
                 .questionCount(5)
                 .modules(modules)
