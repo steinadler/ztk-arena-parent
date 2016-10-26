@@ -42,7 +42,9 @@ public class ArenaDubboServiceImpl implements ArenaDubboService {
     @Override
     public ArenaRoom findById(long id) {
         final ArenaRoom arenaRoom = arenaRoomDao.findById(id);
-        redisTemplate.opsForSet();
+        if (arenaRoom == null) {
+            return arenaRoom;
+        }
         final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(id);
         List<Long> playerIds = null;
         if (CollectionUtils.isNotEmpty(arenaRoom.getPlayerIds())) {//
