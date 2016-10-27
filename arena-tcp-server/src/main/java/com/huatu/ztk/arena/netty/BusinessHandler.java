@@ -77,7 +77,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
             case Actions.USER_EXIST_ARENA:{//查询自己是否存在正在进行的竞技
                 //查询用户正在进行的竞技场
                 final ArenaRoom arenaRoom = getUserArenaRoom(uid);
-                if (arenaRoom == null) {//不存在
+                if (arenaRoom == null || arenaRoom.getStatus() == ArenaRoomStatus.FINISHED) {//不存在 或者已经结束的,都认为没有房间
                     response = SuccessReponse.noExistGame();
                 }else {
                     response = SuccessReponse.existGame(arenaRoom,uid);
