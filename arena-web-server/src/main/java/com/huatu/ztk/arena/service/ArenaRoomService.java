@@ -295,10 +295,15 @@ public class ArenaRoomService {
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
         final Set<String> strings = zSetOperations.reverseRange(arenaDayRankKey, 0, TODAY_MAX_RANK_COUNT - 1);
+        //若当天暂未有任何用户参加过竞技比赛，返回null
+        if(CollectionUtils.isEmpty(strings)){
+            return null;
+        }
         List<UserArenaRecord> records = Lists.newArrayList();
         for (String uidStr : strings) {
             //获胜场数
             final int winCount = zSetOperations.score(arenaDayRankKey, uidStr).intValue();
+
             final Player player = arenaPlayerDubboService.findById(Long.valueOf(uidStr));
             final UserArenaRecord arenaRecord = UserArenaRecord.builder()
                     .uid(player.getUid())
