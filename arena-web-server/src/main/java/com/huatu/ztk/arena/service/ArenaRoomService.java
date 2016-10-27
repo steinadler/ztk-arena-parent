@@ -122,8 +122,7 @@ public class ArenaRoomService {
         }
         //设置参赛人员个人信息(mongo为节省空间未存个人信息数据)
         List<Long> playerIds = arenaRoom.getPlayerIds();
-        List<Player> players = playerIds.stream().map(player -> arenaPlayerDubboService.findById(player)).collect(Collectors.toList());
-        arenaRoom.setPlayers(players);
+        arenaRoom.setPlayers(arenaPlayerDubboService.findBatch(playerIds));
         return arenaRoom;
     }
 
@@ -295,7 +294,6 @@ public class ArenaRoomService {
     public List<UserArenaRecord> findTodayRank(long date) {
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
-
         final Set<String> strings = zSetOperations.reverseRange(arenaDayRankKey, 0, TODAY_MAX_RANK_COUNT - 1);
         List<UserArenaRecord> records = Lists.newArrayList();
         for (String uidStr : strings) {
