@@ -99,6 +99,7 @@ public class CreateRoomTask {
                 //锁是否被抢占
                 boolean locked = true;
                 while (running && locked){
+                    logger.info("running={}",running);
                     try {
                         //通过setnx 来实现简单分布式锁
                         locked = !redisTemplate.opsForValue().setIfAbsent(RedisArenaKeys.getWorkLockKey(moduleId), getLockValue()).booleanValue();
