@@ -5,6 +5,8 @@ import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import io.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
@@ -16,6 +18,7 @@ import static org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEvent
  * Created time 2016-10-08 21:17
  */
 public class UserChannelCache {
+    private static final Logger logger = LoggerFactory.getLogger(UserChannelCache.class);
     private static final Cache<Long, Channel> USER_CHANNEL_CACHE =
             newBuilder()
                     .expireAfterAccess(2,TimeUnit.HOURS)
@@ -53,6 +56,7 @@ public class UserChannelCache {
     public static final Channel putChannel(long uid,Channel channel){
         Channel old = UserChannelCache.getChannel(uid);
         USER_CHANNEL_CACHE.put(uid,channel);
+        logger.info("USER_CHANNEL_CACHE.put success");
         return old;
     }
 }

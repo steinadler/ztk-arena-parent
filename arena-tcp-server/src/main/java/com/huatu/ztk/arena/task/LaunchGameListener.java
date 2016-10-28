@@ -99,6 +99,7 @@ public class LaunchGameListener implements MessageListener{
             long user = Long.valueOf(uids.get(i).toString());
             long practiceId = practiceIds.get(i);
             final Channel channel = UserChannelCache.getChannel(user);
+            logger.info("getChannel channel={}",channel);
             if (channel == null) {//== null说明用户长连接不存在该服务上
                 continue;
             }
