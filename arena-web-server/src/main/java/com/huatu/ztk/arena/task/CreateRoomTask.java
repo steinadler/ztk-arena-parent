@@ -127,6 +127,7 @@ public class CreateRoomTask {
                         //拥有足够人数和等待超时,则跳出循环
                         while (setOperations.size(roomUsersKey) < ArenaConfig.getConfig().getRoomCapacity() && System.currentTimeMillis()-start < ArenaConfig.getConfig().getWaitTime()*1000){
                             final String userId = setOperations.pop(arenaUsersKey);
+                            logger.info("uid={}",userId);
                             if (StringUtils.isBlank(userId)) {
                                 Thread.sleep(1000);//没有玩家则休眠一段时间
                                 continue;
