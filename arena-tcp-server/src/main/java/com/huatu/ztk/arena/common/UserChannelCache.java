@@ -56,7 +56,6 @@ public class UserChannelCache {
     public static final Channel putChannel(long uid,Channel channel){
         Channel old = UserChannelCache.getChannel(uid);
         USER_CHANNEL_CACHE.put(uid,channel);
-        logger.info("USER_CHANNEL_CACHE.put success");
         return old;
     }
 }

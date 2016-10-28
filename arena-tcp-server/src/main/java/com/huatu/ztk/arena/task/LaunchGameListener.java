@@ -50,12 +50,10 @@ public class LaunchGameListener implements MessageListener{
         }
         int action = MapUtils.getInteger(data,ATCION_FIELD,-1);
         if (action == Actions.USER_JOIN_NEW_ARENA) {//新用户加入房间动作
-            logger.info("newJoinPalyer action={}",action);
             proccessNewUserJionArena(data);
         }else if (action == Actions.USER_LEAVE_GAME) {//用户离开房间
             proccessUserLeaveArena(data);
         }else if (action == Actions.SYSTEM_START_GAME) {//开始游戏动作
-            logger.info("action={}",action);
             proccessStartGame(data);
         }else if (action == Actions.SYSTEM_PRACTICE_STATUS_UPDATE) {
             proccessUserSubmitQuestion(data);
@@ -95,14 +93,12 @@ public class LaunchGameListener implements MessageListener{
             return;
         }
 
-        logger.info("data={}",JsonUtil.toJson(data));
         //遍历房间玩家,发送开始游戏通知
         for (int i = 0; i < uids.size(); i++) {
             //此处主要是jackson会优先把uid转为int
             long user = Long.valueOf(uids.get(i).toString());
             long practiceId = practiceIds.get(i);
             final Channel channel = UserChannelCache.getChannel(user);
-            logger.info("getChannel channel={}",channel);
             if (channel == null) {//== null说明用户长连接不存在该服务上
                 continue;
             }
