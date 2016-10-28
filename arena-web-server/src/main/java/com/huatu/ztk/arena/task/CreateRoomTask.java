@@ -125,6 +125,8 @@ public class CreateRoomTask {
                         final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
                         long start = Long.MAX_VALUE;//开始时间,默认不过期
                         //拥有足够人数和等待超时,则跳出循环
+                        logger.info("setOperations.size={}",setOperations.size(roomUsersKey));
+                        logger.info("time ={}",System.currentTimeMillis()-start);
                         while (setOperations.size(roomUsersKey) < ArenaConfig.getConfig().getRoomCapacity() && System.currentTimeMillis()-start < ArenaConfig.getConfig().getWaitTime()*1000){
                             final String userId = setOperations.pop(arenaUsersKey);
                             logger.info("uid={}",userId);
