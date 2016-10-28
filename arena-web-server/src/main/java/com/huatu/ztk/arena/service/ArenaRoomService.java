@@ -151,7 +151,7 @@ public class ArenaRoomService {
         }
 
         if (arenaRoom.getStatus() == ArenaRoomStatus.FINISHED) {//已经结束,则不需要处理
-            logger.info("arenaId={} are finished,no process,practiceId={}",arenaRoom.getId(),practiceId);
+            logger.info("arenaId={} are finished,no process,practiceId={}", arenaRoom.getId(), practiceId);
             return;
         }
 
@@ -238,11 +238,18 @@ public class ArenaRoomService {
         //设置胜者id
         arenaRoom.setWinner(winner.getUid());
         arenaRoomDao.save(arenaRoom);
-        //所有的竞技结果已经处理完,需要对第一名进行胜场+1
+        //所有的竞技结果已经处理完,需要对第一名进行胜场+1，其他人胜场设置为0
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         //第一名的用户胜利场次+1
         final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(System.currentTimeMillis(), "yyyymmdd"));
         zSetOperations.incrementScore(arenaDayRankKey, arenaRoom.getWinner() + "", 1);
+        //其他参赛者胜场+0，保证用户查询我的今日排行时不为null
+        List<Long> playerIds = arenaRoom.getPlayerIds();
+        for (Long playerId : playerIds) {
+            if (playerId != winner.getUid()) {
+                zSetOperations.incrementScore(arenaDayRankKey, playerId + "", 0);
+            }
+        }
         redisTemplate.expire(arenaDayRankKey, 20, TimeUnit.DAYS);//记录20天有效
 
         //发送消息,通知系统,给用户发送查看竞技结果通知
@@ -296,7 +303,7 @@ public class ArenaRoomService {
         final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
         final Set<String> strings = zSetOperations.reverseRange(arenaDayRankKey, 0, TODAY_MAX_RANK_COUNT - 1);
         //若当天暂未有任何用户参加过竞技比赛，返回null
-        if(CollectionUtils.isEmpty(strings)){
+        if (CollectionUtils.isEmpty(strings)) {
             return null;
         }
         List<UserArenaRecord> records = Lists.newArrayList();

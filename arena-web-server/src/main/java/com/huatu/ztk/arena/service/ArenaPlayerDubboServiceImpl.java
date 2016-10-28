@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by shaojieyue
@@ -58,11 +59,8 @@ public class ArenaPlayerDubboServiceImpl implements ArenaPlayerDubboService {
         if (CollectionUtils.isEmpty(uids)) {
             return Lists.newArrayList();
         }
-
-        List<Player> players = new ArrayList<>(uids.size());
-        uids.forEach(uid ->{
-            players.add(findById(uid));
-        });
+        //stream 可以保证顺序
+        List<Player> players = uids.stream().map(uid -> findById(uid) ).collect(Collectors.toList());
         return players;
     }
 }
