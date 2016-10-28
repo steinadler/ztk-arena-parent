@@ -50,6 +50,7 @@ public class LaunchGameListener implements MessageListener{
         }
         int action = MapUtils.getInteger(data,ATCION_FIELD,-1);
         if (action == Actions.USER_JOIN_NEW_ARENA) {//新用户加入房间动作
+            logger.info("newJoinPalyer action={}",action);
             proccessNewUserJionArena(data);
         }else if (action == Actions.USER_LEAVE_GAME) {//用户离开房间
             proccessUserLeaveArena(data);

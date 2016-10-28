@@ -171,6 +171,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
         }
         //用户加入游戏等待
         redisTemplate.opsForSet().add(RedisArenaKeys.getArenaUsersKey(moduleId),uid+"");
+        logger.info("join new member,uid ={}",uid);
         return SuccessReponse.joinGameSuccess();
     }
 
