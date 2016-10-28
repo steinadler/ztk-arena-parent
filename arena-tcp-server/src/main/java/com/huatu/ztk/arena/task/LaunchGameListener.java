@@ -54,6 +54,7 @@ public class LaunchGameListener implements MessageListener{
         }else if (action == Actions.USER_LEAVE_GAME) {//用户离开房间
             proccessUserLeaveArena(data);
         }else if (action == Actions.SYSTEM_START_GAME) {//开始游戏动作
+            logger.info("action={}",action);
             proccessStartGame(data);
         }else if (action == Actions.SYSTEM_PRACTICE_STATUS_UPDATE) {
             proccessUserSubmitQuestion(data);
@@ -93,6 +94,7 @@ public class LaunchGameListener implements MessageListener{
             return;
         }
 
+        logger.info("data={}",JsonUtil.toJson(data));
         //遍历房间玩家,发送开始游戏通知
         for (int i = 0; i < uids.size(); i++) {
             //此处主要是jackson会优先把uid转为int
