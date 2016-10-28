@@ -80,6 +80,7 @@ public class CreateRoomTask {
                     //释放锁
                     final String workLockKey = RedisArenaKeys.getWorkLockKey(module.getId());
 
+                    // TODO: 2016/10/28  出现不释放锁的情况，导致匹配不成功
                     //获取锁的值
                     final String value = redisTemplate.opsForValue().get(workLockKey);
                     if (getLockValue().equals(value)) {//如果是自己抢到的锁,才删除
