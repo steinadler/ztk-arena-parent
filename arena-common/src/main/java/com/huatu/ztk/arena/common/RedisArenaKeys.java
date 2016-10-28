@@ -38,11 +38,11 @@ public class RedisArenaKeys {
 
     /**
      * 未开始游戏用户
-     * @param type
+     * @param moduleId
      * @return
      */
-    public static final String getArenaUsersKey(int type){
-        return "arena_users_"+type;
+    public static final String getArenaUsersKey(int moduleId) {
+        return "arena_users_" + moduleId;
     }
 
     /**
