@@ -52,7 +52,7 @@ public class ArenaControllerV1 {
         }
         //用户id
         long uid = userSessionService.getUid(token);
-        PageBean<ArenaRoomSimple> pageBean = arenaRoomService.history(uid, cursor, 20);
+        PageBean<ArenaRoomSimple> pageBean = arenaRoomService.history(uid, cursor);
         return pageBean;
     }
 

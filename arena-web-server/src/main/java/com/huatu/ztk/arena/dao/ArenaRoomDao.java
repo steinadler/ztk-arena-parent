@@ -121,7 +121,7 @@ public class ArenaRoomDao {
      * @param cursor 游标
      * @return
      */
-    public List<ArenaRoomSimple> findForPage(long uid, long cursor, int size) {
+    public List<ArenaRoomSimple> findForPage(long uid, long cursor) {
 
         //返回playerIds包含uid，竞技比赛已结束的结果集
         final Criteria criteria = Criteria.where("playerIds").in(uid)
@@ -130,7 +130,7 @@ public class ArenaRoomDao {
 
         //设置数据返回记录条数，按创建时间倒序排列
         Query query = new Query(criteria);
-        query.limit(size).with(new Sort(Sort.Direction.DESC, "createTime"));
+        query.with(new Sort(Sort.Direction.DESC, "createTime"));
 
         List<ArenaRoom> records = mongoTemplate.find(query, ArenaRoom.class);
         //转换方法返回list类型

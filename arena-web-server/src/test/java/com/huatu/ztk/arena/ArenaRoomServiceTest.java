@@ -143,9 +143,8 @@ public class ArenaRoomServiceTest extends BaseTest{
     public void historyTest(){
         final long userId = 10264614;
         long cursor = Long.MAX_VALUE;
-        List<ArenaRoomSimple> records = arenaRoomDao.findForPage(userId,cursor,20);
+        List<ArenaRoomSimple> records = arenaRoomDao.findForPage(userId,cursor);
         Assert.assertNotNull(records);
-        Assert.assertTrue(records.size()<=20);
         List<Integer> statusList = records.stream().map(bean->bean.getStatus()).collect(Collectors.toList());
         for(Integer status: statusList){
             Assert.assertEquals(status,new Integer(3));
