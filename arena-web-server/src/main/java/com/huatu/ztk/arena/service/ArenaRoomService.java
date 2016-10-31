@@ -282,7 +282,7 @@ public class ArenaRoomService {
     public PageBean<ArenaRoomSimple> history(long uid, long cursor) {
         List<ArenaRoomSimple> records = arenaRoomDao.findForPage(uid, cursor);
         if (CollectionUtils.isEmpty(records)) {
-            return null;
+            return new PageBean<ArenaRoomSimple>() ;
         }
         long newCursor = cursor;
         if (records.size() > 0) {//最晚的一条练习的id作为下次请求的游标
