@@ -107,7 +107,7 @@ public class ArenaRoomDao {
         final Criteria criteria = Criteria.where("practices").in(practiceId);
         final List<ArenaRoom> rooms = mongoTemplate.find(new Query(criteria), ArenaRoom.class);
         ArenaRoom arenaRoom = null;
-        if (rooms != null) {
+        if (CollectionUtils.isNotEmpty(rooms)) {
             arenaRoom = rooms.get(0);
         }
 
