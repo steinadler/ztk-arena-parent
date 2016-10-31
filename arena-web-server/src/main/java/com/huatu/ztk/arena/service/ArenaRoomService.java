@@ -215,24 +215,27 @@ public class ArenaRoomService {
                     arenaResults[i] = arenaResult;
                 }
             }
-            arenaRoom.setResults(arenaResults);
         }
 
         //设置为已结束状态
         arenaRoom.setStatus(ArenaRoomStatus.FINISHED);
 
-        int maxRcount = -1;
-        ArenaResult winner = null;//胜者id
-        for (ArenaResult result : arenaRoom.getResults()) {//遍历答题结果,获取计算出胜者id
-            if (result.getRcount() > maxRcount) {//正确数量多,取新的
-                maxRcount = result.getRcount();
-                winner = result;
-            } else if (result.getRcount() == maxRcount) {//两人答对数量一样
-                if (result.getElapsedTime() < winner.getElapsedTime()) {//当两人答对数量一致,那么用时短的获胜
-                    winner = result;
+        Arrays.parallelSort(arenaResults,new Comparator<ArenaResult>(){
+            @Override
+            public int compare(ArenaResult o1, ArenaResult o2) {
+                final int sub = o2.getRcount() - o1.getRcount();
+                if (sub != 0) {//优先取答题正确数量的为胜者
+                    return sub;
                 }
+
+                //答题数量一致,则取答题时间少的为胜者
+                return o1.getElapsedTime() - o2.getElapsedTime();
             }
-        }
+        });
+
+        ArenaResult winner = arenaResults[0];//胜者
+
+        arenaRoom.setResults(arenaResults);
         //设置胜者id
         arenaRoom.setWinner(winner.getUid());
         arenaRoomDao.save(arenaRoom);
