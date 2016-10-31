@@ -163,8 +163,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
         final String userRoomKey = RedisArenaKeys.getUserRoomKey(uid);
         final String arenaId = redisTemplate.opsForValue().get(userRoomKey);
         if (StringUtils.isNoneBlank(arenaId)) {//用户存在未完成的房间
-            final Long roomId = Long.valueOf(arenaId);
-            final ArenaRoom arenaRoom = arenaDubboService.findById(roomId);
+            final Long arenaId = Long.valueOf(arenaId);
+            final ArenaRoom arenaRoom = arenaDubboService.findById(arenaId);
             if (arenaRoom != null && arenaRoom.getStatus() != ArenaRoomStatus.FINISHED) {//该房间未关闭,关闭的房间还是可以加入新房间
                 return SuccessReponse.existGame(arenaRoom,uid);
             }

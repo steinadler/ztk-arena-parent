@@ -84,7 +84,7 @@ public class LaunchGameListener implements MessageListener{
      * @param data
      */
     private void proccessStartGame(Map data) {
-        final long roomId = MapUtils.getLong(data, "roomId",-1L);
+        final long arenaId = MapUtils.getLong(data, "arenaId",-1L);
         final List<Object> uids = (List<Object>)MapUtils.getObject(data, "uids");
         final List<Long> practiceIds = (List<Long>)MapUtils.getObject(data, "practiceIds");
         //检查参数合法性
@@ -104,7 +104,7 @@ public class LaunchGameListener implements MessageListener{
             }
             try {
                 //发送游戏开始通知
-                channel.writeAndFlush(SuccessReponse.startGame(practiceId,roomId));
+                channel.writeAndFlush(SuccessReponse.startGame(practiceId,arenaId));
             }catch (Exception e){
                 logger.error("ex",e);
             }
@@ -116,9 +116,9 @@ public class LaunchGameListener implements MessageListener{
      * @param data
      */
     private void proccessUserLeaveArena(Map data) {
-        final long roomId = MapUtils.getLong(data, "arenaId",-1L);
+        final long arenaId = MapUtils.getLong(data, "arenaId",-1L);
         final long leaveUid = MapUtils.getLong(data, "uid",-1L);
-        final long[] users = getRoomUsers(roomId);
+        final long[] users = getRoomUsers(arenaId);
         for (long user : users) {//遍历为每个用户发送,用户离开房间通知
             final Channel channel = UserChannelCache.getChannel(user);
             if (channel == null) {//== null说明用户长连接不存在该服务上
@@ -138,10 +138,10 @@ public class LaunchGameListener implements MessageListener{
      * @param data
      */
     private void proccessNewUserJionArena(Map data) {
-        final long roomId = MapUtils.getLong(data, "roomId",-1L);
+        final long arenaId = MapUtils.getLong(data, "arenaId",-1L);
         //新玩家id
         final long newPlayerId = MapUtils.getLong(data, "uid",-1L);
-        final long[] users = getRoomUsers(roomId);
+        final long[] users = getRoomUsers(arenaId);
         List<Player> oldPlayers = Lists.newArrayList();
         Player newPlayer = null;
         for (long uid : users) {
@@ -185,12 +185,12 @@ public class LaunchGameListener implements MessageListener{
 
     /**
      * 查询竞技房间里的人员
-     * @param roomId
+     * @param arenaId
      * @return
      */
-    private long[] getRoomUsers(long roomId) {
+    private long[] getRoomUsers(long arenaId) {
         final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
-        final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(roomId);
+        final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(arenaId);
         return setOperations.members(roomUsersKey).stream().mapToLong(uid-> Long.valueOf(uid)).toArray();
     }
 }

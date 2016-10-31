@@ -66,12 +66,12 @@ public class CloseArenaListener implements MessageListener {
 
     /**
      * 查询竞技房间里的人员
-     * @param roomId
+     * @param arenaId
      * @return
      */
-    private long[] getRoomUsers(long roomId) {
+    private long[] getRoomUsers(long arenaId) {
         final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
-        final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(roomId);
+        final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(arenaId);
         return setOperations.members(roomUsersKey).stream().mapToLong(uid-> Long.valueOf(uid)).toArray();
     }
 }

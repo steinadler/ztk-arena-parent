@@ -138,12 +138,12 @@ public class CreateRoomTask {
                             final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(userId));
                             //设置用户正在进入的房间
                             redisTemplate.opsForValue().set(userRoomKey,arenaRoomId+"");
-                            logger.info("add userId={} to roomId={}",userId,arenaRoomId);
+                            logger.info("add userId={} to arenaId={}",userId,arenaRoomId);
                             Map data = Maps.newHashMap();
                             data.put("action", Actions.USER_JOIN_NEW_ARENA);
                             //发送加入游戏通知
                             data.put("uid",Long.valueOf(userId));
-                            data.put("roomId", arenaRoomId);
+                            data.put("arenaId", arenaRoomId);
                             //通过mq发送新人进入通知
                             rabbitTemplate.convertAndSend("game_notify_exchange","",data);
 
@@ -184,13 +184,13 @@ public class CreateRoomTask {
 
                         arenaRoom = null;//设置为null,表示该房间已经被占用
                         Map data = Maps.newHashMap();
-                        data.put("roomId", arenaRoomId);
+                        data.put("arenaId", arenaRoomId);
                         data.put("action", Actions.SYSTEM_START_GAME);
                         data.put("uids",users);
                         data.put("practiceIds",practiceIds);//用户对应的练习列表
                         //通过mq发送游戏就绪通知
                         rabbitTemplate.convertAndSend("game_notify_exchange","",data);
-                        logger.info("roomId={},users={} start game.",arenaRoomId,users);
+                        logger.info("arenaId={},users={} start game.",arenaRoomId,users);
                     }catch (Exception e){
                         logger.error("ex",e);
                     }

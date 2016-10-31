@@ -47,11 +47,11 @@ public class RedisArenaKeys {
 
     /**
      * 房间用户列表
-     * @param roomId
+     * @param arenaId
      * @return
      */
-    public static final String getRoomUsersKey(long roomId){
-        return "room_users_"+roomId;
+    public static final String getRoomUsersKey(long arenaId){
+        return "room_users_"+arenaId;
     }
 
     /**

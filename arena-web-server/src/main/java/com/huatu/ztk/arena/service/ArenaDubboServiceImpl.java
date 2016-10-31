@@ -68,6 +68,6 @@ public class ArenaDubboServiceImpl implements ArenaDubboService {
     @Override
     public void updateById(long id, Update update) {
         arenaRoomDao.updateById(id,update);
-        logger.info("roomId={} update info,data={}",id,update);
+        logger.info("arenaId={} update info,data={}",id,update);
     }
 }

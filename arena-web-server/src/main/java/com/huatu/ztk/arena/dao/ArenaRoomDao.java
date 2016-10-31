@@ -78,17 +78,17 @@ public class ArenaRoomDao {
     /**
      * 通过id批量查询房间信息
      *
-     * @param roomIds
+     * @param arenaIds
      * @return
      */
-    public List<ArenaRoom> findByIds(List<Long> roomIds) {
-        if (CollectionUtils.isEmpty(roomIds)) {
+    public List<ArenaRoom> findByIds(List<Long> arenaIds) {
+        if (CollectionUtils.isEmpty(arenaIds)) {
             return new ArrayList<>();
         }
 
-        Criteria[] criterias = new Criteria[roomIds.size()];
-        for (int i = 0; i < roomIds.size(); i++) {
-            criterias[i] = Criteria.where("_id").is(roomIds.get(i));
+        Criteria[] criterias = new Criteria[arenaIds.size()];
+        for (int i = 0; i < arenaIds.size(); i++) {
+            criterias[i] = Criteria.where("_id").is(arenaIds.get(i));
         }
 
         Criteria criteria = new Criteria();

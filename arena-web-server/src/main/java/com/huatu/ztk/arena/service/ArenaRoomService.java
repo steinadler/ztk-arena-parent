@@ -81,14 +81,14 @@ public class ArenaRoomService {
 
         final PracticePaper practicePaper = practiceDubboService.create(SubjectType.SUBJECT_GONGWUYUAN, moduleId, ArenaConfig.getConfig().getQuestionCount());
         final ValueOperations valueOperations = redisTemplate.opsForValue();
-        final String roomIdKey = RedisArenaKeys.getRoomIdKey();
+        final String arenaIdKey = RedisArenaKeys.getRoomIdKey();
 
-        if (!redisTemplate.hasKey(roomIdKey)) {//初始化id
-            valueOperations.set(roomIdKey, "23448564");
+        if (!redisTemplate.hasKey(arenaIdKey)) {//初始化id
+            valueOperations.set(arenaIdKey, "23448564");
         }
 
         int delta = RandomUtils.nextInt(1, 4);//随机步长
-        final Long id = valueOperations.increment(roomIdKey, delta);
+        final Long id = valueOperations.increment(arenaIdKey, delta);
         final ArenaRoom arenaRoom = ArenaRoom.builder()
                 .limitTime(ArenaConfig.getConfig().getGameLimitTime())
                 .practicePaper(practicePaper)
