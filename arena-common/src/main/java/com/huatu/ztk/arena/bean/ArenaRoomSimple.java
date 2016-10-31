@@ -18,6 +18,7 @@ public class ArenaRoomSimple {
     @Id
     long id;//房间号
     private int type;//房间类型
+    private int moduleId;//模块id
     private String module;//考试模块
     private String name;//房间名称
     private long winner;//胜者id

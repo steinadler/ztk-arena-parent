@@ -55,9 +55,6 @@ public class ArenaRoomService {
     private PracticeCardDubboService practiceCardDubboService;
 
     @Autowired
-    private UserDubboService userDubboService;
-
-    @Autowired
     private RabbitTemplate rabbitTemplate;
 
     @Autowired
@@ -102,6 +99,7 @@ public class ArenaRoomService {
         arenaRoom.setCreateTime(System.currentTimeMillis());
         arenaRoom.setId(id);
         arenaRoom.setType(type);
+        arenaRoom.setModuleId(moduleId);
         arenaRoom.setModule(moduleName);
         arenaRoom.setName(roomName);
         arenaRoom.setStatus(ArenaRoomStatus.CREATED);
