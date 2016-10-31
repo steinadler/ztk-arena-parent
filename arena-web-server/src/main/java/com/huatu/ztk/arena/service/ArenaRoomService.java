@@ -242,7 +242,7 @@ public class ArenaRoomService {
         //所有的竞技结果已经处理完,需要对第一名进行胜场+1，其他人胜场设置为0
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         //第一名的用户胜利场次+1
-        final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(System.currentTimeMillis(), "yyyymmdd"));
+        final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(System.currentTimeMillis(), "yyyyMMdd"));
         zSetOperations.incrementScore(arenaDayRankKey, arenaRoom.getWinner() + "", 1);
         //其他参赛者胜场+0，保证用户查询我的今日排行时不为null
         List<Long> playerIds = arenaRoom.getPlayerIds();
@@ -301,7 +301,7 @@ public class ArenaRoomService {
      */
     public List<UserArenaRecord> findTodayRank(long date) {
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
-        final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
+        final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyyMMdd"));
         final Set<String> strings = zSetOperations.reverseRange(arenaDayRankKey, 0, TODAY_MAX_RANK_COUNT - 1);
         //若当天暂未有任何用户参加过竞技比赛，返回null
         if (CollectionUtils.isEmpty(strings)) {
@@ -343,7 +343,7 @@ public class ArenaRoomService {
      */
     public UserArenaRecord findMyTodayRank(long uid, long date) {
         final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
-        final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyymmdd"));
+        final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(date, "yyyyMMdd"));
         //获胜场数,若用户未参加过比赛胜场返回为null
         final Optional<Double> winCount = Optional.ofNullable(zSetOperations.score(arenaDayRankKey, uid + ""));
         if (!winCount.isPresent()) {
