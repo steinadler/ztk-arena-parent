@@ -351,26 +351,13 @@ public class ArenaRoomService {
         if (!rank.isPresent()) {
             return null;
         }
-
         final Player player = arenaPlayerDubboService.findById(uid);
-        // TODO: 2016/11/1  前端验证使用，后期去掉 
-        if(uid == 10239481) {
-            final UserArenaRecord arenaRecord = UserArenaRecord.builder()
-                    .uid(player.getUid())
-                    .player(player)
-                    .winCount(winCount.get().intValue())
-                    .rank(3) //返回排行从1开始
-                    .build();
+        final UserArenaRecord arenaRecord = UserArenaRecord.builder()
+                .uid(player.getUid())
+                .player(player)
+                .winCount(winCount.get().intValue())
+                .rank(rank.get().intValue() + 1) //返回排行从1开始
+                .build();
         return arenaRecord;
-        }else{
-            final UserArenaRecord arenaRecord = UserArenaRecord.builder()
-                    .uid(player.getUid())
-                    .player(player)
-                    .winCount(winCount.get().intValue())
-                    .rank(rank.get().intValue() + 1) //返回排行从1开始
-                    .build();
-            return arenaRecord;
-        }
     }
-
 }
