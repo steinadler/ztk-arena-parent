@@ -55,7 +55,10 @@ public class ArenaDubboServiceImpl implements ArenaDubboService {
             playerIds = redisTemplate.opsForSet().members(roomUsersKey).stream().map(userId -> Long.valueOf(userId)).collect(Collectors.toList());
         }
 
-        arenaRoom.setPlayers(arenaPlayerDubboService.findBatch(playerIds));
+        List<Player> players = arenaPlayerDubboService.findBatch(playerIds);
+        // TODO: 11/1/16 此处到时可以去掉 目前总是存在查询不到用户的情况
+        players = players.stream().filter(player -> player!= null).collect(Collectors.toList());
+        arenaRoom.setPlayers(players);
         return arenaRoom;
     }
 
