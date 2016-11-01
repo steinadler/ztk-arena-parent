@@ -184,6 +184,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         final Long uid = ctx.channel().attr(uidAttributeKey).get();
         if (uid != null) {
+            logger.info("uid={} close connection.",uid);
             //连接断开时,需要把连接从cache中移除
             UserChannelCache.remove(uid,ctx.channel());
         }
