@@ -5,6 +5,7 @@ import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import io.netty.channel.Channel;
+import org.aspectj.org.eclipse.jdt.internal.core.util.KeyKind;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,9 +54,25 @@ public class UserChannelCache {
         return channel;
     }
 
-    public static final Channel putChannel(long uid,Channel channel){
+    public static synchronized final Channel putChannel(long uid,Channel channel){
         Channel old = UserChannelCache.getChannel(uid);
         USER_CHANNEL_CACHE.put(uid,channel);
         return old;
     }
+
+    /**
+     * 移除channel
+     * 注意的是,只是当传入的和cache里的channel为同一个时
+     * 才把channel移除,防止并发下出错
+     * @param uid
+     * @param channel
+     */
+    public static synchronized final void remove(long uid,Channel channel){
+        final Channel cachedChannel = USER_CHANNEL_CACHE.getIfPresent(uid);
+        if (cachedChannel == channel) {//要移除的是当前连接
+            //从缓存移除连接
+            USER_CHANNEL_CACHE.invalidate(uid);
+        }
+    }
+
 }

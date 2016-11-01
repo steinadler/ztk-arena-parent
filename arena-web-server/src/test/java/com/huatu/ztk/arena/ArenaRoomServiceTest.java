@@ -2,6 +2,7 @@ package com.huatu.ztk.arena;
 
 import com.huatu.ztk.arena.bean.*;
 import com.huatu.ztk.arena.dao.ArenaRoomDao;
+import com.huatu.ztk.arena.dubbo.ArenaDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.JsonUtil;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
@@ -26,6 +27,9 @@ public class ArenaRoomServiceTest extends BaseTest{
     private static final Logger logger = LoggerFactory.getLogger(ArenaRoomServiceTest.class);
 
     @Autowired
+    private ArenaDubboService arenaDubboService;
+
+    @Autowired
     private ArenaRoomService arenaRoomService;
 
     @Autowired
@@ -38,6 +42,12 @@ public class ArenaRoomServiceTest extends BaseTest{
     private ArenaRoomDao arenaRoomDao;
 
     long uid = 12252065;
+
+    @Test
+    public void findByIdTest(){
+        final ArenaRoom arenaRoom = arenaDubboService.findById(52583918L);
+        System.out.println(JsonUtil.toJson(arenaRoom));
+    }
 
     @Test
     public void createTest(){

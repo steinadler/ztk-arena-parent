@@ -6,6 +6,7 @@ import com.huatu.ztk.arena.bean.*;
 import com.huatu.ztk.arena.common.ArenaRoomType;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.dao.ArenaRoomDao;
+import com.huatu.ztk.arena.dubbo.ArenaDubboService;
 import com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService;
 import com.huatu.ztk.commons.*;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
@@ -13,7 +14,6 @@ import com.huatu.ztk.paper.api.PracticeDubboService;
 import com.huatu.ztk.paper.bean.AnswerCard;
 import com.huatu.ztk.paper.bean.PracticePaper;
 import com.huatu.ztk.paper.common.AnswerCardType;
-import com.huatu.ztk.user.dubbo.UserDubboService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -60,6 +60,9 @@ public class ArenaRoomService {
     @Autowired
     private ArenaPlayerDubboService arenaPlayerDubboService;
 
+    @Autowired
+    private ArenaDubboService arenaDubboService;
+
     /**
      * 随机创建一个房间
      *
@@ -80,6 +83,7 @@ public class ArenaRoomService {
         }
 
         final PracticePaper practicePaper = practiceDubboService.create(SubjectType.SUBJECT_GONGWUYUAN, moduleId, ArenaConfig.getConfig().getQuestionCount());
+        practicePaper.setName(roomName);//需要设置练习的名字
         final ValueOperations valueOperations = redisTemplate.opsForValue();
         final String arenaIdKey = RedisArenaKeys.getRoomIdKey();
 
@@ -114,14 +118,7 @@ public class ArenaRoomService {
      * @return
      */
     public ArenaRoom findById(long arenaId) {
-        final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
-        if (arenaRoom == null) {
-            return arenaRoom;
-        }
-        //设置参赛人员个人信息(mongo为节省空间未存个人信息数据)
-        List<Long> playerIds = arenaRoom.getPlayerIds();
-        arenaRoom.setPlayers(arenaPlayerDubboService.findBatch(playerIds));
-        return arenaRoom;
+        return arenaDubboService.findById(arenaId);
     }
 
 
