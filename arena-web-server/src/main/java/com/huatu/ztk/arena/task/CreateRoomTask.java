@@ -171,7 +171,7 @@ public class CreateRoomTask {
                         redisTemplate.expire(roomUsersKey,1,TimeUnit.HOURS);
                         List<Long> practiceIds = Lists.newArrayList();
                         for (Long uid : users) {//为用户创建练习
-                            final PracticeCard practiceCard = practiceCardDubboService.create(arenaRoom.getPracticePaper(), -1, AnswerCardType.ARENA_PAPER, uid);
+                            final PracticeCard practiceCard = practiceCardDubboService.create(arenaRoom.getPracticePaper(), -1, AnswerCardType.ARENA_PAPER, uid,arenaRoom.getLimitTime());
                             practiceIds.add(practiceCard.getId());
                         }
 
