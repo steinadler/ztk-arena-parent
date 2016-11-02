@@ -1,12 +1,14 @@
 package com.huatu.ztk.arena;
 
 import com.huatu.ztk.arena.bean.*;
+import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.dao.ArenaRoomDao;
 import com.huatu.ztk.arena.dubbo.ArenaDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.JsonUtil;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import com.huatu.ztk.paper.bean.AnswerCard;
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,9 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -138,15 +143,36 @@ public class ArenaRoomServiceTest extends BaseTest{
         arenaRoom.setResults(null);
         arenaRoom.setWinner(0);
         arenaRoomDao.save(arenaRoom);
+        final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(System.currentTimeMillis(), "yyyyMMdd"));
+        final ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+        final Map<Long, Integer> oldMap = arenaRoom.getPlayerIds().stream().collect(Collectors.toMap(obj -> obj, obj -> Optional.ofNullable(zSetOperations.score(arenaDayRankKey, obj.toString())).orElse(0d).intValue()));
+
+
         arenaRoomService.closeArena(arenaId);
         arenaRoom = arenaRoomService.findById(arenaId);
         Assert.assertNotNull(arenaRoom);
         Assert.assertEquals(arenaRoom.getQcount(),ArenaConfig.getConfig().getQuestionCount());
         Assert.assertEquals(arenaRoom.getStatus(),ArenaRoomStatus.FINISHED);
         Assert.assertEquals(10239481,arenaRoom.getWinner());
-        for (ArenaResult arenaResult : arenaRoom.getResults()) {
-            Assert.assertNotNull(arenaResult);
+        for (int i = 0; i < arenaRoom.getPlayerIds().size(); i++) {
+            Assert.assertEquals(arenaRoom.getPlayerIds().get(i).longValue(),arenaRoom.getPlayers().get(i).getUid());
+            Assert.assertEquals(arenaRoom.getPlayerIds().get(i).longValue(),arenaRoom.getResults()[i].getUid());
         }
+        for (int i = 0; i < arenaRoom.getPractices().size(); i++) {
+            final AnswerCard answerCard = practiceCardDubboService.findById(arenaRoom.getPractices().get(i));
+            Assert.assertEquals(answerCard.getUserId(),arenaRoom.getPlayerIds().get(i).longValue());
+        }
+
+        //检查胜场情况
+        for (Long aLong : arenaRoom.getPlayerIds()) {
+            final int intValue = zSetOperations.score(arenaDayRankKey, aLong.toString()).intValue();
+            if (aLong.longValue() == arenaRoom.getWinner()) {
+                Assert.assertEquals(intValue,oldMap.get(aLong).intValue()+1);
+            }else {
+                Assert.assertEquals(intValue,oldMap.get(aLong).intValue());
+            }
+        }
+
     }
 
     @Test

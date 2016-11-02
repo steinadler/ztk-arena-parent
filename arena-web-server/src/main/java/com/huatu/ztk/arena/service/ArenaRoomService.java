@@ -216,7 +216,6 @@ public class ArenaRoomService {
 
         //设置为已结束状态
         arenaRoom.setStatus(ArenaRoomStatus.FINISHED);
-
         Arrays.parallelSort(arenaResults,new Comparator<ArenaResult>(){
             @Override
             public int compare(ArenaResult o1, ArenaResult o2) {
@@ -232,7 +231,6 @@ public class ArenaRoomService {
 
         //用户id列表重新排序,保证和arenaResults一一对应
         final List<Long> uids = Arrays.stream(arenaResults).map(arenaResult -> arenaResult.getUid()).collect(Collectors.toList());
-
         //练习id列表重新排序,保证和arenaResults一一对应
         final List<Long> practices = uids.stream().map(uid -> {
             return arenaRoom.getPractices().get(arenaRoom.getPlayerIds().indexOf(uid));

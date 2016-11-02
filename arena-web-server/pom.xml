@@ -70,8 +70,8 @@
             <artifactId>common-config</artifactId>
         </dependency>
         <dependency>
-            <artifactId>paper-dubbo-api</artifactId>
             <groupId>com.huatu.ztk</groupId>
+            <artifactId>paper-dubbo-api</artifactId>
             <version>1.1-SNAPSHOT</version>
         </dependency>
         <dependency>

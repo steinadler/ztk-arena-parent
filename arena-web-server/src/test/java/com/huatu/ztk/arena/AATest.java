@@ -1,14 +1,10 @@
 package com.huatu.ztk.arena;
 
-import com.google.common.collect.Lists;
-import com.huatu.ztk.arena.bean.ArenaResult;
-import com.huatu.ztk.arena.bean.ArenaRoom;
-import com.huatu.ztk.commons.JsonUtil;
-import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by shaojieyue
@@ -18,10 +14,63 @@ public class AATest {
     private static final Logger logger = LoggerFactory.getLogger(AATest.class);
 
     public static void main(String[] args) {
-        int[] ints = new int[]{1,3,3,4};
-        System.out.println(Arrays.stream(ints).anyMatch(i->i==1));
-        System.out.println(Arrays.stream(ints).anyMatch(i->i==3));
-        System.out.println(Arrays.stream(ints).anyMatch(i->i==5));
+        final AA aa = new AATest().newAA();
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < 100; i++) {
+                    aa.a();
+                    try {
+                        Thread.sleep(org.apache.commons.lang3.RandomUtils.nextInt(10,1000));
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
 
+        final Thread thread1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < 100; i++) {
+                    aa.b();
+                    try {
+                        Thread.sleep(org.apache.commons.lang3.RandomUtils.nextInt(10,1000));
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        final Thread thread2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < 100; i++) {
+                    aa.c();
+                }
+            }
+        });
+        thread.start();
+        thread1.start();
+        thread2.start();
+    }
+
+    public AA newAA(){
+        return new AA();
+    }
+
+    public class AA{
+        public synchronized void a(){
+            System.out.println("a->"+System.nanoTime());
+        }
+
+        public synchronized void b(){
+            System.out.println("b->"+System.nanoTime());
+        }
+
+        public  void c(){
+            System.out.println("c->"+System.nanoTime());
+        }
     }
 }
