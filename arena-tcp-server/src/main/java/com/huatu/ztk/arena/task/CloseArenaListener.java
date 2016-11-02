@@ -30,7 +30,7 @@ public class CloseArenaListener implements MessageListener {
     @Override
     public void onMessage(Message message) {
         String text = new String(message.getBody());
-        logger.info("receive message={}",text);
+        logger.info("receive close arena message={}",text);
         Map data = new HashMap();
         try {
             data = JsonUtil.toMap(text);
