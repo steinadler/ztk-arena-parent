@@ -230,8 +230,17 @@ public class ArenaRoomService {
             }
         });
 
-        ArenaResult winner = arenaResults[0];//胜者
+        //用户id列表重新排序,保证和arenaResults一一对应
+        final List<Long> uids = Arrays.stream(arenaResults).map(arenaResult -> arenaResult.getUid()).collect(Collectors.toList());
 
+        //练习id列表重新排序,保证和arenaResults一一对应
+        final List<Long> practices = uids.stream().map(uid -> {
+            return arenaRoom.getPractices().get(arenaRoom.getPlayerIds().indexOf(uid));
+        }).collect(Collectors.toList());
+
+        ArenaResult winner = arenaResults[0];//胜者
+        arenaRoom.setPlayerIds(uids);
+        arenaRoom.setPractices(practices);
         arenaRoom.setResults(arenaResults);
         //设置胜者id
         arenaRoom.setWinner(winner.getUid());
