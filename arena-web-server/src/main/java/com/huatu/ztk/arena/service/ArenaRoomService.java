@@ -9,6 +9,7 @@ import com.huatu.ztk.arena.dao.ArenaRoomDao;
 import com.huatu.ztk.arena.dubbo.ArenaDubboService;
 import com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService;
 import com.huatu.ztk.commons.*;
+import com.huatu.ztk.commons.exception.BizException;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import com.huatu.ztk.paper.api.PracticeDubboService;
 import com.huatu.ztk.paper.bean.AnswerCard;
@@ -202,6 +203,13 @@ public class ArenaRoomService {
             for (int i = 0; i < arenaResults.length; i++) {
                 if (arenaResults[i] == null) {//未交卷
                     final Long practiceId = arenaRoom.getPractices().get(i);
+                    try {
+                        //首先帮用户提交试卷
+                        practiceCardDubboService.submitAnswers(practiceId,arenaRoom.getPlayerIds().get(i),Lists.newArrayList(),true,-9);
+                    } catch (BizException e) {
+                        e.printStackTrace();
+                    }
+
                     AnswerCard answerCard = practiceCardDubboService.findById(practiceId);
                     final ArenaResult arenaResult = ArenaResult.builder()
                             .elapsedTime(answerCard.getExpendTime())
