@@ -67,7 +67,6 @@ public class ArenaTcpServer {
             ServerBootstrap serverBootstrap = new ServerBootstrap(); // (2)
             final StringDecoder stringDecoder = new StringDecoder();
             final RequestDecoder requestDecoder = new RequestDecoder();
-            final ReponseEncoder reponseEncoder = new ReponseEncoder();
             final StringEncoder stringEncoder = new StringEncoder();
             final LineBasedFrameEncoder lineBasedFrameEncoder = new LineBasedFrameEncoder();
             InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
@@ -83,7 +82,7 @@ public class ArenaTcpServer {
                             ch.pipeline().addLast(new LineBasedFrameDecoder(MAX_FRAME_LENGTH));
                             ch.pipeline().addLast(stringEncoder);
                             ch.pipeline().addLast(lineBasedFrameEncoder);
-                            ch.pipeline().addLast(reponseEncoder);
+                            ch.pipeline().addLast(new ReponseEncoder());
                             ch.pipeline().addLast(new IdleStateHandler(0,0,5));
                             ch.pipeline().addLast(stringDecoder);
                             ch.pipeline().addLast(new HeartbeatHandler());
