@@ -1,11 +1,14 @@
 package com.huatu.ztk.arena.task;
 
+import com.google.common.collect.Lists;
 import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.JsonUtil;
+import com.huatu.ztk.commons.exception.BizException;
+import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +31,6 @@ import java.util.concurrent.TimeUnit;
 public class CheckAreanTask {
     private static final Logger logger = LoggerFactory.getLogger(CheckAreanTask.class);
 
-    @Autowired
-    private ArenaRoomService arenaRoomService;
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -37,6 +38,9 @@ public class CheckAreanTask {
 
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
+
+    @Autowired
+    private PracticeCardDubboService practiceCardDubboService;
 
     private static final long ONE_HOUR = 60 * 60 * 1000L;
 
@@ -83,10 +87,17 @@ public class CheckAreanTask {
             //超过做题时间,将房间关闭
             if (currentTime > arenaEndTime) {
                 logger.info("auto close room ,obj={}", JsonUtil.toJson(room));
-                try {
-                    arenaRoomService.closeArena(room.getId());
-                } catch (Exception e) {
-                    logger.error("auto close fail.", e);
+
+                //这里通过帮助用户提交试卷,来达到关闭竞技场的目的
+                for (int i = 0; i < room.getPractices().size(); i++) {
+                    if (room.getResults()[i] == null) {//未交卷
+                        try {
+                            //帮用户提交试卷
+                            practiceCardDubboService.submitAnswers(room.getPractices().get(i),room.getPlayerIds().get(i), Lists.newArrayList(),true,-9);
+                        } catch (BizException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         }

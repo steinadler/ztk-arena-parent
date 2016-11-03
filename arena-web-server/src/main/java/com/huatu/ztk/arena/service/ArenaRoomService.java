@@ -195,7 +195,10 @@ public class ArenaRoomService {
     public void closeArena(long arenaId) {
         logger.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< do closeArenaId");
         final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
-        ArenaResult[] arenaResults = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArenaResult[arenaRoom.getPractices().size()]);
+        if (arenaRoom.getStatus() == ArenaRoomStatus.FINISHED) {//已经结束,则不需要处理
+            return;
+        }
+            ArenaResult[] arenaResults = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArenaResult[arenaRoom.getPractices().size()]);
         //存在未交卷的用户
         if (Arrays.stream(arenaResults).filter(result -> result != null).count() < arenaRoom.getPlayerIds().size()) {//存在未交卷的
             for (int i = 0; i < arenaResults.length; i++) {
