@@ -2,6 +2,7 @@ package com.huatu.ztk.arena.task;
 
 import com.google.common.collect.Lists;
 import com.huatu.ztk.arena.bean.ArenaConfig;
+import com.huatu.ztk.arena.bean.ArenaResult;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
@@ -97,7 +98,8 @@ public class CheckAreanTask {
                     continue;
                 }
                 for (int i = 0; i < practices.size(); i++) {
-                    if (room.getResults()[i] == null) {//未交卷
+                    final ArenaResult[] results = room.getResults();
+                    if (results == null || results[i] == null) {//未交卷
                         try {
                             //帮用户提交试卷
                             practiceCardDubboService.submitAnswers(practices.get(i),room.getPlayerIds().get(i), Lists.newArrayList(),true,-9);
