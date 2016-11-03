@@ -61,10 +61,11 @@ public class ArenaConfig {
 //            m.setStatus(1);//全部开放
 //            modules.add(m);
 //        });
+        // TODO: 2016/11/3  方便测试修改了参数，后期约定正式房间配置
         return ArenaConfig.builder()
-                .waitTime(20)
+                .waitTime(10)
                 .roomCapacity(4)
-                .gameLimitTime(300)
+                .gameLimitTime(180)
                 .questionCount(5)
                 .modules(modules)
                 .build();
