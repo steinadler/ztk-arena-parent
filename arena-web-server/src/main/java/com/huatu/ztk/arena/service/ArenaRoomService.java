@@ -193,7 +193,6 @@ public class ArenaRoomService {
      * @param arenaId 竞技场id
      */
     public void closeArena(long arenaId) {
-        logger.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< do closeArenaId");
         final ArenaRoom arenaRoom = arenaRoomDao.findById(arenaId);
         if (arenaRoom.getStatus() == ArenaRoomStatus.FINISHED) {//已经结束,则不需要处理
             return;
@@ -258,13 +257,11 @@ public class ArenaRoomService {
         //第一名的用户胜利场次+1
         final String arenaDayRankKey = RedisArenaKeys.getArenaDayRankKey(DateFormatUtils.format(System.currentTimeMillis(), "yyyyMMdd"));
         zSetOperations.incrementScore(arenaDayRankKey, arenaRoom.getWinner() + "", 1);
-        logger.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< do incrementScore winner+1 ");
         //其他参赛者胜场+0，保证用户查询我的今日排行时不为null
         List<Long> playerIds = arenaRoom.getPlayerIds();
         for (Long playerId : playerIds) {
             if (playerId != winner.getUid()) {
                 zSetOperations.incrementScore(arenaDayRankKey, playerId + "", 0);
-                logger.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< do incrementScore loser+0 ");
             }
         }
         redisTemplate.expire(arenaDayRankKey, 20, TimeUnit.DAYS);//记录20天有效
