@@ -204,6 +204,7 @@ public class ArenaRoomService {
                 if (arenaResults[i] == null) {//未交卷
                     final Long practiceId = arenaRoom.getPractices().get(i);
                     try {
+                        logger.info("practiceId={} not submit practice,system submit it.");
                         //首先帮用户提交试卷
                         practiceCardDubboService.submitAnswers(practiceId,arenaRoom.getPlayerIds().get(i),Lists.newArrayList(),true,-9);
                     } catch (BizException e) {
