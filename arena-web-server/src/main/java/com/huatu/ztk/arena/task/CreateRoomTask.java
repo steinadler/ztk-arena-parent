@@ -2,6 +2,7 @@ package com.huatu.ztk.arena.task;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.primitives.Longs;
 import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
@@ -76,17 +77,7 @@ public class CreateRoomTask {
 
                 //遍历释放锁
                 for (ArenaConfig.Module module : ArenaConfig.getConfig().getModules()) {
-
-                    //释放锁
-                    final String workLockKey = RedisArenaKeys.getWorkLockKey(module.getId());
-
-                    // TODO: 2016/10/28  出现不释放锁的情况，导致匹配不成功
-                    //获取锁的值
-                    final String value = redisTemplate.opsForValue().get(workLockKey);
-                    if (getLockValue().equals(value)) {//如果是自己抢到的锁,才删除
-                        redisTemplate.delete(workLockKey);
-                        logger.info("release lock,moduleId={}",module.getId());
-                    }
+                    tryReleaseLock(module.getId());
                 }
 
             }
@@ -97,25 +88,22 @@ public class CreateRoomTask {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                //锁是否被抢占
-                boolean locked = true;
-                while (running && locked){
-                    try {
-                        //通过setnx 来实现简单分布式锁
-                        locked = !redisTemplate.opsForValue().setIfAbsent(RedisArenaKeys.getWorkLockKey(moduleId), getLockValue()).booleanValue();
-                        if (locked) {
-                            //锁被抢占,则sleep 一段时间
-                            TimeUnit.SECONDS.sleep(3);
-                        }
-                    } catch (Exception e) {
-                        logger.error("wait lock ex",e);
-                    }
-                }
-                logger.info("server_ip={},moduleId={} get the lock,and run task.",System.getProperty("server_ip"),moduleId);
                 //创建房间
                 ArenaRoom arenaRoom = null;
-                while (running){
+                while (running) {
                     try {
+                        if (!getLock(moduleId)) {
+                            TimeUnit.SECONDS.sleep(1);
+                            //没有获取到锁,则sleep后继续尝试
+                            continue;
+                        }
+                    }catch (Exception e){
+                        logger.error("ex",e);
+                        continue;
+                    }
+                    try {
+                        //获取到锁就更新锁内容,来告诉其他服务,自己还存活着
+                        updateLock(moduleId);
                         if (arenaRoom == null) {
                             //创建房间
                             arenaRoom = arenaRoomService.create(moduleId);
@@ -126,26 +114,26 @@ public class CreateRoomTask {
                         final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
                         long start = Long.MAX_VALUE;//开始时间,默认不过期
                         //拥有足够人数和等待超时,则跳出循环
-                        while (setOperations.size(roomUsersKey) < ArenaConfig.getConfig().getRoomCapacity() && System.currentTimeMillis()-start < ArenaConfig.getConfig().getWaitTime()*1000-3000){
+                        while (setOperations.size(roomUsersKey) < ArenaConfig.getConfig().getRoomCapacity() && System.currentTimeMillis() - start < ArenaConfig.getConfig().getWaitTime() * 1000 - 3000) {
                             final String userId = setOperations.pop(arenaUsersKey);
                             if (StringUtils.isBlank(userId)) {
                                 Thread.sleep(1000);//没有玩家则休眠一段时间
                                 continue;
                             }
                             //把用户加入游戏
-                            setOperations.add(roomUsersKey,userId);
+                            setOperations.add(roomUsersKey, userId);
 
                             final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(userId));
                             //设置用户正在进入的房间
-                            redisTemplate.opsForValue().set(userRoomKey,arenaRoomId+"");
-                            logger.info("add userId={} to arenaId={}",userId,arenaRoomId);
+                            redisTemplate.opsForValue().set(userRoomKey, arenaRoomId + "");
+                            logger.info("add userId={} to arenaId={}", userId, arenaRoomId);
                             Map data = Maps.newHashMap();
                             data.put("action", Actions.USER_JOIN_NEW_ARENA);
                             //发送加入游戏通知
-                            data.put("uid",Long.valueOf(userId));
+                            data.put("uid", Long.valueOf(userId));
                             data.put("arenaId", arenaRoomId);
                             //通过mq发送新人进入通知
-                            rabbitTemplate.convertAndSend("game_notify_exchange","",data);
+                            rabbitTemplate.convertAndSend("game_notify_exchange", "", data);
 
                             //超时时间从第一个加入房间用户开始算起
                             if (setOperations.size(roomUsersKey) == 1) {
@@ -156,7 +144,7 @@ public class CreateRoomTask {
                         final Long finalSize = setOperations.size(roomUsersKey);
                         if (finalSize < MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
                             final Set<String> users = setOperations.members(roomUsersKey);
-                            logger.info("playerIds wait time out. users={}",users);
+                            logger.info("playerIds wait time out. users={}", users);
                             redisTemplate.delete(roomUsersKey);//清除用户数据
                             for (String user : users) {
                                 final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(user));
@@ -166,42 +154,113 @@ public class CreateRoomTask {
                             continue;
                         }
 
-                        long[] users = setOperations.members(roomUsersKey).stream().mapToLong(userId->Long.valueOf(userId)).toArray();
+                        long[] users = setOperations.members(roomUsersKey).stream().mapToLong(userId -> Long.valueOf(userId)).toArray();
                         //设置有效期,让其自动回收
-                        redisTemplate.expire(roomUsersKey,1,TimeUnit.HOURS);
+                        redisTemplate.expire(roomUsersKey, 1, TimeUnit.HOURS);
                         List<Long> practiceIds = Lists.newArrayList();
                         for (Long uid : users) {//为用户创建练习
-                            final PracticeCard practiceCard = practiceCardDubboService.create(arenaRoom.getPracticePaper(), -1, AnswerCardType.ARENA_PAPER, uid,arenaRoom.getLimitTime());
+                            final PracticeCard practiceCard = practiceCardDubboService.create(arenaRoom.getPracticePaper(), -1, AnswerCardType.ARENA_PAPER, uid, arenaRoom.getLimitTime());
                             practiceIds.add(practiceCard.getId());
                         }
 
-                        Update update = Update.update("playerIds",users)
-                                    .set("practices",practiceIds)
-                                    .set("createTime",System.currentTimeMillis())//重新设置开始时间,倒计时时间以此为起始时间
-                                    .set("status", ArenaRoomStatus.RUNNING);
+                        Update update = Update.update("playerIds", users)
+                                .set("practices", practiceIds)
+                                .set("createTime", System.currentTimeMillis())//重新设置开始时间,倒计时时间以此为起始时间
+                                .set("status", ArenaRoomStatus.RUNNING);
                         //更新房间数据
-                        arenaDubboService.updateById(arenaRoomId,update);
+                        arenaDubboService.updateById(arenaRoomId, update);
 
                         arenaRoom = null;//设置为null,表示该房间已经被占用
                         Map data = Maps.newHashMap();
                         data.put("arenaId", arenaRoomId);
                         data.put("action", Actions.SYSTEM_START_GAME);
-                        data.put("uids",users);
-                        data.put("practiceIds",practiceIds);//用户对应的练习列表
+                        data.put("uids", users);
+                        data.put("practiceIds", practiceIds);//用户对应的练习列表
                         //通过mq发送游戏就绪通知
-                        rabbitTemplate.convertAndSend("game_notify_exchange","",data);
-                        logger.info("arenaId={},users={} start game.",arenaRoomId,users);
-                    }catch (Exception e){
-                        logger.error("ex",e);
+                        rabbitTemplate.convertAndSend("game_notify_exchange", "", data);
+                        logger.info("arenaId={},users={} start game.", arenaRoomId, users);
+                    } catch (Exception e) {
+                        logger.error("ex", e);
                     }
                 }
-                logger.info("moduleId={} work stoped",moduleId);
+                logger.info("moduleId={} work stoped", moduleId);
             }
+
+
+
+
+
         }).start();
         logger.info("moduleId={} work started.",moduleId);
     }
 
+    /**
+     * 试着释放锁
+     * 只有锁是属于自己时才会释放锁
+     * @param moduleId
+     */
+    public void tryReleaseLock(int moduleId){
+        if (getLock(moduleId)) {
+            final String workLockKey = RedisArenaKeys.getWorkLockKey(moduleId);
+            redisTemplate.delete(workLockKey);
+        }
+    }
+
+    /**
+     * 更新锁内容
+     * @param moduleId
+     */
+    private void updateLock(int moduleId) {
+        final String workLockKey = RedisArenaKeys.getWorkLockKey(moduleId);
+        redisTemplate.opsForValue().set(workLockKey, getLockValue());
+    }
+
+    /**
+     * 重置并尝试获取锁
+     * @param workLockKey
+     * @return
+     */
+    private boolean resetAndGetLock(String workLockKey){
+        redisTemplate.delete(workLockKey);
+        return redisTemplate.opsForValue().setIfAbsent(workLockKey, getLockValue()).booleanValue();
+    }
+
+
+    /**
+     * 获取任务锁
+     * @return
+     */
+    public boolean getLock(int moduleId) {
+        final String workLockKey = RedisArenaKeys.getWorkLockKey(moduleId);
+        //获取锁内容
+        String value = redisTemplate.opsForValue().get(workLockKey);
+        if (StringUtils.isBlank(value)) {//如果为空,说明没人占用锁,则尝试占用锁
+            redisTemplate.opsForValue().setIfAbsent(workLockKey, getLockValue());
+            value = redisTemplate.opsForValue().get(workLockKey);//获取最新锁内容
+        }
+
+        if (value.startsWith(getServerMark())) {//判断自己是否是锁的拥有者
+            return true;
+        }
+
+        final String[] strings = value.split(",");
+        if (strings.length !=2) {//如果锁内容格式不正确则获尝试获取锁
+            return resetAndGetLock(workLockKey);
+        }
+        //拥有者最后更新锁的时间
+        final Long lastUpdateTime = Longs.tryParse(strings[1], 0);
+        //如果锁的拥有者长时间不更新锁内容,说明拥有者已经出现故障,则尝试获取锁
+        if (System.currentTimeMillis() - lastUpdateTime > 2*ArenaConfig.getConfig().getWaitTime()*1000) {
+            return resetAndGetLock(workLockKey);
+        }
+        return false;
+    }
+
+    private String getServerMark() {
+        return System.getProperty("server_name") + System.getProperty("server_ip");
+    }
+
     private String getLockValue() {
-        return System.getProperty("server_name")+System.getProperty("server_ip");
+        return getServerMark() + "," + System.currentTimeMillis();
     }
 }

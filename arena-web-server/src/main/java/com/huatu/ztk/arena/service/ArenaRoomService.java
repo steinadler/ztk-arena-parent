@@ -87,7 +87,6 @@ public class ArenaRoomService {
         practicePaper.setName(roomName);//需要设置练习的名字
         final ValueOperations valueOperations = redisTemplate.opsForValue();
         final String arenaIdKey = RedisArenaKeys.getRoomIdKey();
-
         if (!redisTemplate.hasKey(arenaIdKey)) {//初始化id
             valueOperations.set(arenaIdKey, "23448564");
         }
@@ -183,8 +182,6 @@ public class ArenaRoomService {
         //删除用户的房间状态
         redisTemplate.delete(RedisArenaKeys.getUserRoomKey(uid));
         logger.info("add arena result arenaId={}, data={}", arenaRoom.getId(), JsonUtil.toJson(arenaResult));
-        //更新用户竞技记录
-        updateUserArenaRecord(arenaRoom.getId(), answerCard, uid);
         if (Arrays.stream(results).filter(result -> result != null).count() == arenaRoom.getPlayerIds().size()) {//说明都已经交卷
             closeArena(arenaRoom.getId());//关闭房间
         }
@@ -272,17 +269,6 @@ public class ArenaRoomService {
         //发送竞技场关闭通知
         rabbitTemplate.convertAndSend("close_arena_exchange", "", data);
 
-    }
-
-    /**
-     * 更新用户竞技记录
-     *
-     * @param arenaId
-     * @param answerCard
-     * @param userDto
-     */
-    private void updateUserArenaRecord(long arenaId, AnswerCard answerCard, long userDto) {
-        logger.info("update userId={} UserArenaRecord,arenaId={}", answerCard.getId(), arenaId);
     }
 
     /**
