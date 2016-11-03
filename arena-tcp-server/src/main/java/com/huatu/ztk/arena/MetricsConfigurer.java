@@ -36,6 +36,6 @@ public class MetricsConfigurer extends MetricsConfigurerAdapter {
                 .skipIdleMetrics(false)
                 .tag("server", this.host)
                 .build();
-        reporter.start(10, TimeUnit.MINUTES);
+        reporter.start(1, TimeUnit.MINUTES);
     }
 }
