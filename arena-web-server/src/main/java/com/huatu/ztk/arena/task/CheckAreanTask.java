@@ -9,6 +9,7 @@ import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.JsonUtil;
 import com.huatu.ztk.commons.exception.BizException;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,11 +90,17 @@ public class CheckAreanTask {
                 logger.info("auto close room ,obj={}", JsonUtil.toJson(room));
 
                 //这里通过帮助用户提交试卷,来达到关闭竞技场的目的
-                for (int i = 0; i < room.getPractices().size(); i++) {
+                final List<Long> practices = room.getPractices();
+
+                if (CollectionUtils.isEmpty(practices)) {
+                    //没有练习的竞技场,则不进行处理
+                    continue;
+                }
+                for (int i = 0; i < practices.size(); i++) {
                     if (room.getResults()[i] == null) {//未交卷
                         try {
                             //帮用户提交试卷
-                            practiceCardDubboService.submitAnswers(room.getPractices().get(i),room.getPlayerIds().get(i), Lists.newArrayList(),true,-9);
+                            practiceCardDubboService.submitAnswers(practices.get(i),room.getPlayerIds().get(i), Lists.newArrayList(),true,-9);
                         } catch (BizException e) {
                             e.printStackTrace();
                         }
