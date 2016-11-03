@@ -44,4 +44,5 @@
     <import resource="applicationContext-redis.xml"/>
     <import resource="applicationContext-dubbo.xml"/>
     <import resource="applicationContext-rabbitmq.xml"/>
+    <import resource="applicationContext-metrics.xml"/>
 </beans>

@@ -37,6 +37,9 @@ public class LaunchGameListener implements MessageListener{
     @Autowired
     private UserDubboService userDubboService;
 
+    @Autowired
+    private UserChannelCache userChannelCache;
+
     @Override
     public void onMessage(Message message) {
         Map data = null;
@@ -69,7 +72,7 @@ public class LaunchGameListener implements MessageListener{
     private void proccessUserSubmitQuestion(Map data) {
         final long[] users = getRoomUsers(MapUtils.getLongValue(data, "arenaId"));
         for (long user : users) {//遍历,挨个发送通知
-            final Channel channel = UserChannelCache.getChannel(user);
+            final Channel channel = userChannelCache.getChannel(user);
             if (channel == null) {//不存在则不处理
                 continue;
             }
@@ -98,7 +101,7 @@ public class LaunchGameListener implements MessageListener{
             //此处主要是jackson会优先把uid转为int
             long user = Long.valueOf(uids.get(i).toString());
             long practiceId = practiceIds.get(i);
-            final Channel channel = UserChannelCache.getChannel(user);
+            final Channel channel = userChannelCache.getChannel(user);
             logger.info("start send start game,userId={},arenaId={}",user,arenaId);
             if (channel == null) {//== null说明用户长连接不存在该服务上
                 continue;
@@ -121,7 +124,7 @@ public class LaunchGameListener implements MessageListener{
         final long leaveUid = MapUtils.getLong(data, "uid",-1L);
         final long[] users = getRoomUsers(arenaId);
         for (long user : users) {//遍历为每个用户发送,用户离开房间通知
-            final Channel channel = UserChannelCache.getChannel(user);
+            final Channel channel = userChannelCache.getChannel(user);
             if (channel == null) {//== null说明用户长连接不存在该服务上
                 continue;
             }
@@ -160,7 +163,7 @@ public class LaunchGameListener implements MessageListener{
         }
 
         //新用户通知
-        final Channel channel1 = UserChannelCache.getChannel(newPlayerId);
+        final Channel channel1 = userChannelCache.getChannel(newPlayerId);
         if (channel1 != null && CollectionUtils.isNotEmpty(oldPlayers)) {//房间之前存在玩家,则也给新玩家发送通知
             try {
                 //新用户则发送已有的用户
@@ -172,7 +175,7 @@ public class LaunchGameListener implements MessageListener{
 
         //通知老用户
         for (Player player : oldPlayers) {//通知已经加入的用户,有新用户加入
-            final Channel channel = UserChannelCache.getChannel(player.getUid());
+            final Channel channel = userChannelCache.getChannel(player.getUid());
             if (channel == null) {//== null说明用户长连接不存在该服务上
                 continue;
             }

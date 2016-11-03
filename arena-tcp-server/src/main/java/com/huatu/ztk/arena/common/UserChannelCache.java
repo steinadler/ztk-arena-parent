@@ -1,26 +1,29 @@
 package com.huatu.ztk.arena.common;
 
+import com.codahale.metrics.annotation.CachedGauge;
 import com.google.common.cache.Cache;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import io.netty.channel.Channel;
-import org.aspectj.org.eclipse.jdt.internal.core.util.KeyKind;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.cache.CacheBuilder.newBuilder;
-import static org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEvent.REPLACED;
 
 /**
  * Created by shaojieyue
  * Created time 2016-10-08 21:17
  */
+
+@Component
 public class UserChannelCache {
     private static final Logger logger = LoggerFactory.getLogger(UserChannelCache.class);
-    private static final Cache<Long, Channel> USER_CHANNEL_CACHE =
+    private final Cache<Long, Channel> USER_CHANNEL_CACHE =
             newBuilder()
                     .expireAfterAccess(2,TimeUnit.HOURS)
                     .removalListener(new RemovalListener<Long,Channel>(){
@@ -49,15 +52,22 @@ public class UserChannelCache {
                     })
                     .build();
 
-    public static final Channel getChannel(long uid){
+    public final Channel getChannel(long uid){
         final Channel channel = USER_CHANNEL_CACHE.getIfPresent(uid);
         return channel;
     }
 
-    public static synchronized final Channel putChannel(long uid,Channel channel){
-        Channel old = UserChannelCache.getChannel(uid);
+
+
+    public synchronized Channel putChannel(long uid,Channel channel){
+        Channel old = getChannel(uid);
         USER_CHANNEL_CACHE.put(uid,channel);
         return old;
+    }
+
+    @CachedGauge(name = "arenaActive",timeout = 1,timeoutUnit = TimeUnit.MINUTES)
+    public long channelSize(){
+        return USER_CHANNEL_CACHE.size();
     }
 
     /**
@@ -67,7 +77,7 @@ public class UserChannelCache {
      * @param uid
      * @param channel
      */
-    public static synchronized final void remove(long uid,Channel channel){
+    public synchronized final void remove(long uid,Channel channel){
         final Channel cachedChannel = USER_CHANNEL_CACHE.getIfPresent(uid);
         if (cachedChannel == channel) {//要移除的是当前连接
             //从缓存移除连接

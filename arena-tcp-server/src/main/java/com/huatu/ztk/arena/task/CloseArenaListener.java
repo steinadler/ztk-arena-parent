@@ -27,6 +27,9 @@ public class CloseArenaListener implements MessageListener {
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
 
+    @Autowired
+    private UserChannelCache userChannelCache;
+
     @Override
     public void onMessage(Message message) {
         String text = new String(message.getBody());
@@ -56,7 +59,7 @@ public class CloseArenaListener implements MessageListener {
     private void proccessArenaView(long arenaId) {
         final long[] users = getRoomUsers(arenaId);
         for (long user : users) {//遍历,挨个发送通知
-            final Channel channel = UserChannelCache.getChannel(user);
+            final Channel channel = userChannelCache.getChannel(user);
             if (channel != null) {
                 //通知用户查看结果
                 channel.writeAndFlush(SuccessReponse.arenaView(arenaId));

@@ -34,6 +34,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
     private static final Logger logger = LoggerFactory.getLogger(BusinessHandler.class);
     public static final AttributeKey<Long> uidAttributeKey = AttributeKey.valueOf("uid");
     private ArenaDubboService arenaDubboService = ApplicationContextProvider.getApplicationContext().getBean(ArenaDubboService.class);
+    private UserChannelCache userChannelCache = ApplicationContextProvider.getApplicationContext().getBean(UserChannelCache.class);
     private RedisTemplate<String,String> redisTemplate = ApplicationContextProvider.getApplicationContext().getBean("redisTemplate",RedisTemplate.class);
     private RabbitTemplate rabbitTemplate = ApplicationContextProvider.getApplicationContext().getBean("rabbitTemplate",RabbitTemplate.class);
 
@@ -186,7 +187,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
         if (uid != null) {
             logger.info("uid={} close connection.",uid);
             //连接断开时,需要把连接从cache中移除
-            UserChannelCache.remove(uid,ctx.channel());
+            userChannelCache.remove(uid,ctx.channel());
         }
     }
 
