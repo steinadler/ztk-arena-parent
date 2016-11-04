@@ -281,8 +281,8 @@ public class ArenaRoomService {
      * @param cursor 游标
      * @return
      */
-    public PageBean<ArenaRoomSimple> history(long uid, long cursor) {
-        List<ArenaRoomSimple> records = arenaRoomDao.findForPage(uid, cursor);
+    public PageBean<ArenaRoomSimple> history(long uid, long cursor, int size) {
+        List<ArenaRoomSimple> records = arenaRoomDao.findForPage(uid, cursor, size);
         if (CollectionUtils.isEmpty(records)) {
             return new PageBean<ArenaRoomSimple>() ;
         }
