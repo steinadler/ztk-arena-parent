@@ -4,6 +4,7 @@ import com.huatu.ztk.commons.JsonUtil;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,11 @@ public class RequestDecoder extends MessageToMessageDecoder<String> {
     protected void decode(ChannelHandlerContext ctx, String msg, List<Object> out) throws Exception {
         logger.info("receive message->{}",msg);
         final Request request = JsonUtil.toObject(msg, Request.class);
+
+        if (StringUtils.isBlank(request.getTicket())) {//检查ticket
+            ctx.writeAndFlush(ErrorResponse.INVALID_PARAM);
+            return;
+        }
         out.add(request);
     }
 

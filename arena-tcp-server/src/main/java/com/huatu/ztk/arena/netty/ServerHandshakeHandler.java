@@ -22,6 +22,7 @@ public class ServerHandshakeHandler extends SimpleChannelInboundHandler<Request>
     private static final Logger logger = LoggerFactory.getLogger(ServerHandshakeHandler.class);
     public static final String TOKEN_KEY = "token";
     final ArenaPlayerDubboService playerDubboService = ApplicationContextProvider.getApplicationContext().getBean(ArenaPlayerDubboService.class);
+    final UserChannelCache userChannelCache = ApplicationContextProvider.getApplicationContext().getBean(UserChannelCache.class);
     /**
      * <strong>Please keep in mind that this method will be renamed to
      * {@code messageReceived(ChannelHandlerContext, I)} in 5.0.</strong>
@@ -57,7 +58,7 @@ public class ServerHandshakeHandler extends SimpleChannelInboundHandler<Request>
             ctx.channel().attr(BusinessHandler.uidAttributeKey).set(uid);
             ctx.pipeline().remove(this);//认证成功后,移除该handler
             //把当前连接加入到cache,如果存在旧的连接,则返回旧连接
-            final Channel oldChannel = UserChannelCache.putChannel(uid, ctx.channel());
+            final Channel oldChannel = userChannelCache.putChannel(uid, ctx.channel());
             if (oldChannel != null) {//存在旧的连接
                 oldChannel.close();//关闭旧连接
             }

@@ -25,4 +25,5 @@
             </list>
         </property>
     </bean>
+    <bean id="exceptionResolver" class="com.huatu.ztk.commons.spring.resolver.CommonHandlerExceptionResolver"/>
 </beans>

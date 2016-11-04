@@ -38,20 +38,20 @@ public class RedisArenaKeys {
 
     /**
      * 未开始游戏用户
-     * @param type
+     * @param moduleId
      * @return
      */
-    public static final String getArenaUsersKey(int type){
-        return "arena_users_"+type;
+    public static final String getArenaUsersKey(int moduleId) {
+        return "arena_users_" + moduleId;
     }
 
     /**
      * 房间用户列表
-     * @param roomId
+     * @param arenaId
      * @return
      */
-    public static final String getRoomUsersKey(long roomId){
-        return "room_users_"+roomId;
+    public static final String getRoomUsersKey(long arenaId){
+        return "room_users_"+arenaId;
     }
 
     /**
@@ -61,6 +61,14 @@ public class RedisArenaKeys {
      */
     public static final String getWorkLockKey(int module){
         return "arena_module_lock_"+module;
+    }
+
+    /**
+     * 定时任务锁
+     * @return
+     */
+    public static final String getScheduledLockKey(){
+        return "arena_scheduled_lock";
     }
 
 

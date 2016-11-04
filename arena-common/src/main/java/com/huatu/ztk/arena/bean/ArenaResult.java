@@ -16,7 +16,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ArenaResult {
     private long uid;//用户id
-    private String nick;//用户昵称
     private int rcount;//做对数量
     private int elapsedTime;//耗时
 }

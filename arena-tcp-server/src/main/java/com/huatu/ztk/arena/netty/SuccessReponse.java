@@ -2,6 +2,7 @@ package com.huatu.ztk.arena.netty;
 
 import com.google.common.collect.Maps;
 import com.huatu.ztk.arena.bean.ArenaRoom;
+import com.huatu.ztk.arena.bean.ArenaRoomStatus;
 import com.huatu.ztk.arena.bean.Player;
 import org.apache.commons.collections.map.HashedMap;
 
@@ -39,15 +40,19 @@ public class SuccessReponse extends Response{
      */
     public static final SuccessReponse existGame(ArenaRoom arenaRoom,long uid){
         Map data =  new HashedMap();
-        final int index = arenaRoom.getPlayerIds().indexOf(uid);
-        long practiceId =-1;
-        if (index > 0) {//该房间存在该用户
-            practiceId = arenaRoom.getPractices().get(index);
-        }
-        data.put("roomId",arenaRoom.getId());//房间号
-        data.put("practiceId",practiceId);//练习id
+
+        data.put("arenaId",arenaRoom.getId());//房间号
         data.put("players",arenaRoom.getPlayers());//玩家列表
         data.put("status",arenaRoom.getStatus());
+        if (arenaRoom.getStatus() == ArenaRoomStatus.RUNNING) {//正在进行的,说明存在练习id
+            final int index = arenaRoom.getPlayerIds().indexOf(uid);
+            long practiceId =-1;
+            if (index >= 0) {//该房间存在该用户
+                practiceId = arenaRoom.getPractices().get(index);
+            }
+            data.put("practiceId",practiceId);//练习id
+        }
+
         return new SuccessReponse(50003,data);
     }
 
@@ -92,6 +97,26 @@ public class SuccessReponse extends Response{
         final HashMap<Object, Object> data = Maps.newHashMap();
         data.put("uid",uid);
         return new SuccessReponse(50007,data);
+    }
+
+    /**
+     * 用户提交答案
+     * @param data
+     * @return
+     */
+    public static final SuccessReponse userSubmitQuestion(Map data){
+        return new SuccessReponse(50008,data);
+    }
+
+    /**
+     * 查看竞技结果通知
+     * @param arenaId
+     * @return
+     */
+    public static final SuccessReponse arenaView(long arenaId){
+        Map data = Maps.newHashMap();
+        data.put("arenaId",arenaId);
+        return new SuccessReponse(50009,data);
     }
 
     private SuccessReponse() {

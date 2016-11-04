@@ -4,10 +4,11 @@ import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomSimple;
 import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaUserSummary;
+import com.huatu.ztk.arena.dubbo.ArenaUserSummaryDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
-import com.huatu.ztk.arena.service.ArenaSummaryService;
 import com.huatu.ztk.commons.PageBean;
 import com.huatu.ztk.commons.exception.BizException;
+import com.huatu.ztk.commons.exception.CommonErrors;
 import com.huatu.ztk.user.service.UserSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,7 @@ public class ArenaControllerV1 {
     private UserSessionService userSessionService;
 
     @Autowired
-    private ArenaSummaryService arenaSummaryService;
+    private ArenaUserSummaryDubboService arenaUserSummaryDubboService;
 
     /**
      * 查询我的竞技记录
@@ -42,7 +43,7 @@ public class ArenaControllerV1 {
      * @param cursor
      * @return
      */
-    @RequestMapping(value = "/history", method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/history", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object history(@RequestHeader(required = false) String token,
                           @RequestParam(defaultValue = Long.MAX_VALUE + "") long cursor) throws BizException {
         userSessionService.assertSession(token);
@@ -59,14 +60,19 @@ public class ArenaControllerV1 {
      * 查询竞技记录详情
      *
      * @param token
-     * @param roomId 房间id
+     * @param arenaId 竞技房间id
      * @return
      */
-    @RequestMapping(value = "/{roomId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ArenaRoom detail(@RequestHeader(required = false) String token, @PathVariable long roomId) throws BizException {
+    @RequestMapping(value = "/{arenaId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ArenaRoom detail(@RequestHeader(required = false) String token, @PathVariable long arenaId) throws BizException {
         userSessionService.assertSession(token);
         final long uid = userSessionService.getUid(token);
-        final ArenaRoom arenaRoom = arenaRoomService.findById(roomId, uid);
+        final ArenaRoom arenaRoom = arenaRoomService.findById(arenaId);
+        if (arenaRoom != null) {
+            if (arenaRoom.getPlayerIds().indexOf(uid)<0) {//检查权限,用户是否在该房间参赛
+                throw new BizException(CommonErrors.PERMISSION_DENIED);
+            }
+        }
         return arenaRoom;
     }
 
@@ -82,13 +88,15 @@ public class ArenaControllerV1 {
 
     /**
      * 查询用户竞技场统计
+     *
      * @return
      */
     @RequestMapping(value = "/summary", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ArenaUserSummary summary(@RequestHeader(required = false) String token) throws BizException {
         userSessionService.assertSession(token);
         final long uid = userSessionService.getUid(token);
-        return arenaSummaryService.findByUid(uid);
+        ArenaUserSummary summary = arenaUserSummaryDubboService.findSummaryById(uid);
+        return summary;
     }
 
 }

@@ -21,7 +21,7 @@ import java.util.List;
 @Builder
 @Document(collection = "ztk_arena_room")
 public class ArenaRoom extends ArenaRoomSimple{
-    private int limitTime;//比赛限时
+    private int limitTime;//比赛限时 单位:s
     private int qcount;//题量
     private List<Long> playerIds;//参加人员id列表
     @Transient
@@ -29,6 +29,6 @@ public class ArenaRoom extends ArenaRoomSimple{
     private List<Long> practices;//参加人员对应的练习id
     @Getter(onMethod = @__({ @JsonIgnore}))
     private PracticePaper practicePaper;//房间对应的练习
-    private List<ArenaResult> results;//竞技结果
+    private ArenaResult[] results;//竞技结果
 
 }
