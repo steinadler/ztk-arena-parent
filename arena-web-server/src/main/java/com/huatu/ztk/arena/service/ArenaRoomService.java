@@ -84,6 +84,8 @@ public class ArenaRoomService {
         }
 
         final PracticePaper practicePaper = practiceDubboService.create(SubjectType.SUBJECT_GONGWUYUAN, moduleId, ArenaConfig.getConfig().getQuestionCount());
+        //// TODO: 11/4/16 测试需要去掉
+        practicePaper.setQuestions(Lists.newArrayList(39021,30732,39022,30742,39023));
         practicePaper.setName(roomName);//需要设置练习的名字
         final ValueOperations valueOperations = redisTemplate.opsForValue();
         final String arenaIdKey = RedisArenaKeys.getRoomIdKey();
