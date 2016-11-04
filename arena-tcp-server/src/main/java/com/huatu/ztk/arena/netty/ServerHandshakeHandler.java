@@ -6,6 +6,7 @@ import com.huatu.ztk.arena.common.Actions;
 import com.huatu.ztk.arena.common.UserChannelCache;
 import com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService;
 import com.huatu.ztk.arena.util.ApplicationContextProvider;
+import com.huatu.ztk.commons.exception.BizException;
 import com.huatu.ztk.user.service.UserSessionService;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -48,8 +49,9 @@ public class ServerHandshakeHandler extends SimpleChannelInboundHandler<Request>
         }
 
         final UserSessionService sessionService = ApplicationContextProvider.getApplicationContext().getBean(UserSessionService.class);
-        final long uid = sessionService.getUid(request.getParams().get(TOKEN_KEY).toString());
-        if (uid > 0) {//>0说明用户session处于有效状态
+        try {
+            sessionService.assertSession(request.getParams().get(TOKEN_KEY).toString());
+            final long uid = sessionService.getUid(request.getParams().get(TOKEN_KEY).toString());
             final Player player = playerDubboService.findById(uid);
             //发回消息
             final SuccessReponse response = SuccessReponse.loginSuccessResponse();
@@ -62,7 +64,8 @@ public class ServerHandshakeHandler extends SimpleChannelInboundHandler<Request>
             if (oldChannel != null) {//存在旧的连接
                 oldChannel.close();//关闭旧连接
             }
-        }else {//身份校验失败
+        }catch (BizException e){
+            //身份校验失败
             authenticationFail(ctx,request);
         }
     }
