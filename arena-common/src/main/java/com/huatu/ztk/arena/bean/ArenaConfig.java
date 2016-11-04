@@ -44,9 +44,9 @@ public class ArenaConfig {
         Module m = Module.builder().id(-1).name("智能推送").status(1).build(); //默认开放(1：开放 2：未开放)
         Module m1 = Module.builder().id(392).name("常识判断").status(1).build(); //暂时开放
         Module m2 = Module.builder().id(435).name("言语理解").status(1).build(); //暂时开放
-        Module m3 = Module.builder().id(482).name("数量关系").status(1).build(); //暂时关闭
-        Module m4 = Module.builder().id(642).name("判断推理").status(1).build(); //暂时关闭
-        Module m5 = Module.builder().id(754).name("资料分析").status(1).build(); //暂时关闭
+        Module m3 = Module.builder().id(482).name("数量关系").status(1).build();
+        Module m4 = Module.builder().id(642).name("判断推理").status(1).build();
+        Module m5 = Module.builder().id(754).name("资料分析").status(1).build();
         modules.add(m);
         modules.add(m1);
         modules.add(m2);
@@ -61,7 +61,6 @@ public class ArenaConfig {
 //            m.setStatus(1);//全部开放
 //            modules.add(m);
 //        });
-        // TODO: 2016/11/3  方便测试修改了参数，后期约定正式房间配置
         return ArenaConfig.builder()
                 .waitTime(20)
                 .roomCapacity(4)
