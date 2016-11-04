@@ -82,11 +82,9 @@ public class ArenaRoomService {
             //随机选取模块
             moduleId = ModuleConstants.GOWUYUAN_MODULE_IDS.get(RandomUtils.nextInt(0, ModuleConstants.GOWUYUAN_MODULE_IDS.size()));
         }
-
+        //创建竞技试卷
         final PracticePaper practicePaper = practiceDubboService.create(SubjectType.SUBJECT_GONGWUYUAN, moduleId, ArenaConfig.getConfig().getQuestionCount());
-        //// TODO: 11/4/16 测试需要去掉
-        practicePaper.setQuestions(Lists.newArrayList(39021,30732,39022,30742,39023));
-        practicePaper.setName(roomName);//需要设置练习的名字
+        practicePaper.setName(roomName);//需要设置竞技练习的名字
         final ValueOperations valueOperations = redisTemplate.opsForValue();
         final String arenaIdKey = RedisArenaKeys.getRoomIdKey();
         if (!redisTemplate.hasKey(arenaIdKey)) {//初始化id
