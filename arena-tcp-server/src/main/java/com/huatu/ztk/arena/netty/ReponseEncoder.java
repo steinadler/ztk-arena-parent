@@ -32,7 +32,7 @@ public class ReponseEncoder extends MessageToMessageEncoder<Response> {
     protected void encode(ChannelHandlerContext ctx, Response response, List<Object> out) throws Exception {
         final Long uid = ctx.channel().attr(uidAttributeKey).get();
         final String message = JsonUtil.toJson(response);
-        logger.info("write to uid={} message={}",uid,message);
+        logger.info("write to uid={} message={},channel={}",uid,message,ctx.channel().id().asLongText());
         out.add(message);
     }
 }

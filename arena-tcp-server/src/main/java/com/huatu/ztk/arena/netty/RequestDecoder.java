@@ -30,7 +30,7 @@ public class RequestDecoder extends MessageToMessageDecoder<String> {
      */
     @Override
     protected void decode(ChannelHandlerContext ctx, String msg, List<Object> out) throws Exception {
-        logger.info("receive message->{}",msg);
+        logger.info("receive message->{},channel={}",msg,ctx.channel().id().asLongText());
         final Request request = JsonUtil.toObject(msg, Request.class);
 
         if (StringUtils.isBlank(request.getTicket())) {//检查ticket
