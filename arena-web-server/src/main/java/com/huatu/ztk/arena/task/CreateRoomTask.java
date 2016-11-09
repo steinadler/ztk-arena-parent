@@ -10,7 +10,6 @@ import com.huatu.ztk.arena.common.Actions;
 import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.dubbo.ArenaDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
-import com.huatu.ztk.commons.ModuleConstants;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import com.huatu.ztk.paper.bean.PracticeCard;
 import com.huatu.ztk.paper.common.AnswerCardType;
@@ -140,7 +139,7 @@ public class CreateRoomTask {
                                 start = System.currentTimeMillis();//开始超时倒计时
                             }
                         }
-
+                        updateLock(moduleId);//跳出循环,第一时间再次更新lock
                         final Long finalSize = setOperations.size(roomUsersKey);
                         if (finalSize < MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
                             final Set<String> users = setOperations.members(roomUsersKey);
@@ -212,7 +211,8 @@ public class CreateRoomTask {
      */
     private void updateLock(int moduleId) {
         final String workLockKey = RedisArenaKeys.getWorkLockKey(moduleId);
-        redisTemplate.opsForValue().set(workLockKey, getLockValue());
+        final String lockValue = getLockValue();
+        redisTemplate.opsForValue().set(workLockKey, lockValue);
     }
 
     /**
@@ -238,7 +238,6 @@ public class CreateRoomTask {
             redisTemplate.opsForValue().setIfAbsent(workLockKey, getLockValue());
             value = redisTemplate.opsForValue().get(workLockKey);//获取最新锁内容
         }
-
         if (value.startsWith(getServerMark())) {//判断自己是否是锁的拥有者
             return true;
         }
