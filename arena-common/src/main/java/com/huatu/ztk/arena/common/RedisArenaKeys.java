@@ -71,5 +71,11 @@ public class RedisArenaKeys {
         return "arena_scheduled_lock";
     }
 
-
+    /**
+     * 获取机器人列表key
+     * @return
+     */
+    public static final String getRobotsKey(){
+        return "robots";
+    }
 }

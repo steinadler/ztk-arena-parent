@@ -2,14 +2,19 @@ package com.huatu.ztk.arena.task;
 
 import com.google.common.primitives.Longs;
 import com.huatu.ztk.arena.bean.ArenaRoom;
+import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.arena.service.ArenaUserSummaryService;
 import com.huatu.ztk.commons.JsonUtil;
+import com.huatu.ztk.user.bean.UserDto;
+import com.huatu.ztk.user.dubbo.UserDubboService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +32,12 @@ public class CloseArenaListener implements MessageListener {
 
     @Autowired
     private ArenaUserSummaryService arenaUserSummaryService;
+
+    @Autowired
+    private UserDubboService userDubboService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     public void onMessage(Message message) {
@@ -50,6 +61,11 @@ public class CloseArenaListener implements MessageListener {
 
         ArenaRoom room = arenaRoomService.findById(arenaId);
         for (long uid : room.getPlayerIds()) {
+            final UserDto userDto = userDubboService.findById(uid);
+            if (userDto.isRobot()) {//如果是机器人,则把其添加入等待池中,用于后续的使用
+                final String robotsKey = RedisArenaKeys.getRobotsKey();
+                redisTemplate.opsForSet().add(robotsKey,uid+"");
+            }
             boolean isWinner = room.getWinner() == uid;
             arenaUserSummaryService.updateUserSummary(uid, isWinner);
         }

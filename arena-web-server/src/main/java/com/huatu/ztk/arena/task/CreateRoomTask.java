@@ -2,6 +2,7 @@ package com.huatu.ztk.arena.task;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Longs;
 import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaRoom;
@@ -13,6 +14,7 @@ import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import com.huatu.ztk.paper.bean.PracticeCard;
 import com.huatu.ztk.paper.common.AnswerCardType;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +64,9 @@ public class CreateRoomTask {
 
     @Autowired
     private ArenaDubboService arenaDubboService;
+
+    @Autowired
+    private RobotSubmitTask robotSubmitTask;
 
     @PostConstruct
     public void init() {
@@ -120,21 +125,7 @@ public class CreateRoomTask {
                                 updateLock(moduleId);//更新锁状态
                                 continue;
                             }
-                            //把用户加入游戏
-                            setOperations.add(roomUsersKey, userId);
-
-                            final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(userId));
-                            //设置用户正在进入的房间
-                            redisTemplate.opsForValue().set(userRoomKey, arenaRoomId + "");
-                            logger.info("add userId={} to arenaId={}", userId, arenaRoomId);
-                            Map data = Maps.newHashMap();
-                            data.put("action", Actions.USER_JOIN_NEW_ARENA);
-                            //发送加入游戏通知
-                            data.put("uid", Long.valueOf(userId));
-                            data.put("arenaId", arenaRoomId);
-                            //通过mq发送新人进入通知
-                            rabbitTemplate.convertAndSend("game_notify_exchange", "", data);
-
+                            addUserToArena(arenaRoomId, roomUsersKey, userId);
                             //超时时间从第一个加入房间用户开始算起
                             if (setOperations.size(roomUsersKey) == 1) {
                                 start = System.currentTimeMillis();//开始超时倒计时
@@ -142,16 +133,32 @@ public class CreateRoomTask {
                         }
 
                         final Long finalSize = setOperations.size(roomUsersKey);
+                        Set<Long> robots = Sets.newHashSet();
                         if (finalSize < MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
-                            final Set<String> users = setOperations.members(roomUsersKey);
-                            logger.info("playerIds wait time out. users={}", users);
-                            redisTemplate.delete(roomUsersKey);//清除用户数据
-                            for (String user : users) {
-                                final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(user));
-                                //清除用户占用的房间
-                                redisTemplate.delete(userRoomKey);
+                            final String robotsKey = RedisArenaKeys.getRobotsKey();
+
+                            //添加机器人,随机
+                            for (int i = 0; i < RandomUtils.nextLong(1, ArenaConfig.getConfig().getRoomCapacity()-finalSize+1); i++) {
+                                final String robotId = setOperations.pop(robotsKey);
+                                if (StringUtils.isNoneBlank(robotId)) {
+                                    robots.add(Long.valueOf(robotId));//添加到机器人列表
+                                    addUserToArena(arenaRoomId,roomUsersKey,robotId);
+                                }
                             }
-                            continue;
+
+
+                            final Set<String> users = setOperations.members(roomUsersKey);
+                            //再次检查是否达到开始游戏条件,没有的话,则清除用户数据
+                            if (users.size() < MIN_COUNT_PALYER_OF_ROOM) {
+                                logger.info("playerIds wait time out. users={}", users);
+                                redisTemplate.delete(roomUsersKey);//清除用户数据
+                                for (String user : users) {
+                                    final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(user));
+                                    //清除用户占用的房间
+                                    redisTemplate.delete(userRoomKey);
+                                }
+                                continue;
+                            }
                         }
 
                         long[] users = setOperations.members(roomUsersKey).stream().mapToLong(userId -> Long.valueOf(userId)).toArray();
@@ -161,6 +168,9 @@ public class CreateRoomTask {
                         for (Long uid : users) {//为用户创建练习
                             final PracticeCard practiceCard = practiceCardDubboService.create(arenaRoom.getPracticePaper(), -1, AnswerCardType.ARENA_PAPER, uid, arenaRoom.getLimitTime());
                             practiceIds.add(practiceCard.getId());
+                            if (robots.contains(uid)) {//该用户是机器人,练习做自动提交
+                                robotSubmitTask.addNewRobotPractice(practiceCard);
+                            }
                         }
 
                         Update update = Update.update("playerIds", users)
@@ -186,8 +196,23 @@ public class CreateRoomTask {
                 logger.info("moduleId={} work stoped", moduleId);
             }
 
+            private void addUserToArena(long arenaRoomId, String roomUsersKey, String userId) {
+                final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
+                //把用户加入游戏
+                setOperations.add(roomUsersKey, userId);
 
-
+                final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(userId));
+                //设置用户正在进入的房间
+                redisTemplate.opsForValue().set(userRoomKey, arenaRoomId + "");
+                logger.info("add userId={} to arenaId={}", userId, arenaRoomId);
+                Map data = Maps.newHashMap();
+                data.put("action", Actions.USER_JOIN_NEW_ARENA);
+                //发送加入游戏通知
+                data.put("uid", Long.valueOf(userId));
+                data.put("arenaId", arenaRoomId);
+                //通过mq发送新人进入通知
+                rabbitTemplate.convertAndSend("game_notify_exchange", "", data);
+            }
 
 
         }).start();
