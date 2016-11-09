@@ -250,7 +250,7 @@ public class CreateRoomTask {
         //拥有者最后更新锁的时间
         final Long lastUpdateTime = Longs.tryParse(strings[1]);
         //如果锁的拥有者长时间不更新锁内容,说明拥有者已经出现故障,则尝试获取锁
-        if (lastUpdateTime == null || System.currentTimeMillis() - lastUpdateTime > 2*ArenaConfig.getConfig().getWaitTime()*1000) {
+        if (lastUpdateTime == null || System.currentTimeMillis() - lastUpdateTime > ArenaConfig.getConfig().getWaitTime()*1000) {
             return resetAndGetLock(workLockKey);
         }
         return false;
