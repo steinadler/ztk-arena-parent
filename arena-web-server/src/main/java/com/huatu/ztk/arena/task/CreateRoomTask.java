@@ -117,6 +117,7 @@ public class CreateRoomTask {
                             final String userId = setOperations.pop(arenaUsersKey);
                             if (StringUtils.isBlank(userId)) {
                                 Thread.sleep(1000);//没有玩家则休眠一段时间
+                                updateLock(moduleId);//更新锁状态
                                 continue;
                             }
                             //把用户加入游戏
@@ -139,7 +140,7 @@ public class CreateRoomTask {
                                 start = System.currentTimeMillis();//开始超时倒计时
                             }
                         }
-                        updateLock(moduleId);//跳出循环,第一时间再次更新lock
+
                         final Long finalSize = setOperations.size(roomUsersKey);
                         if (finalSize < MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
                             final Set<String> users = setOperations.members(roomUsersKey);
