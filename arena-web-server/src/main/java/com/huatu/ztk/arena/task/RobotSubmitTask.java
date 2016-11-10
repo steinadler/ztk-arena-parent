@@ -62,10 +62,10 @@ public class RobotSubmitTask {
                 //遍历程序,提交随机答案
                 for (Integer questionId : paper.getQuestions()) {
                     //随机答题时间
-                    final int time = RandomUtils.nextInt(30, 60);
+                    final int time = RandomUtils.nextInt(10, 50);
                     int answer = 0;
                     final GenericQuestion question = (GenericQuestion)questionDubboService.findById(questionId);
-                    if (RandomUtils.nextInt(1,100)%3 != 0) {//正确答案概率 66%
+                    if (RandomUtils.nextInt(1,100)%2 != 0) {//正确答案概率 66%
                         answer = question.getAnswer();
                     }else {
                         answer = RandomUtils.nextInt(1,5);
@@ -81,6 +81,12 @@ public class RobotSubmitTask {
                     answer1.setTime(time);
                     answer1.setCorrect(correct);
                     answer1.setAnswer(answer);
+                    try {
+                        //sleep 一段时间,表示做题时间
+                        TimeUnit.SECONDS.sleep(time);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     final ArrayList<Answer> answers = Lists.newArrayList(answer1);
                     try {
                         practiceCardDubboService.submitAnswers(practiceCard.getId(),practiceCard.getUserId(),answers,false,-9);
