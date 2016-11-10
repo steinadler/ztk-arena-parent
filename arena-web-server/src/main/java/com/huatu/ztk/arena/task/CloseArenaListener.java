@@ -65,6 +65,7 @@ public class CloseArenaListener implements MessageListener {
             if (userDto.isRobot()) {//如果是机器人,则把其添加入等待池中,用于后续的使用
                 final String robotsKey = RedisArenaKeys.getRobotsKey();
                 redisTemplate.opsForSet().add(robotsKey,uid+"");
+                logger.info("push uid={} to robot pool.");
             }
             boolean isWinner = room.getWinner() == uid;
             arenaUserSummaryService.updateUserSummary(uid, isWinner);

@@ -139,7 +139,6 @@ public class CreateRoomTask {
 
                             //添加机器人,随机
                             final long robotSize = RandomUtils.nextLong(1, ArenaConfig.getConfig().getRoomCapacity() - finalSize + 1);
-                            logger.info("add robot to arenaId={}, robotSize={}",arenaRoomId,robotSize);
                             for (int i = 0; i < robotSize; i++) {
                                 final String robotId = setOperations.pop(robotsKey);
                                 if (StringUtils.isNoneBlank(robotId)) {
@@ -147,6 +146,7 @@ public class CreateRoomTask {
                                     addUserToArena(arenaRoomId,roomUsersKey,robotId);
                                 }
                             }
+                            logger.info("add robot to arenaId={}, robotSize={}",arenaRoomId,robots.size());
 
 
                             final Set<String> users = setOperations.members(roomUsersKey);
