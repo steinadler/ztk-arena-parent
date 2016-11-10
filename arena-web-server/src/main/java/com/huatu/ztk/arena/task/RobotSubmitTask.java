@@ -37,7 +37,6 @@ import java.util.concurrent.TimeUnit;
 @Scope("singleton")
 public class RobotSubmitTask {
     private static final Logger logger = LoggerFactory.getLogger(RobotSubmitTask.class);
-    private final ExecutorService threadPool = Executors.newFixedThreadPool(10);
 
     @Autowired
     private QuestionDubboService questionDubboService;
@@ -49,15 +48,10 @@ public class RobotSubmitTask {
     private RabbitTemplate rabbitTemplate;
 
     public void addNewRobotPractice(PracticeCard practiceCard){
-        threadPool.submit(new Runnable() {
+        //此处没有用线程池,是为了防止机器人做题被阻塞,机器人本身数量不多,所以可以不用线程池
+        new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    //停留一会儿
-                    TimeUnit.SECONDS.sleep(20);
-                } catch (InterruptedException e) {
-                }
-
                 final PracticePaper paper = practiceCard.getPaper();
                 //遍历程序,提交随机答案
                 for (Integer questionId : paper.getQuestions()) {
@@ -113,6 +107,6 @@ public class RobotSubmitTask {
                     e.printStackTrace();
                 }
             }
-        });
+        }).start();
     }
 }
