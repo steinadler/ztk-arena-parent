@@ -93,8 +93,8 @@ public class RobotSubmitTask {
                                 .submitTime(System.currentTimeMillis())
                                 .answers(answers)
                                 .build();
-                        //发送提交答案的事件
-                        rabbitTemplate.convertAndSend("submit_answers_queue_arena","",userAnswers);
+                        //发送提交答案的事件,exchange="" 说明将数据发送到队列
+                        rabbitTemplate.convertAndSend("","submit_answers_queue_arena",userAnswers);
                     } catch (BizException e) {
                         e.printStackTrace();
                     }
