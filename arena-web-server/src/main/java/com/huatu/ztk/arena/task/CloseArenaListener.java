@@ -62,10 +62,14 @@ public class CloseArenaListener implements MessageListener {
         ArenaRoom room = arenaRoomService.findById(arenaId);
         for (long uid : room.getPlayerIds()) {
             final UserDto userDto = userDubboService.findById(uid);
+            if (userDto == null) {
+                logger.info("uid={} not find ",uid);
+                continue;
+            }
             if (userDto.isRobot()) {//如果是机器人,则把其添加入等待池中,用于后续的使用
                 final String robotsKey = RedisArenaKeys.getRobotsKey();
                 redisTemplate.opsForSet().add(robotsKey,uid+"");
-                logger.info("push uid={} to robot pool.");
+                logger.info("push uid={} to robot pool.",uid);
             }
             boolean isWinner = room.getWinner() == uid;
             arenaUserSummaryService.updateUserSummary(uid, isWinner);
