@@ -68,6 +68,9 @@ public class CreateRoomTask {
     @Autowired
     private RobotSubmitTask robotSubmitTask;
 
+    @Autowired
+    private DistributedLock distributedLock;
+
     @PostConstruct
     public void init() {
         for (ArenaConfig.Module module : ArenaConfig.getConfig().getModules()) {
@@ -81,7 +84,9 @@ public class CreateRoomTask {
 
                 //遍历释放锁
                 for (ArenaConfig.Module module : ArenaConfig.getConfig().getModules()) {
-                    tryReleaseLock(module.getId());
+                    final String workLockKey = RedisArenaKeys.getWorkLockKey(module.getId());
+                    final int maxHoldTime = ArenaConfig.getConfig().getWaitTime() * 1000+4000;
+                    distributedLock.tryReleaseLock(workLockKey,maxHoldTime);
                 }
 
             }
@@ -95,8 +100,10 @@ public class CreateRoomTask {
                 //创建房间
                 ArenaRoom arenaRoom = null;
                 while (running) {
+                    final String workLockKey = RedisArenaKeys.getWorkLockKey(moduleId);
+                    final int maxHoldTime = ArenaConfig.getConfig().getWaitTime() * 1000+4000;
                     try {
-                        if (!getLock(moduleId)) {
+                        if (!distributedLock.getLock(workLockKey,maxHoldTime)) {
                             TimeUnit.SECONDS.sleep(1);
                             //没有获取到锁,则sleep后继续尝试
                             continue;
@@ -107,7 +114,7 @@ public class CreateRoomTask {
                     }
                     try {
                         //获取到锁就更新锁内容,来告诉其他服务,自己还存活着
-                        updateLock(moduleId);
+                        distributedLock.updateLock(workLockKey);
                         if (arenaRoom == null) {
                             //创建房间
                             arenaRoom = arenaRoomService.create(moduleId);
@@ -122,7 +129,7 @@ public class CreateRoomTask {
                             final String userId = setOperations.pop(arenaUsersKey);
                             if (StringUtils.isBlank(userId)) {
                                 Thread.sleep(1000);//没有玩家则休眠一段时间
-                                updateLock(moduleId);//更新锁状态
+                                distributedLock.updateLock(workLockKey);
                                 continue;
                             }
                             addUserToArena(arenaRoomId, roomUsersKey, userId);
@@ -219,75 +226,5 @@ public class CreateRoomTask {
 
         }).start();
         logger.info("moduleId={} work started.",moduleId);
-    }
-
-    /**
-     * 试着释放锁
-     * 只有锁是属于自己时才会释放锁
-     * @param moduleId
-     */
-    public void tryReleaseLock(int moduleId){
-        if (getLock(moduleId)) {
-            final String workLockKey = RedisArenaKeys.getWorkLockKey(moduleId);
-            redisTemplate.delete(workLockKey);
-        }
-    }
-
-    /**
-     * 更新锁内容
-     * @param moduleId
-     */
-    private void updateLock(int moduleId) {
-        final String workLockKey = RedisArenaKeys.getWorkLockKey(moduleId);
-        final String lockValue = getLockValue();
-        redisTemplate.opsForValue().set(workLockKey, lockValue);
-    }
-
-    /**
-     * 重置并尝试获取锁
-     * @param workLockKey
-     * @return
-     */
-    private boolean resetAndGetLock(String workLockKey){
-        redisTemplate.delete(workLockKey);
-        return redisTemplate.opsForValue().setIfAbsent(workLockKey, getLockValue()).booleanValue();
-    }
-
-
-    /**
-     * 获取任务锁
-     * @return
-     */
-    public boolean getLock(int moduleId) {
-        final String workLockKey = RedisArenaKeys.getWorkLockKey(moduleId);
-        //获取锁内容
-        String value = redisTemplate.opsForValue().get(workLockKey);
-        if (StringUtils.isBlank(value)) {//如果为空,说明没人占用锁,则尝试占用锁
-            redisTemplate.opsForValue().setIfAbsent(workLockKey, getLockValue());
-            value = redisTemplate.opsForValue().get(workLockKey);//获取最新锁内容
-        }
-        if (value.startsWith(getServerMark())) {//判断自己是否是锁的拥有者
-            return true;
-        }
-
-        final String[] strings = value.split(",");
-        if (strings.length !=2) {//如果锁内容格式不正确则获尝试获取锁
-            return resetAndGetLock(workLockKey);
-        }
-        //拥有者最后更新锁的时间
-        final Long lastUpdateTime = Longs.tryParse(strings[1]);
-        //如果锁的拥有者长时间不更新锁内容,说明拥有者已经出现故障,则尝试获取锁
-        if (lastUpdateTime == null || System.currentTimeMillis() - lastUpdateTime > ArenaConfig.getConfig().getWaitTime()*1000) {
-            return resetAndGetLock(workLockKey);
-        }
-        return false;
-    }
-
-    private String getServerMark() {
-        return System.getProperty("server_name") + System.getProperty("server_ip");
-    }
-
-    private String getLockValue() {
-        return getServerMark() + "," + System.currentTimeMillis();
     }
 }

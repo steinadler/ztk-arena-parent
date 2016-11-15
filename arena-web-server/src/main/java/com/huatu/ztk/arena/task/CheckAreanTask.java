@@ -44,6 +44,9 @@ public class CheckAreanTask {
     @Autowired
     private PracticeCardDubboService practiceCardDubboService;
 
+    @Autowired
+    private DistributedLock distributedLock;
+
     private static final long ONE_HOUR = 60 * 60 * 1000L;
 
     /**
@@ -69,13 +72,13 @@ public class CheckAreanTask {
     @Scheduled(cron = "0 0/2 * * * ?")
     public void run(){
         logger.info("auto close room task start.");
-        //锁是否被抢占
-        redisTemplate.opsForValue().setIfAbsent(RedisArenaKeys.getScheduledLockKey(), getLockValue());
-
-        //自己没有抢占到锁,则不进行处理
-        if (!getLockValue().equals(redisTemplate.opsForValue().get(RedisArenaKeys.getScheduledLockKey()))) {
+        final String lockKey = RedisArenaKeys.getScheduledLockKey();
+        long maxHoldTime = 4*60*1000;
+        final boolean success = distributedLock.getLock(lockKey,maxHoldTime);
+        if (!success) {//没有获取到锁
             return;
         }
+        logger.info("get the lock and start auto close room.");
         long currentTime = System.currentTimeMillis();
         long threeHoursAgo = currentTime - 3 * ONE_HOUR;
 
@@ -111,9 +114,9 @@ public class CheckAreanTask {
             }
         }
 
+        //释放锁
+        distributedLock.tryReleaseLock(lockKey,maxHoldTime);
+
     }
 
-    private String getLockValue() {
-        return System.getProperty("server_name")+System.getProperty("server_ip");
-    }
 }
