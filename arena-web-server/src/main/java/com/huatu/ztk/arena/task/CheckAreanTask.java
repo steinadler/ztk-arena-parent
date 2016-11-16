@@ -1,5 +1,6 @@
 package com.huatu.ztk.arena.task;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaResult;
@@ -103,7 +104,7 @@ public class CheckAreanTask {
                     continue;
                 }
                 //说明用户没有交卷
-                final ArenaResult[] arenaResults = Arrays.stream(room.getResults()).filter(result -> result != null).toArray(ArenaResult[]::new);
+                final ArenaResult[] arenaResults = Arrays.stream(Optional.fromNullable(room.getResults()).or(new ArenaResult[0])).filter(result -> result != null).toArray(ArenaResult[]::new);
                 for (int i = 0; i < playerIds.size(); i++) {
                     final Long playerId = playerIds.get(i);
 
