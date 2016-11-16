@@ -102,12 +102,11 @@ public class CheckAreanTask {
                     //没有练习的竞技场,则不进行处理
                     continue;
                 }
-                final Stream<ArenaResult> arenaResultStream = Arrays.stream(room.getResults());
                 for (int i = 0; i < playerIds.size(); i++) {
                     final Long playerId = playerIds.get(i);
 
                     //说明用户没有交卷
-                    if (arenaResultStream.noneMatch(result -> playerId == result.getUid())) {
+                    if (Arrays.stream(room.getResults()).noneMatch(result -> playerId == result.getUid())) {
                         try {
                             //帮用户提交试卷
                             practiceCardDubboService.submitAnswers(practices.get(i), playerId, Lists.newArrayList(),true,-9);
