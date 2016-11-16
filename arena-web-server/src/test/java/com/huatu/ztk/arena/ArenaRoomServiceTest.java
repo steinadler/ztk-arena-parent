@@ -6,6 +6,7 @@ import com.huatu.ztk.arena.dao.ArenaRoomDao;
 import com.huatu.ztk.arena.dubbo.ArenaDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.commons.JsonUtil;
+import com.huatu.ztk.commons.exception.Result;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import com.huatu.ztk.paper.bean.AnswerCard;
 import org.apache.commons.lang.time.DateFormatUtils;
@@ -19,6 +20,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -82,7 +84,12 @@ public class ArenaRoomServiceTest extends BaseTest{
         arenaRoomService.addArenaResult(practiceId);
         AnswerCard answerCard = practiceCardDubboService.findById(practiceId);
         arenaRoom = arenaRoomService.findById(arenaId);
-        ArenaResult arenaResult = arenaRoom.getResults()[arenaRoom.getPractices().indexOf(answerCard.getId())];
+        ArenaResult arenaResult = null;
+        for (ArenaResult result : arenaRoom.getResults()) {
+            if (result.getUid() == answerCard.getUserId()) {
+                arenaResult = result;
+            }
+        }
         Assert.assertEquals(answerCard.getRcount(),arenaResult.getRcount());
         Assert.assertEquals(answerCard.getExpendTime(),arenaResult.getElapsedTime());
         Assert.assertEquals(answerCard.getUserId(),arenaResult.getUid());
@@ -92,7 +99,12 @@ public class ArenaRoomServiceTest extends BaseTest{
         arenaRoomService.addArenaResult(practiceId);
         answerCard = practiceCardDubboService.findById(practiceId);
         arenaRoom = arenaRoomService.findById(arenaId);
-        arenaResult = arenaRoom.getResults()[arenaRoom.getPractices().indexOf(answerCard.getId())];
+        arenaResult = null;
+        for (ArenaResult result : arenaRoom.getResults()) {
+            if (result.getUid() == answerCard.getUserId()) {
+                arenaResult = result;
+            }
+        }
         Assert.assertEquals(answerCard.getRcount(),arenaResult.getRcount());
         Assert.assertEquals(answerCard.getExpendTime(),arenaResult.getElapsedTime());
         Assert.assertEquals(answerCard.getUserId(),arenaResult.getUid());
@@ -103,7 +115,12 @@ public class ArenaRoomServiceTest extends BaseTest{
         arenaRoomService.addArenaResult(practiceId);
         answerCard = practiceCardDubboService.findById(practiceId);
         arenaRoom = arenaRoomService.findById(arenaId);
-        arenaResult = arenaRoom.getResults()[arenaRoom.getPractices().indexOf(answerCard.getId())];
+        arenaResult = null;
+        for (ArenaResult result : arenaRoom.getResults()) {
+            if (result.getUid() == answerCard.getUserId()) {
+                arenaResult = result;
+            }
+        }
         Assert.assertEquals(answerCard.getRcount(),arenaResult.getRcount());
         Assert.assertEquals(answerCard.getExpendTime(),arenaResult.getElapsedTime());
         Assert.assertEquals(answerCard.getUserId(),arenaResult.getUid());
@@ -114,7 +131,12 @@ public class ArenaRoomServiceTest extends BaseTest{
         arenaRoomService.addArenaResult(practiceId);
         answerCard = practiceCardDubboService.findById(practiceId);
         arenaRoom = arenaRoomService.findById(arenaId);
-        arenaResult = arenaRoom.getResults()[arenaRoom.getPractices().indexOf(answerCard.getId())];
+        arenaResult = null;
+        for (ArenaResult result : arenaRoom.getResults()) {
+            if (result.getUid() == answerCard.getUserId()) {
+                arenaResult = result;
+            }
+        }
         Assert.assertEquals(answerCard.getRcount(),arenaResult.getRcount());
         Assert.assertEquals(answerCard.getExpendTime(),arenaResult.getElapsedTime());
         Assert.assertEquals(answerCard.getUserId(),arenaResult.getUid());
@@ -126,7 +148,12 @@ public class ArenaRoomServiceTest extends BaseTest{
         arenaRoomService.addArenaResult(practiceId);
         answerCard = practiceCardDubboService.findById(practiceId);
         arenaRoom = arenaRoomService.findById(arenaId);
-        arenaResult = arenaRoom.getResults()[arenaRoom.getPractices().indexOf(answerCard.getId())];
+        arenaResult = null;
+        for (ArenaResult result : arenaRoom.getResults()) {
+            if (result.getUid() == answerCard.getUserId()) {
+                arenaResult = result;
+            }
+        }
         Assert.assertEquals(answerCard.getRcount(),arenaResult.getRcount());
         Assert.assertEquals(answerCard.getExpendTime(),arenaResult.getElapsedTime());
         Assert.assertEquals(answerCard.getUserId(),arenaResult.getUid());
