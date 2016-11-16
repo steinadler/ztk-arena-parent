@@ -198,7 +198,7 @@ public class ArenaRoomService {
             return;
         }
         ArenaResult[] arenaResults = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArenaResult[0]);
-        final List<ArenaResult> arenaResultList = Arrays.stream(arenaResults).collect(Collectors.toList());
+        final List<ArenaResult> arenaResultList = Arrays.stream(arenaResults).filter(result -> result!=null).collect(Collectors.toList());
         for (int i = 0; i < arenaRoom.getPlayerIds().size(); i++) {
             long playerId = arenaRoom.getPlayerIds().get(i);
             //没有交卷
