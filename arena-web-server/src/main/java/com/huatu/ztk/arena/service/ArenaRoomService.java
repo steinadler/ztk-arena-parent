@@ -197,35 +197,38 @@ public class ArenaRoomService {
         if (arenaRoom.getStatus() == ArenaRoomStatus.FINISHED) {//已经结束,则不需要处理
             return;
         }
-        ArenaResult[] arenaResults = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArenaResult[arenaRoom.getPractices().size()]);
-        //存在未交卷的用户
-        if (Arrays.stream(arenaResults).filter(result -> result != null).count() < arenaRoom.getPlayerIds().size()) {//存在未交卷的
-            for (int i = 0; i < arenaResults.length; i++) {
-                if (arenaResults[i] == null) {//未交卷
-                    final Long practiceId = arenaRoom.getPractices().get(i);
-                    try {
-                        logger.info("practiceId={} not submit practice,system submit it.");
-                        //首先帮用户提交试卷
-                        practiceCardDubboService.submitAnswers(practiceId,arenaRoom.getPlayerIds().get(i),Lists.newArrayList(),true,-9);
-                    } catch (BizException e) {
-                        e.printStackTrace();
-                    }
-
-                    AnswerCard answerCard = practiceCardDubboService.findById(practiceId);
-                    final ArenaResult arenaResult = ArenaResult.builder()
-                            .elapsedTime(answerCard.getExpendTime())
-                            .rcount(answerCard.getRcount())
-                            .uid(answerCard.getUserId())
-                            .build();
-                    //设置用户竞技结果
-                    arenaResults[i] = arenaResult;
+        ArenaResult[] arenaResults = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArenaResult[0]);
+        final List<ArenaResult> arenaResultList = Arrays.stream(arenaResults).collect(Collectors.toList());
+        for (int i = 0; i < arenaRoom.getPlayerIds().size(); i++) {
+            long playerId = arenaRoom.getPlayerIds().get(i);
+            //没有交卷
+            if (arenaResultList.stream().noneMatch(result -> result.getUid()==playerId)) {
+                final Long practiceId = arenaRoom.getPractices().get(i);
+                try {
+                    logger.info("practiceId={} not submit practice,system submit it.");
+                    //首先帮用户提交试卷
+                    practiceCardDubboService.submitAnswers(practiceId,arenaRoom.getPlayerIds().get(i),Lists.newArrayList(),true,-9);
+                } catch (BizException e) {
+                    e.printStackTrace();
                 }
+
+                AnswerCard answerCard = practiceCardDubboService.findById(practiceId);
+                final ArenaResult arenaResult = ArenaResult.builder()
+                        .elapsedTime(answerCard.getExpendTime())
+                        .rcount(answerCard.getRcount())
+                        .uid(answerCard.getUserId())
+                        .build();
+                //设置用户竞技结果
+                arenaResultList.add(arenaResult);
             }
         }
 
+        //去掉重复的竞技结果
+        ArenaResult[] finalArenaResults = arenaResultList.stream().collect(Collectors.toMap(ArenaResult::getUid,result -> result)).values().stream().toArray(ArenaResult[]::new);
+
         //设置为已结束状态
         arenaRoom.setStatus(ArenaRoomStatus.FINISHED);
-        Arrays.parallelSort(arenaResults,new Comparator<ArenaResult>(){
+        Arrays.parallelSort(finalArenaResults,new Comparator<ArenaResult>(){
             @Override
             public int compare(ArenaResult o1, ArenaResult o2) {
                 final int sub = o2.getRcount() - o1.getRcount();
@@ -239,16 +242,16 @@ public class ArenaRoomService {
         });
 
         //用户id列表重新排序,保证和arenaResults一一对应
-        final List<Long> uids = Arrays.stream(arenaResults).map(arenaResult -> arenaResult.getUid()).collect(Collectors.toList());
+        final List<Long> uids = Arrays.stream(finalArenaResults).map(arenaResult -> arenaResult.getUid()).collect(Collectors.toList());
         //练习id列表重新排序,保证和arenaResults一一对应
         final List<Long> practices = uids.stream().map(uid -> {
             return arenaRoom.getPractices().get(arenaRoom.getPlayerIds().indexOf(uid));
         }).collect(Collectors.toList());
 
-        ArenaResult winner = arenaResults[0];//胜者
+        ArenaResult winner = finalArenaResults[0];//胜者
         arenaRoom.setPlayerIds(uids);
         arenaRoom.setPractices(practices);
-        arenaRoom.setResults(arenaResults);
+        arenaRoom.setResults(finalArenaResults);
         //设置胜者id
         arenaRoom.setWinner(winner.getUid());
         arenaRoomDao.save(arenaRoom);
