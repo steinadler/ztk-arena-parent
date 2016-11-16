@@ -151,8 +151,6 @@ public class ArenaRoomService {
             return;
         }
 
-        //竞技结果
-        ArenaResult[] results = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArenaResult[arenaRoom.getPractices().size()]);
 
         final long uid = answerCard.getUserId();
         int userIndex = arenaRoom.getPlayerIds().indexOf(uid);
@@ -162,7 +160,7 @@ public class ArenaRoomService {
         }
 
         //遍历已有结果,防止重复处理
-        if (Arrays.stream(results).anyMatch(result -> result != null && result.getUid() == uid)) {//已经处理过的,不需要再进行处理
+        if (arenaRoom.getResults()!=null && Arrays.stream(arenaRoom.getResults()).anyMatch(result -> result != null && result.getUid() == uid)) {//已经处理过的,不需要再进行处理
             logger.warn(" practiceId={} is in ArenaRoom results,so skip it.", practiceId);
             return;
         }
@@ -174,10 +172,6 @@ public class ArenaRoomService {
                 .build();
 
 
-        //添加新的竞技结果
-        results[userIndex] = arenaResult;
-        //更新竞技排名
-        arenaRoom.setResults(results);
         Update update = new Update();
         update.push("results",arenaResult);
         final ArenaRoom arenaRoomUpdated = arenaRoomDao.updateById(arenaRoom.getId(), update);
