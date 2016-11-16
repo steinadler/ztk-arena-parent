@@ -22,8 +22,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 /**
  * Created by shaojieyue
@@ -95,17 +97,20 @@ public class CheckAreanTask {
 
                 //这里通过帮助用户提交试卷,来达到关闭竞技场的目的
                 final List<Long> practices = room.getPractices();
-
+                final List<Long> playerIds = room.getPlayerIds();
                 if (CollectionUtils.isEmpty(practices)) {
                     //没有练习的竞技场,则不进行处理
                     continue;
                 }
-                for (int i = 0; i < practices.size(); i++) {
-                    final ArenaResult[] results = room.getResults();
-                    if (results == null || results[i] == null) {//未交卷
+                final Stream<ArenaResult> arenaResultStream = Arrays.stream(room.getResults());
+                for (int i = 0; i < playerIds.size(); i++) {
+                    final Long playerId = playerIds.get(i);
+
+                    //说明用户没有交卷
+                    if (arenaResultStream.noneMatch(result -> playerId == result.getUid())) {
                         try {
                             //帮用户提交试卷
-                            practiceCardDubboService.submitAnswers(practices.get(i),room.getPlayerIds().get(i), Lists.newArrayList(),true,-9);
+                            practiceCardDubboService.submitAnswers(practices.get(i), playerId, Lists.newArrayList(),true,-9);
                         } catch (BizException e) {
                             e.printStackTrace();
                         }
