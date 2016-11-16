@@ -5,12 +5,12 @@ import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomSimple;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
 import com.huatu.ztk.commons.JsonUtil;
-import com.huatu.ztk.paper.common.AnswerCardStatus;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -63,16 +63,17 @@ public class ArenaRoomDao {
 
     /**
      * 根据arenaId 更新指定房间的数据
-     *
-     * @param arenaId
+     *  @param arenaId
      * @param update
      */
-    public void updateById(long arenaId, Update update) {
+    public ArenaRoom updateById(long arenaId, Update update) {
         if (update == null) {
-            return;
+            return findById(arenaId);
         }
+
         final Query query = new Query(Criteria.where("_id").is(arenaId));
-        mongoTemplate.updateFirst(query, update, "ztk_arena_room");
+        final FindAndModifyOptions modifyOptions = new FindAndModifyOptions().returnNew(true);
+        return mongoTemplate.findAndModify(query, update,modifyOptions,ArenaRoom.class);
     }
 
     /**

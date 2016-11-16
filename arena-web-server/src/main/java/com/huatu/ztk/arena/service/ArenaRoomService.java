@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -172,17 +173,22 @@ public class ArenaRoomService {
                 .uid(uid)
                 .build();
 
+
         //添加新的竞技结果
         results[userIndex] = arenaResult;
         //更新竞技排名
         arenaRoom.setResults(results);
-
-        arenaRoomDao.save(arenaRoom);
-
+        Update update = new Update();
+        update.push("results",arenaResult);
+        final ArenaRoom arenaRoomUpdated = arenaRoomDao.updateById(arenaRoom.getId(), update);
         //删除用户的房间状态
         redisTemplate.delete(RedisArenaKeys.getUserRoomKey(uid));
         logger.info("add arena result arenaId={}, data={}", arenaRoom.getId(), JsonUtil.toJson(arenaResult));
-        if (Arrays.stream(results).filter(result -> result != null).count() == arenaRoom.getPlayerIds().size()) {//说明都已经交卷
+        //计算目前已经出现的竞技结果数量,需要判断非null 和排重
+        final long count = Arrays.stream(arenaRoomUpdated.getResults()).filter(result -> result != null).mapToLong(result -> {
+            return result.getUid();
+        }).distinct().count();
+        if (count == arenaRoom.getPlayerIds().size()) {//说明都已经交卷
             closeArena(arenaRoom.getId());//关闭房间
         }
     }
@@ -197,7 +203,7 @@ public class ArenaRoomService {
         if (arenaRoom.getStatus() == ArenaRoomStatus.FINISHED) {//已经结束,则不需要处理
             return;
         }
-            ArenaResult[] arenaResults = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArenaResult[arenaRoom.getPractices().size()]);
+        ArenaResult[] arenaResults = Optional.ofNullable(arenaRoom.getResults()).orElse(new ArenaResult[arenaRoom.getPractices().size()]);
         //存在未交卷的用户
         if (Arrays.stream(arenaResults).filter(result -> result != null).count() < arenaRoom.getPlayerIds().size()) {//存在未交卷的
             for (int i = 0; i < arenaResults.length; i++) {
