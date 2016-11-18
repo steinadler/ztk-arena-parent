@@ -27,7 +27,7 @@ public class MetricsConfigurer extends MetricsConfigurerAdapter {
     @Override
     public void configureReporters(MetricRegistry metricRegistry) {
         final ScheduledReporter reporter = InfluxdbReporter.forRegistry(metricRegistry)
-                .protocol(new HttpInfluxdbProtocol("192.168.100.19", 8086, "metrics"))
+                .protocol(new HttpInfluxdbProtocol("192.168.100.19", 8086,"ztkinfluxdb","ztkinfluxdb", "metrics"))
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
                 .filter(MetricFilter.ALL)
