@@ -61,7 +61,7 @@ public class CreateRoomTask {
      */
     private volatile boolean running = true;
 
-    private InfluxDB influxDB = InfluxDBFactory.connect("http://192.168.100.19 :8086",null,null);
+    private InfluxDB influxDB = InfluxDBFactory.connect("http://192.168.100.19:8086","ztkinfluxdb","ztkinfluxdb");
     LinkedBlockingQueue<Metric> queue = new LinkedBlockingQueue<Metric>(20000);
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
