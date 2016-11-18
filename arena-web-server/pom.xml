@@ -138,6 +138,11 @@
             <artifactId>question-dubbo-api</artifactId>
             <version>1.2-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.influxdb</groupId>
+            <artifactId>influxdb-java</artifactId>
+            <version>2.4</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

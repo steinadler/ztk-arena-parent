@@ -3,7 +3,6 @@ package com.huatu.ztk.arena.task;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.primitives.Longs;
 import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomStatus;
@@ -16,6 +15,10 @@ import com.huatu.ztk.paper.bean.PracticeCard;
 import com.huatu.ztk.paper.common.AnswerCardType;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.influxdb.InfluxDB;
+import org.influxdb.InfluxDBFactory;
+import org.influxdb.dto.BatchPoints;
+import org.influxdb.dto.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -30,7 +33,7 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  *
@@ -45,11 +48,21 @@ public class CreateRoomTask {
     private static final Logger logger = LoggerFactory.getLogger(CreateRoomTask.class);
     //最小玩家人数
     public static final int MIN_COUNT_PALYER_OF_ROOM = 2;
+    //influxdb数据库
+    public static final String INFLUXDB_DATABASE = "metrics";
+    //开始竞技场游戏人次measurement
+    public static final String START_ARENA_MEASUREMENT = "start_arena";
+    //加入竞技场人次
+    public static final String JOIN_ARENA_MEASUREMENT = "join_arena";
+    public static final int JOIN_ARENT_ACTION = 1;
+    public static final int START_AREAN_ACTION = 2;
     /**
      * 任务是否运行的表示
      */
     private volatile boolean running = true;
 
+    private InfluxDB influxDB = InfluxDBFactory.connect("http://192.168.100.19 :8086",null,null);
+    LinkedBlockingQueue<Metric> queue = new LinkedBlockingQueue<Metric>(20000);
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
 
@@ -73,8 +86,9 @@ public class CreateRoomTask {
 
     @PostConstruct
     public void init() {
+        startInfluxdbTask();
         for (ArenaConfig.Module module : ArenaConfig.getConfig().getModules()) {
-            startWork(module.getId());
+            startWork(module);
         }
         //添加停止任务线程
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -93,14 +107,72 @@ public class CreateRoomTask {
         }));
     }
 
-    private void startWork(Integer moduleId) {
+    private void startInfluxdbTask() {
+        //将加入游戏人次和开始游戏人次数据写入influxdb,用于报表统计
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                for (;running;) {
+                    try {
+                        TimeUnit.MINUTES.sleep(1);//休眠一段时间
+                        if(queue.size()>50 && running){//批量处理减少提交到influxdb的次数
+                            Map<String,Integer> joinCountMap = Maps.newHashMap();
+                            Map<String,Integer> startCountMap = Maps.newHashMap();
+                            for (;;){//循环取出metric
+                                final Metric metric = queue.poll();
+                                if (metric == null) {
+                                    break;
+                                }
+
+                                if (metric.action == JOIN_ARENT_ACTION) {//加入竞技场
+                                    Integer count = joinCountMap.getOrDefault(metric.getModuleName(), 0);
+                                    joinCountMap.put(metric.getModuleName(),count+metric.getCount());
+                                }else if (metric.action == START_AREAN_ACTION) {//离开竞技场
+                                    Integer count = startCountMap.getOrDefault(metric.getModuleName(), 0);
+                                    startCountMap.put(metric.getModuleName(),count+metric.getCount());
+                                }else {
+                                    logger.info("unkonw action,data={}",metric);
+                                }
+                            }
+
+                            final BatchPoints.Builder builder = BatchPoints.database(INFLUXDB_DATABASE);
+                            for (String moduleName : startCountMap.keySet()) {
+
+                                final Point point = Point.measurement(START_ARENA_MEASUREMENT)
+                                        .tag("module", moduleName)
+                                        .addField("count", startCountMap.get(moduleName)).build();
+                                builder.point(point);//添加统计点
+                            }
+
+                            for (String moduleName : joinCountMap.keySet()) {
+                                final Point point = Point.measurement(JOIN_ARENA_MEASUREMENT)
+                                        .tag("module", moduleName)
+                                        .addField("count", joinCountMap.get(moduleName)).build();
+                                builder.point(point);//添加统计点
+                            }
+
+                            final BatchPoints batchPoints = builder.build();
+                            //数据写入
+                            influxDB.write(batchPoints);
+                            logger.info("write data to influxdb, point size={}",batchPoints.getPoints().size());
+                        }
+                    }catch (Exception e){
+                        logger.error("ex",e);
+                    }
+                }
+            }
+        }).start();
+    }
+
+    private void startWork(ArenaConfig.Module module) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 //创建房间
                 ArenaRoom arenaRoom = null;
                 while (running) {
-                    final String workLockKey = RedisArenaKeys.getWorkLockKey(moduleId);
+                    final String workLockKey = RedisArenaKeys.getWorkLockKey(module.getId());
                     final int maxHoldTime = ArenaConfig.getConfig().getWaitTime() * 1000+4000;
                     try {
                         if (!distributedLock.getLock(workLockKey,maxHoldTime)) {
@@ -117,11 +189,11 @@ public class CreateRoomTask {
                         distributedLock.updateLock(workLockKey);
                         if (arenaRoom == null) {
                             //创建房间
-                            arenaRoom = arenaRoomService.create(moduleId);
+                            arenaRoom = arenaRoomService.create(module.getId());
                         }
                         final long arenaRoomId = arenaRoom.getId();
                         final String roomUsersKey = RedisArenaKeys.getRoomUsersKey(arenaRoomId);
-                        final String arenaUsersKey = RedisArenaKeys.getArenaUsersKey(moduleId);
+                        final String arenaUsersKey = RedisArenaKeys.getArenaUsersKey(module.getId());
                         final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
                         long start = Long.MAX_VALUE;//开始时间,默认不过期
                         //拥有足够人数和等待超时,则跳出循环
@@ -132,6 +204,9 @@ public class CreateRoomTask {
                                 distributedLock.updateLock(workLockKey);
                                 continue;
                             }
+
+                            //添加加入房间metric,用来记录加入游戏的人次
+                            queue.offer(new Metric(module.getName(),JOIN_ARENT_ACTION,1));
                             addUserToArena(arenaRoomId, roomUsersKey, userId);
                             //超时时间从第一个加入房间用户开始算起
                             if (setOperations.size(roomUsersKey) == 1) {
@@ -197,12 +272,14 @@ public class CreateRoomTask {
                         data.put("practiceIds", practiceIds);//用户对应的练习列表
                         //通过mq发送游戏就绪通知
                         rabbitTemplate.convertAndSend("game_notify_exchange", "", data);
+                        //添加开始游戏metric,用来记录开始游戏的人次
+                        queue.offer(new Metric(module.getName(),START_AREAN_ACTION,users.length - robots.size()));
                         logger.info("arenaId={},users={} start game.", arenaRoomId, users);
                     } catch (Exception e) {
                         logger.error("ex", e);
                     }
                 }
-                logger.info("moduleId={} work stoped", moduleId);
+                logger.info("moduleId={} work stoped", module.getId());
             }
 
             private void addUserToArena(long arenaRoomId, String roomUsersKey, String userId) {
@@ -225,6 +302,56 @@ public class CreateRoomTask {
 
 
         }).start();
-        logger.info("moduleId={} work started.",moduleId);
+        logger.info("moduleId={} work started.",module.getId());
+    }
+
+    class Metric{
+        private String moduleName;//模块名称
+        private int action;//动作
+        private int count;
+        public Metric(String moduleName, int action) {
+            this.moduleName = moduleName;
+            this.action = action;
+            this.count = 1;
+        }
+
+        public Metric(String moduleName, int action, int count) {
+            this.moduleName = moduleName;
+            this.action = action;
+            this.count = count;
+        }
+
+        public int getCount() {
+            return count;
+        }
+
+        public void setCount(int count) {
+            this.count = count;
+        }
+
+        public String getModuleName() {
+            return moduleName;
+        }
+
+        public void setModuleName(String moduleName) {
+            this.moduleName = moduleName;
+        }
+
+        public int getAction() {
+            return action;
+        }
+
+        public void setAction(int action) {
+            this.action = action;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("Metric{");
+            sb.append("moduleName='").append(moduleName).append('\'');
+            sb.append(", action=").append(action);
+            sb.append('}');
+            return sb.toString();
+        }
     }
 }
