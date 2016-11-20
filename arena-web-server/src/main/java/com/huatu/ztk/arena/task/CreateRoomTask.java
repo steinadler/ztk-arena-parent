@@ -226,9 +226,9 @@ public class CreateRoomTask {
                                 if (StringUtils.isNoneBlank(robotId)) {
                                     robots.add(Long.valueOf(robotId));//添加到机器人列表
                                     addUserToArena(arenaRoomId,roomUsersKey,robotId);
+                                    logger.info("add robotId={} to roomId={}",robotId,arenaRoomId);
                                 }
                             }
-                            logger.info("add robot to arenaId={}, robotSize={}",arenaRoomId,robots.size());
 
 
                             final Set<String> users = setOperations.members(roomUsersKey);
