@@ -216,7 +216,9 @@ public class CreateRoomTask {
 
                         final Long finalSize = setOperations.size(roomUsersKey);
                         Set<Long> robots = Sets.newHashSet();
-                        if (finalSize < MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
+                        if (finalSize == 0) {//没有玩家，则继续请求,当一个用户等待过程跑了，会出现此情况
+                            continue;
+                        } else if (finalSize < MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
                             final String robotsKey = RedisArenaKeys.getRobotsKey();
 
                             //添加机器人,随机
@@ -240,6 +242,10 @@ public class CreateRoomTask {
                                     final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(user));
                                     //清除用户占用的房间
                                     redisTemplate.delete(userRoomKey);
+                                    if (robots.contains(user)) {//该用户是机器人
+                                        //添加到机器人列表
+                                        setOperations.add(arenaUsersKey,user);
+                                    }
                                 }
                                 continue;
                             }
