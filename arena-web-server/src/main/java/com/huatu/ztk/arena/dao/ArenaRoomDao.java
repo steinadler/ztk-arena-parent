@@ -131,7 +131,7 @@ public class ArenaRoomDao {
 
         //分页返回记录条数，按创建时间倒序排列
         Query query = new Query(criteria);
-        query.limit(size).with(new Sort(Sort.Direction.DESC, "createTime"));
+        query.limit(size).with(new Sort(Sort.Direction.DESC, "_id"));
 
         List<ArenaRoom> records = mongoTemplate.find(query, ArenaRoom.class);
         //转换方法返回list类型
