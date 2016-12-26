@@ -13,6 +13,7 @@ import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import com.huatu.ztk.paper.bean.PracticeCard;
 import com.huatu.ztk.paper.common.AnswerCardType;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.influxdb.InfluxDB;
@@ -196,10 +197,24 @@ public class CreateRoomTask {
                         final String arenaUsersKey = RedisArenaKeys.getArenaUsersKey(module.getId());
                         final SetOperations<String, String> setOperations = redisTemplate.opsForSet();
                         long start = Long.MAX_VALUE;//开始时间,默认不过期
+                        Set<Long> robots = Sets.newHashSet();
                         //拥有足够人数和等待超时,则跳出循环
                         while (setOperations.size(roomUsersKey) < ArenaConfig.getConfig().getRoomCapacity() && System.currentTimeMillis() - start < ArenaConfig.getConfig().getWaitTime() * 1000 - 3000) {
                             final String userId = setOperations.pop(arenaUsersKey);
+                            final Long size = setOperations.size(roomUsersKey);
                             if (StringUtils.isBlank(userId)) {
+                                //如果是已经有玩家,则添加逻辑
+                                if (size > 0) {
+                                    if (isAddRobot(size,start)) {
+                                        final String robotsKey = RedisArenaKeys.getRobotsKey();
+                                        final String robotId = setOperations.pop(robotsKey);
+                                        if (StringUtils.isNoneBlank(robotId)) {
+                                            robots.add(Long.valueOf(robotId));//添加到机器人列表
+                                            addUserToArena(arenaRoomId,roomUsersKey,robotId);
+                                            logger.info("add robotId={} to roomId={}",robotId,arenaRoomId);
+                                        }
+                                    }
+                                }
                                 Thread.sleep(1000);//没有玩家则休眠一段时间
                                 distributedLock.updateLock(workLockKey);
                                 continue;
@@ -215,40 +230,23 @@ public class CreateRoomTask {
                         }
 
                         final Long finalSize = setOperations.size(roomUsersKey);
-                        Set<Long> robots = Sets.newHashSet();
+
                         if (finalSize == 0) {//没有玩家，则继续请求,当一个用户等待过程跑了，会出现此情况
                             continue;
                         } else if (finalSize < MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
-                            final String robotsKey = RedisArenaKeys.getRobotsKey();
-
-                            //添加机器人,随机
-                            final long robotSize = RandomUtils.nextLong(1, ArenaConfig.getConfig().getRoomCapacity() - finalSize + 1);
-                            for (int i = 0; i < robotSize; i++) {
-                                final String robotId = setOperations.pop(robotsKey);
-                                if (StringUtils.isNoneBlank(robotId)) {
-                                    robots.add(Long.valueOf(robotId));//添加到机器人列表
-                                    addUserToArena(arenaRoomId,roomUsersKey,robotId);
-                                    logger.info("add robotId={} to roomId={}",robotId,arenaRoomId);
-                                }
-                            }
-
-
                             final Set<String> users = setOperations.members(roomUsersKey);
-                            //再次检查是否达到开始游戏条件,没有的话,则清除用户数据
-                            if (users.size() < MIN_COUNT_PALYER_OF_ROOM) {
-                                logger.info("playerIds wait time out. users={}", users);
-                                redisTemplate.delete(roomUsersKey);//清除用户数据
-                                for (String user : users) {
-                                    final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(user));
-                                    //清除用户占用的房间
-                                    redisTemplate.delete(userRoomKey);
-                                    if (robots.contains(user)) {//该用户是机器人
-                                        //添加到机器人列表
-                                        setOperations.add(arenaUsersKey,user);
-                                    }
+                            logger.info("playerIds wait time out. users={}", users);
+                            redisTemplate.delete(roomUsersKey);//清除用户数据
+                            for (String user : users) {
+                                final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(user));
+                                //清除用户占用的房间
+                                redisTemplate.delete(userRoomKey);
+                                if (robots.contains(user)) {//该用户是机器人
+                                    //添加到机器人列表
+                                    setOperations.add(arenaUsersKey,user);
                                 }
-                                continue;
                             }
+                            continue;
                         }
 
                         long[] users = setOperations.members(roomUsersKey).stream().mapToLong(userId -> Long.valueOf(userId)).toArray();
@@ -286,6 +284,37 @@ public class CreateRoomTask {
                     }
                 }
                 logger.info("moduleId={} work stoped", module.getId());
+            }
+
+            /**
+             * 判断是否添加机器人策略
+             * @param size 当前机器人个数
+             * @param start 等待开始时间
+             * @return
+             */
+            private boolean isAddRobot(Long size, long start) {
+                //时间差
+                final long subTime = System.currentTimeMillis() - start;
+
+                /**
+                 * 1、匹配倒计时8S、4人间为例——
+                 倒计时开始3S内无人，则加入一机器人（此概率为100%），
+                 倒计时5S时加入一机器人（此概率为50%），
+                 倒计时8S时再加入一机器人（此概率为20%）
+                 */
+                if (subTime >3000 && size == 1) {//只有一个人时加入
+                    return true;
+                }else if (subTime > 5000 && size == 2) {//
+                    if (RandomUtils.nextInt(1, 3) == 1) {//50%
+                        return true;
+                    }
+                }else if (subTime > 8000 && size == 3) {
+                    if (RandomUtils.nextInt(1, 6) == 1) {//20%
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private void addUserToArena(long arenaRoomId, String roomUsersKey, String userId) {
