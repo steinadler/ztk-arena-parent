@@ -31,6 +31,9 @@ import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -199,7 +202,7 @@ public class CreateRoomTask {
                         long start = Long.MAX_VALUE;//开始时间,默认不过期
                         Set<Long> robots = Sets.newHashSet();
                         //拥有足够人数和等待超时,则跳出循环
-                        while (setOperations.size(roomUsersKey) < ArenaConfig.getConfig().getRoomCapacity() && System.currentTimeMillis() - start < ArenaConfig.getConfig().getWaitTime() * 1000 - 3000) {
+                        while (setOperations.size(roomUsersKey) < ArenaConfig.getConfig().getRoomCapacity() && System.currentTimeMillis() - start < ArenaConfig.getConfig().getWaitTime() * 1000 - 2000) {
                             final String userId = setOperations.pop(arenaUsersKey);
                             final Long size = setOperations.size(roomUsersKey);
                             if (StringUtils.isBlank(userId)) {
@@ -294,8 +297,13 @@ public class CreateRoomTask {
              */
             private boolean isAddRobot(Long size, long start) {
                 //时间差
-                final long subTime = System.currentTimeMillis() - start;
-
+                final long currentTime = System.currentTimeMillis();
+                final long subTime = currentTime - start;
+                final LocalDateTime now = LocalDateTime.now();
+                //24点——次日06点，机器人休眠。
+                if (now.getHour() <= 6) {
+                    return false;
+                }
                 /**
                  * 1、匹配倒计时8S、4人间为例——
                  倒计时开始3S内无人，则加入一机器人（此概率为100%），
