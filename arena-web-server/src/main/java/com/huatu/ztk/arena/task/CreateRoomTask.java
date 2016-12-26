@@ -310,13 +310,13 @@ public class CreateRoomTask {
                  倒计时5S时加入一机器人（此概率为50%），
                  倒计时8S时再加入一机器人（此概率为20%）
                  */
-                if (subTime >3000 && size == 1) {//只有一个人时加入
+                if (subTime >3000 && subTime < 4000 && size == 1) {//只有一个人时加入 100%
                     return true;
-                }else if (subTime > 5000 && size == 2) {//
+                }else if (subTime > 5000 && subTime < 6000 && size == 2) {
                     if (RandomUtils.nextInt(1, 3) == 1) {//50%
                         return true;
                     }
-                }else if (subTime > 8000 && size == 3) {
+                }else if (subTime > 8000 && subTime < 9000 && size == 3) {//<9000目的是防止多次添加
                     if (RandomUtils.nextInt(1, 6) == 1) {//20%
                         return true;
                     }
