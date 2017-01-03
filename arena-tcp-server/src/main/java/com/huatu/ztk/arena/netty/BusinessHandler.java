@@ -8,14 +8,12 @@ import com.huatu.ztk.arena.common.RedisArenaKeys;
 import com.huatu.ztk.arena.common.UserChannelCache;
 import com.huatu.ztk.arena.dubbo.ArenaDubboService;
 import com.huatu.ztk.arena.util.ApplicationContextProvider;
-import com.huatu.ztk.commons.JsonUtil;
 import com.huatu.ztk.commons.ModuleConstants;
-import io.netty.channel.Channel;
+import com.huatu.ztk.commons.SubjectType;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +21,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Created by shaojieyue
@@ -141,7 +140,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Request> {
             //此处遍历是可以的,正常来说,用户加入游戏就会存在于房间中,所以很小几率在等待池,
             //也就是说,这段代码应该不会运行
             //删除所有模块的
-            for (Integer moduleId : ModuleConstants.GOWUYUAN_MODULE_IDS) {
+            List<Integer> moduleIds = ModuleConstants.getModulesBySubject(SubjectType.GWY_XINGCE).stream().map(m -> m.getId()).collect(Collectors.toList());
+            for (Integer moduleId : moduleIds) {
                 setOperations.remove(RedisArenaKeys.getArenaUsersKey(moduleId),uid+"");
             }
             //删除智能推送的
