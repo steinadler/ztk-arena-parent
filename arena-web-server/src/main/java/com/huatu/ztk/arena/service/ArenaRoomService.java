@@ -31,7 +31,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -74,17 +73,19 @@ public class ArenaRoomService {
         int type = ArenaRoomType.RANDOM_POINT;//默认是随机知识点
         String roomName = "竞技-智能推送" + "-" + DateFormatUtils.format(System.currentTimeMillis(), "yyyyMMddHHmm");
         String moduleName = "智能推送";
-        final Module module = ModuleConstants.getModuleById(moduleId);
+        List<Module> modules = ModuleConstants.getModulesBySubject(SubjectType.GWY_XINGCE);
+        final int tmpId = moduleId;
+        final Module module = modules.stream().filter(m -> m.getId() == tmpId).findFirst().orElse(null);
         if (module != null) {
             roomName = "竞技-" + module.getName() + "-" + DateFormatUtils.format(System.currentTimeMillis(), "yyyyMMddHHmm");
             moduleName = module.getName();
             type = ArenaRoomType.SPECIFIED_POINT;
         } else {//查询不到,说明是随机知识点
             //随机选取模块
-            moduleId = ModuleConstants.GOWUYUAN_MODULE_IDS.get(RandomUtils.nextInt(0, ModuleConstants.GOWUYUAN_MODULE_IDS.size()));
+            moduleId = modules.get(RandomUtils.nextInt(0, modules.size())).getId();
         }
         //创建竞技试卷
-        final PracticePaper practicePaper = practiceDubboService.create(SubjectType.SUBJECT_GONGWUYUAN, moduleId, ArenaConfig.getConfig().getQuestionCount());
+        final PracticePaper practicePaper = practiceDubboService.create(SubjectType.GWY_XINGCE, moduleId, ArenaConfig.getConfig().getQuestionCount());
         practicePaper.setName(roomName);//需要设置竞技练习的名字
         final ValueOperations valueOperations = redisTemplate.opsForValue();
         final String arenaIdKey = RedisArenaKeys.getRoomIdKey();
