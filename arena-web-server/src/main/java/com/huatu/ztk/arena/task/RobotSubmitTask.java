@@ -1,6 +1,10 @@
 package com.huatu.ztk.arena.task;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.primitives.Ints;
+import com.huatu.ztk.commons.Area;
+import com.huatu.ztk.commons.AreaConstants;
 import com.huatu.ztk.commons.exception.BizException;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import com.huatu.ztk.paper.bean.Answer;
@@ -20,7 +24,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,6 +56,72 @@ public class RobotSubmitTask {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    private static final Map<Integer,Integer> POINT_RATIO_MAP = Maps.newHashMap();
+    private static final Map<Integer,PointHistogram> POINT_HISTOGRAM_MAP = Maps.newHashMap();
+    static {
+        InputStream input = AreaConstants.class.getClassLoader().getResourceAsStream("point_ratio.csv");
+        try {
+            //加载point_ratio.csv数据
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(input, "UTF-8"));
+            bufferedReader.lines().forEach(line ->{
+                final String[] strs = line.split(",");
+                if (strs.length == 4) {
+                    int pointId = Integer.valueOf(strs[0]);
+                    int ratio = new BigDecimal(strs[3]).multiply(BigDecimal.valueOf(100)).intValue();
+                    POINT_RATIO_MAP.put(pointId,ratio);
+                }
+            });
+
+            input = AreaConstants.class.getClassLoader().getResourceAsStream("point_histogram.csv");
+            bufferedReader = new BufferedReader(new InputStreamReader(input, "UTF-8"));
+            bufferedReader.lines().forEach(line ->{
+                final String[] strs = line.split(",");
+                if (strs.length == 5) {
+                    //775,32,57,101,157
+                    final PointHistogram pointHistogram = new PointHistogram(Ints.tryParse(strs[0]), Ints.tryParse(strs[1]), Ints.tryParse(strs[2]), Ints.tryParse(strs[3]), Ints.tryParse(strs[4]));
+                    POINT_HISTOGRAM_MAP.put(pointHistogram.getPointId(),pointHistogram);
+                }
+            });
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static class PointHistogram{
+        private int pointId;
+        private int a25;
+        private int a50;
+        private int a75;
+        private int a95;
+
+        public PointHistogram(int pointId, int a25, int a50, int a75, int a95) {
+            this.pointId = pointId;
+            this.a25 = a25;
+            this.a50 = a50;
+            this.a75 = a75;
+            this.a95 = a95;
+        }
+
+        public int getPointId() {
+            return pointId;
+        }
+
+        public int getA25() {
+            return a25;
+        }
+
+        public int getA50() {
+            return a50;
+        }
+
+        public int getA75() {
+            return a75;
+        }
+
+        public int getA95() {
+            return a95;
+        }
+    }
 
     public void addNewRobotPractice(PracticeCard practiceCard){
         //此处没有用线程池,是为了防止机器人做题被阻塞,机器人本身数量不多,所以可以不用线程池
@@ -55,11 +131,11 @@ public class RobotSubmitTask {
                 final PracticePaper paper = practiceCard.getPaper();
                 //遍历程序,提交随机答案
                 for (Integer questionId : paper.getQuestions()) {
-                    //随机答题时间
-                    final int time = RandomUtils.nextInt(10, 50);
                     int answer = 0;
                     final GenericQuestion question = (GenericQuestion)questionDubboService.findById(questionId);
-                    if (RandomUtils.nextInt(1,100)%2 != 0) {//正确答案概率 66%
+                    final Integer pointId = question.getPoints().get(2);
+                    final Integer ratio = POINT_RATIO_MAP.getOrDefault(pointId, 50);
+                    if (RandomUtils.nextInt(1,100)+15 < ratio) {//正确答案概率
                         answer = question.getAnswer();
                     }else {
                         answer = RandomUtils.nextInt(1,5);
@@ -69,9 +145,27 @@ public class RobotSubmitTask {
                     }
                     //计算试题是否做对
                     int correct = answer == question.getAnswer()?QuestionCorrectType.RIGHT: QuestionCorrectType.WRONG;
-
+                    final int i = RandomUtils.nextInt(0, 10);
+                    int maxTime = 10;
+                    int minTime = 50;
+                    final PointHistogram pointHistogram = POINT_HISTOGRAM_MAP.get(pointId);
+                    if (pointHistogram!=null) {
+                        if (i < 3) {//25%
+                            maxTime = pointHistogram.getA25();
+                            minTime = Math.min(7,maxTime);
+                        }else if (i >= 3 && i < 7) {
+                            maxTime = pointHistogram.getA50();
+                            minTime = pointHistogram.getA25();
+                        }else {
+                            maxTime = pointHistogram.getA75();
+                            minTime = pointHistogram.getA50();
+                        }
+                    }
+                    //随机答题时间
+                    final int time = RandomUtils.nextInt(minTime, maxTime);
                     final Answer answer1 = new Answer();
                     answer1.setQuestionId(questionId);
+
                     answer1.setTime(time);
                     answer1.setCorrect(correct);
                     answer1.setAnswer(answer);
