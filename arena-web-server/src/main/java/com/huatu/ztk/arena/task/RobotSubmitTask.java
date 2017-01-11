@@ -162,7 +162,7 @@ public class RobotSubmitTask {
                         }
                     }
                     //随机答题时间
-                    final int time = RandomUtils.nextInt(minTime*4/5, maxTime*3/5);
+                    final int time = RandomUtils.nextInt(minTime*4/5, maxTime*4/5);
                     final Answer answer1 = new Answer();
                     answer1.setQuestionId(questionId);
 
