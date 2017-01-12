@@ -41,7 +41,7 @@ public class ArenaPlayerDubboServiceImpl implements ArenaPlayerDubboService {
         }
         final Player player = Player.builder()
                 .uid(userDto.getId())
-                .avatar(userDto.getAvatar())
+                .avatar(userDto.getAvatar() + "?w=200") //缩略图
                 .nick(userDto.getNick())
                 .build();
         return player;
