@@ -55,7 +55,7 @@ public class ArenaControllerV1 {
         long uid = userSessionService.getUid(token);
         PageBean<ArenaRoomSimple> pageBean = arenaRoomService.history(uid, cursor, 20);
 
-        logger.info("uid={},cursor={},result json={}", uid, cursor, JsonUtil.toJson(pageBean));
+        logger.info("history list:uid={},token={},cursor={},result json={}", uid, token, cursor, JsonUtil.toJson(pageBean));
         return pageBean;
     }
 
@@ -76,6 +76,7 @@ public class ArenaControllerV1 {
                 throw new BizException(CommonErrors.PERMISSION_DENIED);
             }
         }
+        logger.info("history detail:uid={},token={},arenaId={},result json={}", uid, token, arenaId, JsonUtil.toJson(arenaRoom));
         return arenaRoom;
     }
 
