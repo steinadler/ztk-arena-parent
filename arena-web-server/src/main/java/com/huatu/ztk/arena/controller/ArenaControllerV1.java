@@ -6,6 +6,7 @@ import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaUserSummary;
 import com.huatu.ztk.arena.dubbo.ArenaUserSummaryDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
+import com.huatu.ztk.commons.JsonUtil;
 import com.huatu.ztk.commons.PageBean;
 import com.huatu.ztk.commons.exception.BizException;
 import com.huatu.ztk.commons.exception.CommonErrors;
@@ -53,6 +54,8 @@ public class ArenaControllerV1 {
         //用户id
         long uid = userSessionService.getUid(token);
         PageBean<ArenaRoomSimple> pageBean = arenaRoomService.history(uid, cursor, 20);
+
+        logger.info("uid={},cursor={},result json={}", uid, cursor, JsonUtil.toJson(pageBean));
         return pageBean;
     }
 
@@ -69,7 +72,7 @@ public class ArenaControllerV1 {
         final long uid = userSessionService.getUid(token);
         final ArenaRoom arenaRoom = arenaRoomService.findById(arenaId);
         if (arenaRoom != null) {
-            if (arenaRoom.getPlayerIds().indexOf(uid)<0) {//检查权限,用户是否在该房间参赛
+            if (!arenaRoom.getPlayerIds().contains(uid)) {//检查权限,用户是否在该房间参赛
                 throw new BizException(CommonErrors.PERMISSION_DENIED);
             }
         }
