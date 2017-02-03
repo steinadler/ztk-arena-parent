@@ -13,7 +13,6 @@ import com.huatu.ztk.arena.service.ArenaRoomService;
 import com.huatu.ztk.paper.api.PracticeCardDubboService;
 import com.huatu.ztk.paper.bean.PracticeCard;
 import com.huatu.ztk.paper.common.AnswerCardType;
-import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.influxdb.InfluxDB;
@@ -31,13 +30,13 @@ import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoField;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -205,8 +204,8 @@ public class CreateRoomTask {
                         while (setOperations.size(roomUsersKey) < ArenaConfig.getConfig().getRoomCapacity() && System.currentTimeMillis() - start < ArenaConfig.getConfig().getWaitTime() * 1000 - 2000) {
                             final String userId = setOperations.pop(arenaUsersKey);
                             final Long size = setOperations.size(roomUsersKey);
-                            if (StringUtils.isBlank(userId)) {
-                                //如果是已经有玩家,则添加逻辑
+                            if (StringUtils.isBlank(userId)) {//当前没有新玩家
+                                //如果房间内已经有玩家，则试着添加机器人
                                 if (size > 0) {
                                     if (isAddRobot(size,start)) {
                                         final String robotsKey = RedisArenaKeys.getRobotsKey();
@@ -234,20 +233,17 @@ public class CreateRoomTask {
 
                         final Long finalSize = setOperations.size(roomUsersKey);
 
-                        if (finalSize == 0) {//没有玩家，则继续请求,当一个用户等待过程跑了，会出现此情况
-                            continue;
-                        } else if (finalSize < MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
+                        if (finalSize < MIN_COUNT_PALYER_OF_ROOM) {//没有达到最小玩家人数
                             final Set<String> users = setOperations.members(roomUsersKey);
                             logger.info("playerIds wait time out. users={}", users);
-                            redisTemplate.delete(roomUsersKey);//清除用户数据
-                            for (String user : users) {
-                                final String userRoomKey = RedisArenaKeys.getUserRoomKey(Long.valueOf(user));
+                            redisTemplate.delete(roomUsersKey);//清除房间用户数据
+                            if (users.size() > 0) {
                                 //清除用户占用的房间
-                                redisTemplate.delete(userRoomKey);
-                                if (robots.contains(user)) {//该用户是机器人
-                                    //添加到机器人列表
-                                    setOperations.add(arenaUsersKey,user);
-                                }
+                                redisTemplate.delete(users.stream().map(uid->RedisArenaKeys.getUserRoomKey(Long.valueOf(uid))).collect(Collectors.toList()));
+                            }
+
+                            if (robots.size()>0) {//将机器人放回到池子中
+                                setOperations.add(arenaUsersKey,robots.stream().map(id->id.toString()).toArray(String[]::new));
                             }
                             continue;
                         }
