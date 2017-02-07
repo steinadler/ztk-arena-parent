@@ -9,6 +9,9 @@
                     <pattern>%d{MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
                 </encoder>
             </appender>
+            <root level="INFO">
+                <appender-ref ref="TARGET"/>
+            </root>
         </then>
         <else>
             <appender name="TARGET" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -21,9 +24,26 @@
                     <pattern>%d{MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
                 </encoder>
             </appender>
+            <appender name="AMQP" class="org.springframework.amqp.rabbit.logback.AmqpAppender">
+                <layout>
+                    <pattern>%d{MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+                </layout>
+                <applicationId>${server_name}.${server_ip}</applicationId>
+                <exchangeName>server_logs</exchangeName>
+                <addresses>192.168.100.30:5672,192.168.100.31:5672</addresses>
+                <username>guest</username>
+                <password>guest</password>
+                <routingKeyPattern>%property{applicationId}</routingKeyPattern>
+                <declareExchange>true</declareExchange>
+                <charset>UTF-8</charset>
+                <durable>false</durable>
+                <deliveryMode>NON_PERSISTENT</deliveryMode>
+            </appender>
+            <root level="INFO">
+                <appender-ref ref="TARGET"/>
+                <appender-ref ref="AMQP" />
+            </root>
         </else>
     </if>
-    <root level="INFO">
-        <appender-ref ref="TARGET"/>
-    </root>
+
 </configuration>
