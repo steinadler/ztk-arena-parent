@@ -1,12 +1,11 @@
 package com.huatu.ztk.arena.controller;
 
+import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaRoom;
 import com.huatu.ztk.arena.bean.ArenaRoomSimple;
-import com.huatu.ztk.arena.bean.ArenaConfig;
 import com.huatu.ztk.arena.bean.ArenaUserSummary;
 import com.huatu.ztk.arena.dubbo.ArenaUserSummaryDubboService;
 import com.huatu.ztk.arena.service.ArenaRoomService;
-import com.huatu.ztk.commons.JsonUtil;
 import com.huatu.ztk.commons.PageBean;
 import com.huatu.ztk.commons.exception.BizException;
 import com.huatu.ztk.commons.exception.CommonErrors;
@@ -54,8 +53,6 @@ public class ArenaControllerV1 {
         //用户id
         long uid = userSessionService.getUid(token);
         PageBean<ArenaRoomSimple> pageBean = arenaRoomService.history(uid, cursor, 20);
-
-        logger.info("history list:uid={},token={},cursor={},result json={}", uid, token, cursor, JsonUtil.toJson(pageBean));
         return pageBean;
     }
 
@@ -76,7 +73,6 @@ public class ArenaControllerV1 {
                 throw new BizException(CommonErrors.PERMISSION_DENIED);
             }
         }
-        logger.info("history detail:uid={},token={},arenaId={},result json={}", uid, token, arenaId, JsonUtil.toJson(arenaRoom));
         return arenaRoom;
     }
 
