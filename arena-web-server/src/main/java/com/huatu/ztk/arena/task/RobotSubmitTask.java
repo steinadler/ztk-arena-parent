@@ -168,7 +168,7 @@ public class RobotSubmitTask {
 
                     answer1.setTime(time);
                     answer1.setCorrect(correct);
-                    answer1.setAnswer(answer);
+                    answer1.setAnswer(answer + "");
                     try {
                         //sleep 一段时间,表示做题时间
                         TimeUnit.SECONDS.sleep(time);
