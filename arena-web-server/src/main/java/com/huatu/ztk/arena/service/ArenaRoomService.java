@@ -64,6 +64,9 @@ public class ArenaRoomService {
     @Autowired
     private ArenaDubboService arenaDubboService;
 
+    @Autowired
+    private ArenaRewardService arenaRewardService;
+
     /**
      * 随机创建一个房间
      *
@@ -275,6 +278,9 @@ public class ArenaRoomService {
         data.put("arenaId", arenaRoom.getId());
         //发送竞技场关闭通知
         rabbitTemplate.convertAndSend("close_arena_exchange", "", data);
+
+        //发送加积分
+        arenaRewardService.sendArenaWinMsg(winner.getUid());
 
     }
 

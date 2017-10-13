@@ -57,6 +57,8 @@
         <rabbit:listener queue-names="submit_answers_queue_arena" ref="submitAnswersListener"/>
         <rabbit:listener queue-names="close_arena_queue_summary" ref="closeArenaListener"/>
     </rabbit:listener-container>
-    
-    
+
+    <rabbit:queue id="reward_action_queue" durable="true" auto-declare="true" name="reward_action_queue"/>
+
+
 </beans>
