@@ -1,9 +1,9 @@
 package com.huatu.ztk.arena.service;
 
 import com.huatu.ztk.commons.JsonUtil;
-import com.huatu.ztk.paper.common.PaperRewardRedisKeys;
 import com.huatu.ztk.user.bean.RewardMessage;
 import com.huatu.ztk.user.bean.UserDto;
+import com.huatu.ztk.user.common.UserRedisKeys;
 import com.huatu.ztk.user.dubbo.UserDubboService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,7 @@ public class ArenaRewardService {
      * @param userId
      */
     public void sendArenaWinMsg(long userId) {
-        String key = PaperRewardRedisKeys.getDayHashKey(userId);
+        String key = UserRedisKeys.getDayHashKey(userId);
         String hashKey = "arena_win";
         UserDto userDto = userDubboService.findById(userId);
 
