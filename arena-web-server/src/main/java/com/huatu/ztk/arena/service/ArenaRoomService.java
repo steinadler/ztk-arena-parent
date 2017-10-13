@@ -280,7 +280,7 @@ public class ArenaRoomService {
         rabbitTemplate.convertAndSend("close_arena_exchange", "", data);
 
         //发送加积分
-        arenaRewardService.sendArenaWinMsg(winner.getUid());
+        arenaRewardService.sendArenaWinMsg(winner.getUid(), arenaRoom.getId());
 
     }
 

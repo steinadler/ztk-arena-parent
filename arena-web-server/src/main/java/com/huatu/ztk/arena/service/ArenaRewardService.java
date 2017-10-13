@@ -26,11 +26,6 @@ public class ArenaRewardService {
 
     private static final Logger logger = LoggerFactory.getLogger(ArenaRewardService.class);
 
-    /**
-     * redis hash value
-     */
-    public static final String VALUE_MARK = "mark";
-
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
@@ -40,14 +35,15 @@ public class ArenaRewardService {
     @Autowired
     private UserDubboService userDubboService;
 
+    private static final int SEND_LIMIT = 1;
+
     /**
      * 竞技场胜利消息
      *
      * @param userId
      */
-    public void sendArenaWinMsg(long userId) {
+    public void sendArenaWinMsg(long userId, long roomId) {
         String key = UserRedisKeys.getDayHashKey(userId);
-        String hashKey = "arena_win";
         UserDto userDto = userDubboService.findById(userId);
 
         if (userDto == null) {
@@ -56,26 +52,27 @@ public class ArenaRewardService {
 
         RewardMessage msg = RewardMessage.builder()
                 .action(ACTION_ARENA_WIN)
-                .bizId(userId + "_" + hashKey)
+                .bizId(userId + "_" + roomId)
                 .uid(userId)
                 .uname(userDto.getName())
+                .timestamp((int) System.currentTimeMillis() / 1000)
                 .build();
-        sendMsg(key, hashKey, 1, TimeUnit.DAYS, msg);
+        sendMsg(key, ACTION_ARENA_WIN, 1, TimeUnit.DAYS, msg);
     }
 
 
     private void sendMsg(String key, String hashKey, final long timeout, final TimeUnit unit, RewardMessage msg) {
         HashOperations<String, Object, Object> opsForHash = redisTemplate.opsForHash();
 
-        if (opsForHash.get(key, hashKey) != null) {
+        if (String.valueOf(SEND_LIMIT).equals(opsForHash.get(key, hashKey))) {
             return;
         }
 
         if (redisTemplate.hasKey(key)) {
-            opsForHash.put(key, hashKey, VALUE_MARK);
+            opsForHash.increment(key, hashKey, 1);
             redisTemplate.expire(key, timeout, unit);
         } else {
-            opsForHash.put(key, hashKey, VALUE_MARK);
+            opsForHash.increment(key, hashKey, 1);
         }
         rabbitTemplate.convertAndSend("", MQ_NAME, msg);
 
