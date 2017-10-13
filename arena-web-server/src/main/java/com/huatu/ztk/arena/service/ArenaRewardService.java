@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.huatu.ztk.commons.RewardConstants.*;
+
 /**
  * Created by linkang on 2017/10/13 上午10:56
  */
@@ -23,11 +25,6 @@ import java.util.concurrent.TimeUnit;
 public class ArenaRewardService {
 
     private static final Logger logger = LoggerFactory.getLogger(ArenaRewardService.class);
-
-    /**
-     * 积分处理的队列名称
-     */
-    public static final String MQ_NAME = "reward_action_queue";
 
     /**
      * redis hash value
@@ -42,9 +39,6 @@ public class ArenaRewardService {
 
     @Autowired
     private UserDubboService userDubboService;
-
-    public static final String ACTION_ARENA_WIN = "ARENA_WIN";
-
 
     /**
      * 竞技场胜利消息
