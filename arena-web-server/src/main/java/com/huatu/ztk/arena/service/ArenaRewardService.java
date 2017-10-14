@@ -55,7 +55,7 @@ public class ArenaRewardService {
                 .bizId(userId + "_" + roomId)
                 .uid(userId)
                 .uname(userDto.getName())
-                .timestamp((int) System.currentTimeMillis() / 1000)
+                .timestamp(System.currentTimeMillis())
                 .build();
         sendMsg(key, ACTION_ARENA_WIN, 1, TimeUnit.DAYS, msg);
     }
