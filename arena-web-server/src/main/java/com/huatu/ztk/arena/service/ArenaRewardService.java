@@ -43,7 +43,7 @@ public class ArenaRewardService {
      * @param userId
      */
     public void sendArenaWinMsg(long userId, long roomId) {
-        String key = UserRedisKeys.getDayHashKey(userId);
+        String key = UserRedisKeys.getDayRewardKey(userId);
         UserDto userDto = userDubboService.findById(userId);
 
         if (userDto == null) {
@@ -68,12 +68,13 @@ public class ArenaRewardService {
             return;
         }
 
-        if (redisTemplate.hasKey(key)) {
-            opsForHash.increment(key, hashKey, 1);
+        boolean exists = redisTemplate.hasKey(key);
+        opsForHash.increment(key, hashKey, 1);
+
+        if (!exists) {
             redisTemplate.expire(key, timeout, unit);
-        } else {
-            opsForHash.increment(key, hashKey, 1);
         }
+
         rabbitTemplate.convertAndSend("", MQ_NAME, msg);
 
         logger.info("send msg={}", JsonUtil.toJson(msg));
