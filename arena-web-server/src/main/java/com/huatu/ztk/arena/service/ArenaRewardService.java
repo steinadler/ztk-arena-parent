@@ -46,7 +46,7 @@ public class ArenaRewardService {
         String key = UserRedisKeys.getDayRewardKey(userId);
         UserDto userDto = userDubboService.findById(userId);
 
-        if (userDto == null) {
+        if (userDto == null || userDto.isRobot()) {
             return;
         }
 
