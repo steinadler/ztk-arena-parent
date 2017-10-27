@@ -15,17 +15,14 @@
         <dependency>
             <groupId>com.huatu.ztk</groupId>
             <artifactId>logging</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.huatu.ztk</groupId>
             <artifactId>server-register</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <artifactId>arena-dubbo-api</artifactId>
             <groupId>com.huatu.ztk</groupId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.huatu.ztk</groupId>
@@ -47,7 +44,6 @@
         <dependency>
             <groupId>com.huatu.ztk</groupId>
             <artifactId>json-tools</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -115,7 +111,6 @@
         <dependency>
             <groupId>com.huatu.ztk</groupId>
             <artifactId>user-dubbo-api</artifactId>
-            <version>1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <artifactId>paper-dubbo-api</artifactId>
