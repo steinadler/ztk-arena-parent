@@ -1,11 +1,11 @@
 package com.huatu.ztk.arena.bean;
 
-import com.huatu.ztk.commons.ModuleConstants;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +19,8 @@ import java.util.List;
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 @Builder
-public class ArenaConfig {
+public class ArenaConfig implements Serializable{
+    private static final long serialVersionUID = 1L;
     private int waitTime;//等待时间,单位:秒
     private int roomCapacity;//房间最大人数
     private int gameLimitTime;//比赛限时,单位:秒

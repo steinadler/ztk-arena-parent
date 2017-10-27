@@ -8,9 +8,9 @@
     <dubbo:registry protocol="zookeeper" address="${zookeeper.address}" client="curator"/>
 
     <!--使用multicast广播注册中心暴露服务地址 -->
-    <dubbo:protocol name="dubbo" port="-1" serialization="kryo"/>
+    <dubbo:protocol name="dubbo" port="-1" />
     
-    <dubbo:reference version="1.0" id="arenaDubboService" interface="com.huatu.ztk.arena.dubbo.ArenaDubboService"/>
-    <dubbo:reference version="1.1" id="userDubboService" interface="com.huatu.ztk.user.dubbo.UserDubboService"/>
-    <dubbo:reference version="1.0" id="arenaPlayerDubboService" interface="com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService"/>
+    <dubbo:reference version="2.0" id="arenaDubboService" interface="com.huatu.ztk.arena.dubbo.ArenaDubboService"/>
+    <dubbo:reference version="2.1" id="userDubboService" interface="com.huatu.ztk.user.dubbo.UserDubboService"/>
+    <dubbo:reference version="2.0" id="arenaPlayerDubboService" interface="com.huatu.ztk.arena.dubbo.ArenaPlayerDubboService"/>
 </beans>

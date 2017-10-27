@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 
+import java.io.Serializable;
+
 /**
  * 用户竞技记录
  * Created by shaojieyue
@@ -18,7 +20,8 @@ import org.springframework.data.annotation.Transient;
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 @Builder
-public class UserArenaRecord {
+public class UserArenaRecord implements Serializable{
+    private static final long serialVersionUID = 1L;
     @Id//用户id作为id
     private long uid;//用户id
     @Transient

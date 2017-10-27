@@ -1,10 +1,11 @@
 package com.huatu.ztk.arena.bean;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+
+import java.io.Serializable;
 
 /**
  * 房间核心属性
@@ -14,7 +15,8 @@ import org.springframework.data.annotation.Id;
 @Data
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class ArenaRoomSimple {
+public class ArenaRoomSimple implements Serializable{
+    private static final long serialVersionUID = 1L;
     @Id
     long id;//房间号
     private int type;//房间类型

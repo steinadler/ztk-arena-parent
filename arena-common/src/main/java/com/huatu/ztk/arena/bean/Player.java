@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * 玩家实体
  * Created by shaojieyue
@@ -14,7 +16,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 @Builder
-public class Player {
+public class Player implements Serializable{
+    private static final long serialVersionUID = 1L;
+
     private long uid;//用户id
     private String nick;//昵称
     private String avatar;//头像地址
